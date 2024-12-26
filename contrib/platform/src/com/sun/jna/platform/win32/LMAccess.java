@@ -1,23 +1,23 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -27,7 +27,6 @@ import java.util.List;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.platform.win32.WinNT.PSID;
 import com.sun.jna.win32.W32APITypeMapper;
 
@@ -38,8 +37,9 @@ import com.sun.jna.win32.W32APITypeMapper;
  */
 public interface LMAccess {
 
-    @FieldOrder({"lgrui0_name"})
     public static class LOCALGROUP_INFO_0 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("lgrui0_name");
+
         public String lgrui0_name;
 
         public LOCALGROUP_INFO_0() {
@@ -50,10 +50,16 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
-    @FieldOrder({"lgrui1_name", "lgrui1_comment"})
     public static class LOCALGROUP_INFO_1 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("lgrui1_name", "lgrui1_comment");
+
         public String lgrui1_name;
         public String lgrui1_comment;
 
@@ -64,6 +70,11 @@ public interface LMAccess {
         public LOCALGROUP_INFO_1(Pointer memory) {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 
@@ -81,8 +92,8 @@ public interface LMAccess {
     /**
      * The USER_INFO_0 structure contains a user account name.
      */
-    @FieldOrder({"usri0_name"})
     public static class USER_INFO_0 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("usri0_name");
         /**
          * Pointer to a Unicode string that specifies the name of the user account.
          */
@@ -96,6 +107,11 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
@@ -103,9 +119,11 @@ public interface LMAccess {
      * account name, password data, privilege level, and the path to the user's home
      * directory.
      */
-    @FieldOrder({"usri1_name", "usri1_password", "usri1_password_age", "usri1_priv",
-                "usri1_home_dir", "usri1_comment", "usri1_flags", "usri1_script_path"})
     public static class USER_INFO_1 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "usri1_name", "usri1_password", "usri1_password_age", "usri1_priv",
+                "usri1_home_dir", "usri1_comment", "usri1_flags", "usri1_script_path");
+
         /**
          * Pointer to a Unicode string that specifies the name of the user
          * account.
@@ -154,6 +172,11 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
@@ -165,8 +188,10 @@ public interface LMAccess {
      * The USER_INFO_23 structure supersedes the USER_INFO_20 structure.
      * It is recommended that applications use the USER_INFO_23 structure instead of the USER_INFO_20 structure.
      */
-    @FieldOrder({"usri23_name", "usri23_full_name", "usri23_comment", "usri23_flags", "usri23_user_sid"})
     public static class USER_INFO_23 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "usri23_name", "usri23_full_name", "usri23_comment", "usri23_flags", "usri23_user_sid");
+
         /**
          * A pointer to a Unicode string that specifies the name of the user account.
          * Calls to the NetUserSetInfo function ignore this member.
@@ -226,13 +251,18 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The GROUP_USERS_INFO_0 structure contains global group member information.
      */
-    @FieldOrder({"grui0_name"})
     public static class GROUP_USERS_INFO_0 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("grui0_name");
         /**
          * Pointer to a null-terminated Unicode character string that specifies a name.
          */
@@ -246,13 +276,18 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The LOCALGROUP_USERS_INFO_0 structure contains local group member information.
      */
-    @FieldOrder({"lgrui0_name"})
     public static class LOCALGROUP_USERS_INFO_0 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("lgrui0_name");
         /**
          * Pointer to a Unicode string specifying the name of a local group to which the user belongs.
          */
@@ -266,6 +301,11 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
@@ -273,8 +313,9 @@ public interface LMAccess {
      * database, which is the security accounts manager (SAM) database or, in the case
      * of domain controllers, the Active Directory.
      */
-    @FieldOrder({"grpi0_name"})
     public static class GROUP_INFO_0  extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("grpi0_name");
+
         /**
          * Pointer to a null-terminated Unicode character string that specifies
          * the name of the global group.
@@ -289,14 +330,20 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The GROUP_INFO_1 structure contains a global group name and a comment to
      * associate with the group.
      */
-    @FieldOrder({"grpi1_name", "grpi1_comment"})
     public static class GROUP_INFO_1 extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("grpi1_name", "grpi1_comment");
+
         /**
          * Pointer to a null-terminated Unicode character string that specifies
          * the name of the global group.
@@ -317,14 +364,21 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The GROUP_INFO_2 structure contains information about a global group, including
      * name, identifier, and resource attributes.
      */
-    @FieldOrder({"grpi2_name", "grpi2_comment", "grpi2_group_id", "grpi2_attributes"})
     public static class GROUP_INFO_2  extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "grpi2_name", "grpi2_comment", "grpi2_group_id", "grpi2_attributes");
+
         /**
          * Pointer to a null-terminated Unicode character string that
          * specifies the name of the global group.
@@ -355,14 +409,21 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The GROUP_INFO_3 structure contains information about a global group, including
      * name, security identifier (SID), and resource attributes.
      */
-    @FieldOrder({"grpi3_name", "grpi3_comment", "grpi3_group_sid", "grpi3_attributes"})
     public static class GROUP_INFO_3  extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "grpi3_name", "grpi3_comment", "grpi3_group_sid", "grpi3_attributes");
+
         /**
          * Pointer to a null-terminated Unicode character string that
          * specifies the name of the global group.
@@ -393,6 +454,11 @@ public interface LMAccess {
             super(memory, Structure.ALIGN_DEFAULT, W32APITypeMapper.UNICODE);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     //
@@ -410,14 +476,14 @@ public interface LMAccess {
     //  acl_access field of access_list structures.
     //
 
-    int ACCESS_NONE = 0x00;
-    int ACCESS_READ = 0x01;
-    int ACCESS_WRITE = 0x02;
-    int ACCESS_CREATE = 0x04;
-    int ACCESS_EXEC = 0x08;
-    int ACCESS_DELETE = 0x10;
-    int ACCESS_ATRIB = 0x20;
-    int ACCESS_PERM = 0x40;
-    int ACCESS_ALL = ACCESS_READ | ACCESS_WRITE | ACCESS_CREATE | ACCESS_EXEC | ACCESS_DELETE | ACCESS_ATRIB | ACCESS_PERM;
-    int ACCESS_GROUP = 0x8000;
+    int ACCESS_NONE		= 0x00;
+    int ACCESS_READ		= 0x01;
+    int ACCESS_WRITE	= 0x02;
+    int ACCESS_CREATE	= 0x04;
+    int ACCESS_EXEC		= 0x08;
+    int ACCESS_DELETE	= 0x10;
+    int ACCESS_ATRIB	= 0x20;
+    int ACCESS_PERM		= 0x40;
+    int ACCESS_ALL		= ACCESS_READ | ACCESS_WRITE | ACCESS_CREATE | ACCESS_EXEC | ACCESS_DELETE | ACCESS_ATRIB | ACCESS_PERM;
+    int ACCESS_GROUP	= 0x8000;
 }

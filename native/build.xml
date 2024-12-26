@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="compile-native" default="install"
-         xmlns:if="ant:if"
-         xmlns:unless="ant:unless">
+<project name="compile-native" default="install">
     <dirname property="module.root.folder" file="${ant.file}"/>
     <dirname property="workspace.root.folder" file="${module.root.folder}"/>
     <property name="jna.parent.folder" value="${workspace.root.folder}${file.separator}parent"/>
@@ -17,14 +15,12 @@
     <condition property="os.prefix" value="win32-${jre.arch}">
         <os family="windows"/>
     </condition>
-    <condition property="os.prefix" value="darwin-${jre.arch}">
+    <!-- Darwin builds are universal, no arch required -->
+    <condition property="os.prefix" value="darwin">
         <os family="mac"/>
     </condition>
     <condition property="os.prefix" value="sunos-${jre.arch}">
         <os name="SunOS"/>
-    </condition>
-    <condition property="os.prefix" value="dragonflybsd-${jre.arch}">
-        <os name="DragonFlyBSD"/>
     </condition>
     <condition property="os.prefix" value="freebsd-${jre.arch}">
         <os name="FreeBSD"/>
@@ -42,9 +38,6 @@
           message="OS/arch not supported (${os.name}/${jre.arch}), edit build.xml and native/Makefile to add it."/>
     <!-- Keep all natives separate -->
     <property name="native.subdir" value="native-${os.prefix}"/>
-    <condition property="darwin.build" value="true">
-        <matches string="${os.prefix}" pattern="^darwin-"/>
-    </condition>
 
     <!-- ################# figure out the compatibility version ################## -->
     <!-- Set up restrictions for w32ce, based on JavaME/CDC -->
@@ -243,25 +236,25 @@
             <equals arg1="${os.prefix}" arg2="android-armv7"/>
         </condition>
         <condition property="ARCH" value="aarch64">
-            <matches string="${os.prefix}" pattern="-aarch64$"/>
-        </condition>
-        <condition property="ARCH" value="x86-64">
-            <matches string="${os.prefix}" pattern="-x86-64$"/>
-        </condition>
-        <condition property="ARCH" value="ppc">
-            <matches string="${os.prefix}" pattern="-ppc$"/>
-        </condition>
-        <condition property="ARCH" value="ppc64">
-            <matches string="${os.prefix}" pattern="-ppc64$"/>
+            <equals arg1="${os.prefix}" arg2="android-aarch64"/>
         </condition>
         <condition property="ARCH" value="x86">
-            <matches string="${os.prefix}" pattern="-x86$"/>
+            <equals arg1="${os.prefix}" arg2="android-x86"/>
+        </condition>
+        <condition property="ARCH" value="x86-64">
+            <equals arg1="${os.prefix}" arg2="android-x86-64"/>
         </condition>
         <condition property="ARCH" value="mips">
             <equals arg1="${os.prefix}" arg2="android-mips"/>
         </condition>
         <condition property="ARCH" value="mips64">
             <equals arg1="${os.prefix}" arg2="android-mips64"/>
+        </condition>
+        <condition property="ARCH" value="ppc">
+            <equals arg1="${os.prefix}" arg2="aix-ppc"/>
+        </condition>
+        <condition property="ARCH" value="ppc64">
+            <equals arg1="${os.prefix}" arg2="aix-ppc64"/>
         </condition>
         <!-- ensure ARCH is set properly for 64-bit capable platforms -->
         <!-- use ANT_OPTS=-d64/-d32 to build 64-bit/32-bit if not the platform default -->
@@ -286,42 +279,44 @@
         <condition property="make.SDKROOT" value="SDKROOT=${SDKROOT}">
             <isset property="SDKROOT"/>
         </condition>
-        <!-- If not manually provided, detect the SDKROOT in various locations:
-            - Modern build environments ("MacOSX.sdk", no version):
-            /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-
-            - macOS 10.8 and older:
-            /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX(version).sdk
-
-            - Prior versions:
-            /Developer/SDKs/MacOSX(version).sdk
-        -->
-        <condition property="make.SDKROOT" value="SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk">
+        <property name="xcode" value="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform"/>
+        <condition property="make.SDKROOT" value="SDKROOT=${xcode}/Developer/SDKs/MacOSX10.11.sdk">
             <and>
-                <matches string="${os.prefix}" pattern="^darwin-"/>
-                <available file="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"/>
+                <equals arg1="${os.prefix}" arg2="darwin" trim="true"/>
+                <available file="${xcode}/Developer/SDKs/MacOSX10.11.sdk"/>
             </and>
         </condition>
-        <condition property="sdk-parent" value="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs">
+        <condition property="make.SDKROOT" value="SDKROOT=${xcode}/Developer/SDKs/MacOSX10.9.sdk">
             <and>
-                <matches string="${os.prefix}" pattern="^darwin-"/>
-                <available file="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs"/>
+                <equals arg1="${os.prefix}" arg2="darwin" trim="true"/>
+                <available file="${xcode}/Developer/SDKs/MacOSX10.9.sdk"/>
             </and>
         </condition>
-        <condition property="sdk-parent" value="/Developer/SDKs">
+        <condition property="make.SDKROOT" value="SDKROOT=${xcode}/Developer/SDKs/MacOSX10.8.sdk">
             <and>
-                <matches string="${os.prefix}" pattern="^darwin-"/>
-                <available file="/Developer/SDKs"/>
+                <equals arg1="${os.prefix}" arg2="darwin" trim="true"/>
+                <available file="${xcode}/Developer/SDKs/MacOSX10.8.sdk"/>
             </and>
         </condition>
-        <!-- Multiple SDKs is common; find the most recent (sort -V requires 10.12+) -->
-        <exec executable="sh" dir="${sdk-parent}" outputproperty="sdk-latest" if:set="darwin.build" unless:set="make.SDKROOT">
-            <arg value="-c"/>
-            <arg line="&quot;ls -d MacOSX10.*.sdk | sort -t &quot;.&quot; -k2 -n | tail -1&quot;"/>
-        </exec>
-        <condition property="make.SDKROOT" value="SDKROOT=${sdk-parent}/${sdk-latest}" else="IGNORE=">
-            <isset property="sdk-latest"/>
+        <condition property="make.SDKROOT" value="SDKROOT=/Developer/SDKs/MacOSX10.6.sdk">
+            <and>
+                <equals arg1="${os.prefix}" arg2="darwin" trim="true"/>
+                <available file="/Developer/SDKs/MacOSX10.6.sdk"/>
+            </and>
         </condition>
+        <condition property="make.SDKROOT" value="SDKROOT=/Developer/SDKs/MacOSX10.5.sdk">
+            <and>
+                <equals arg1="${os.prefix}" arg2="darwin" trim="true"/>
+                <available file="/Developer/SDKs/MacOSX10.5.sdk"/>
+            </and>
+        </condition>
+        <condition property="make.SDKROOT" value="SDKROOT=/Developer/SDKs/MacOSX10.4u.sdk" else="IGNORE=">
+            <and>
+                <equals arg1="${os.prefix}" arg2="darwin" trim="true"/>
+                <available file="/Developer/SDKs/MacOSX10.4u.sdk"/>
+            </and>
+        </condition>
+        <echo level="info" message="make.SDKROOT: ${make.SDKROOT}"/>
 
         <!-- Windows drive letters, separator and spaces in absolute paths wreak havoc on make -->
         <condition property="make.BUILD"
@@ -350,7 +345,6 @@
         </condition>
         <condition property="make" value="gmake">
             <or>
-                <os name="DragonFlyBSD"/>
                 <os name="FreeBSD"/>
                 <os name="OpenBSD"/>
                 <os name="NetBSD"/>

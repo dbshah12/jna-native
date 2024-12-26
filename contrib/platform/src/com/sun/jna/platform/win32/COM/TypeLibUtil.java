@@ -1,23 +1,23 @@
 /* Copyright (c) 2013 Tobias Wolf, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -25,6 +25,7 @@ package com.sun.jna.platform.win32.COM;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Guid.CLSID;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.OaIdl.MEMBERID;
@@ -47,7 +48,7 @@ import com.sun.jna.ptr.PointerByReference;
 // TODO: Auto-generated Javadoc
 /**
  * Wrapper class for the class ITypeLibUtil.
- *
+ * 
  * @author wolf.tobias@gmx.net The Class ITypeLibUtil.
  */
 public class TypeLibUtil {
@@ -75,7 +76,7 @@ public class TypeLibUtil {
 
     /**
      * Instantiates a new i type lib util.
-     *
+     * 
      * @param clsidStr
      *            the clsid str
      * @param wVerMajor
@@ -86,7 +87,8 @@ public class TypeLibUtil {
     public TypeLibUtil(String clsidStr, int wVerMajor, int wVerMinor) {
         CLSID.ByReference clsid = new CLSID.ByReference();
         // get CLSID from string
-        HRESULT hr = Ole32.INSTANCE.CLSIDFromString(clsidStr, clsid);
+        HRESULT hr = Ole32.INSTANCE.CLSIDFromString(new WString(clsidStr),
+                clsid);
         COMUtils.checkRC(hr);
 
         // load typelib
@@ -104,7 +106,7 @@ public class TypeLibUtil {
     public TypeLibUtil(String file) {
         // load typelib
         PointerByReference pTypeLib = new PointerByReference();
-        HRESULT hr = OleAuto.INSTANCE.LoadTypeLib(file, pTypeLib);
+        HRESULT hr = OleAuto.INSTANCE.LoadTypeLib(new WString(file), pTypeLib);
         COMUtils.checkRC(hr);
 
         // init type lib class
@@ -126,7 +128,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the type info count.
-     *
+     * 
      * @return the type info count
      */
     public int getTypeInfoCount() {
@@ -135,7 +137,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the type info type.
-     *
+     * 
      * @param index
      *            the index
      * @return the type info type
@@ -149,7 +151,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the type info.
-     *
+     * 
      * @param index
      *            the index
      * @return the type info
@@ -163,7 +165,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the type info util.
-     *
+     * 
      * @param index
      *            the index
      * @return the type info util
@@ -174,7 +176,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the lib attr.
-     *
+     * 
      * @return the lib attr
      */
     public TLIBATTR getLibAttr() {
@@ -187,7 +189,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the type comp.
-     *
+     * 
      * @return the i type comp. by reference
      */
     public TypeComp GetTypeComp() {
@@ -200,7 +202,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the documentation.
-     *
+     * 
      * @param index
      *            the index
      * @return the documentation
@@ -228,7 +230,7 @@ public class TypeLibUtil {
 
     /**
      * The Class TypeLibDoc.
-     *
+     * 
      * @author wolf.tobias@gmx.net The Class TypeLibDoc.
      */
     public static class TypeLibDoc {
@@ -247,7 +249,7 @@ public class TypeLibUtil {
 
         /**
          * Instantiates a new type lib doc.
-         *
+         * 
          * @param name
          *            the name
          * @param docString
@@ -267,7 +269,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the name.
-         *
+         * 
          * @return the name
          */
         public String getName() {
@@ -276,7 +278,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the doc string.
-         *
+         * 
          * @return the doc string
          */
         public String getDocString() {
@@ -285,7 +287,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the help context.
-         *
+         * 
          * @return the help context
          */
         public int getHelpContext() {
@@ -294,7 +296,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the help file.
-         *
+         * 
          * @return the help file
          */
         public String getHelpFile() {
@@ -304,7 +306,7 @@ public class TypeLibUtil {
 
     /**
      * Checks if is name.
-     *
+     * 
      * @param nameBuf
      *            the name buf
      * @param hashVal
@@ -326,7 +328,7 @@ public class TypeLibUtil {
 
     /**
      * The Class IsName.
-     *
+     * 
      * @author wolf.tobias@gmx.net The Class IsName.
      */
     public static class IsName {
@@ -339,7 +341,7 @@ public class TypeLibUtil {
 
         /**
          * Instantiates a new checks if is name.
-         *
+         * 
          * @param nameBuf
          *            the name buf
          * @param name
@@ -352,7 +354,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the name buf.
-         *
+         * 
          * @return the name buf
          */
         public String getNameBuf() {
@@ -361,7 +363,7 @@ public class TypeLibUtil {
 
         /**
          * Checks if is name.
-         *
+         * 
          * @return true, if is name
          */
         public boolean isName() {
@@ -371,7 +373,7 @@ public class TypeLibUtil {
 
     /**
      * Find name.
-     *
+     * 
      * @param name
      *            the name
      * @param hashVal
@@ -396,7 +398,7 @@ public class TypeLibUtil {
 
         FindName findName = new FindName(olestr.getValue(), ppTInfo,
                 rgMemId, pcFound.getValue().shortValue());
-
+        
         Ole32.INSTANCE.CoTaskMemFree(p);
 
         return findName;
@@ -404,7 +406,7 @@ public class TypeLibUtil {
 
     /**
      * The Class FindName.
-     *
+     * 
      * @author wolf.tobias@gmx.net The Class FindName.
      */
     public static class FindName {
@@ -443,7 +445,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the name buf.
-         *
+         * 
          * @return the name buf
          */
         public String getNameBuf() {
@@ -452,7 +454,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the t info.
-         *
+         * 
          * @return the t info
          */
         public ITypeInfo[] getTInfo() {
@@ -466,7 +468,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the mem id.
-         *
+         * 
          * @return the mem id
          */
         public MEMBERID[] getMemId() {
@@ -475,7 +477,7 @@ public class TypeLibUtil {
 
         /**
          * Gets the found.
-         *
+         * 
          * @return the found
          */
         public short getFound() {
@@ -485,7 +487,7 @@ public class TypeLibUtil {
 
     /**
      * Release t lib attr.
-     *
+     * 
      * @param pTLibAttr
      *            the t lib attr
      */
@@ -495,7 +497,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the lcid.
-     *
+     * 
      * @return the lcid
      */
     public LCID getLcid() {
@@ -504,7 +506,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the typelib.
-     *
+     * 
      * @return the typelib
      */
     public ITypeLib getTypelib() {
@@ -513,7 +515,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the name.
-     *
+     * 
      * @return the name
      */
     public String getName() {
@@ -522,7 +524,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the doc string.
-     *
+     * 
      * @return the doc string
      */
     public String getDocString() {
@@ -531,7 +533,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the help context.
-     *
+     * 
      * @return the help context
      */
     public int getHelpContext() {
@@ -540,7 +542,7 @@ public class TypeLibUtil {
 
     /**
      * Gets the help file.
-     *
+     * 
      * @return the help file
      */
     public String getHelpFile() {

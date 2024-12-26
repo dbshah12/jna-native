@@ -29,9 +29,7 @@
 #include <ffi.h>
 #include <ffi_common.h>
 
-#include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #ifdef __GNUC__
 #  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))
@@ -40,9 +38,7 @@
 #endif
 
 #ifndef USE__BUILTIN___CLEAR_CACHE
-#  if defined(__FreeBSD__)
-#    include <machine/sysarch.h>
-#  elif defined(__OpenBSD__)
+#  if defined(__OpenBSD__)
 #    include <mips64/sysarch.h>
 #  else
 #    include <sys/cachectl.h>
@@ -78,39 +74,22 @@ static void ffi_prep_args(char *stack,
 {
   int i;
   void **p_argv;
-  char *argp, *argp_f;
+  char *argp;
   ffi_type **p_arg;
 
-  memset(stack, 0, bytes);
-
 #ifdef FFI_MIPS_N32
-  int soft_float = (ecif->cif->abi == FFI_N32_SOFT_FLOAT
-		    || ecif->cif->abi == FFI_N64_SOFT_FLOAT);
   /* If more than 8 double words are used, the remainder go
      on the stack. We reorder stuff on the stack here to 
      support this easily. */
-  /* if ret is _Complex long double, args reg shift2, and a0 should holds pointer to rvalue */
-  if (ecif->cif->rtype->type == FFI_TYPE_COMPLEX && ecif->cif->rtype->elements[0]->type == FFI_TYPE_LONGDOUBLE)
-    {
-      if (bytes + 16 > 8 * sizeof(ffi_arg))
-        argp = &stack[bytes - (8 * sizeof(ffi_arg))];
-      else
-        argp = stack;
-      * (unsigned long *) argp = (unsigned long) ecif->rvalue;
-      argp += 16;
-    }
+  if (bytes > 8 * sizeof(ffi_arg))
+    argp = &stack[bytes - (8 * sizeof(ffi_arg))];
   else
-    {
-      if (bytes > 8 * sizeof(ffi_arg))
-        argp = &stack[bytes - (8 * sizeof(ffi_arg))];
-      else
-        argp = stack;
-    }
+    argp = stack;
 #else
   argp = stack;
 #endif
 
-  argp_f = argp;
+  memset(stack, 0, bytes);
 
 #ifdef FFI_MIPS_N32
   if ( ecif->cif->rstruct_flag != 0 )
@@ -137,7 +116,7 @@ static void ffi_prep_args(char *stack,
       
       if ((a - 1) & (unsigned long) argp)
 	{
-	  argp = (char *) FFI_ALIGN(argp, a);
+	  argp = (char *) ALIGN(argp, a);
 	  FIX_ARGP;
 	}
 
@@ -151,7 +130,7 @@ static void ffi_prep_args(char *stack,
           if (type == FFI_TYPE_POINTER)
             type = (ecif->cif->abi == FFI_N64
 		    || ecif->cif->abi == FFI_N64_SOFT_FLOAT)
-	      ? FFI_TYPE_SINT64 : FFI_TYPE_UINT32;
+	      ? FFI_TYPE_SINT64 : FFI_TYPE_SINT32;
 
 	if (i < 8 && (ecif->cif->abi == FFI_N32_SOFT_FLOAT
 		      || ecif->cif->abi == FFI_N64_SOFT_FLOAT))
@@ -201,25 +180,6 @@ static void ffi_prep_args(char *stack,
 #endif
 		break;
 
-#ifdef FFI_MIPS_N32
-	      case FFI_TYPE_COMPLEX:
-		/* expand from 4+4 to 8+8 if pass with fpr reg */
-		/* argp will wind back to stack when we process all of reg args */
-		/* all var_args passed with gpr, should be expand */
-	        if(!soft_float
-		    && (*p_arg)->elements[0]->type == FFI_TYPE_FLOAT
-		    && argp>=argp_f
-		    && i < ecif->cif->mips_nfixedargs)
-		  {
-		    *(float *) argp = *(float *)(* p_argv);
-		    argp += z;
-		    char *tmp = (void *) (*p_argv);
-		    *(float *) argp = *(float *)(tmp+4);
-		  }
-		else
-		  memcpy(argp, *p_argv, (*p_arg)->size);
-		break;
-#endif
 	      /* This can only happen with 64bit slots.  */
 	      case FFI_TYPE_FLOAT:
 		*(float *) argp = *(float *)(* p_argv);
@@ -272,24 +232,6 @@ static void ffi_prep_args(char *stack,
    passed in an integer register". This code traverses structure
    definitions and generates the appropriate flags. */
 
-static int
-calc_n32_struct_flags_element(unsigned *flags, ffi_type *e,
-			      unsigned *loc, unsigned *arg_reg)
-{
-  /* Align this object.  */
-  *loc = FFI_ALIGN(*loc, e->alignment);
-  if (e->type == FFI_TYPE_DOUBLE)
-    {
-      /* Already aligned to FFI_SIZEOF_ARG.  */
-      *arg_reg = *loc / FFI_SIZEOF_ARG;
-      if (*arg_reg > 7)
-	return 1;
-      *flags += (FFI_TYPE_DOUBLE << (*arg_reg * FFI_FLAG_BITS));
-    }
-  *loc += e->size;
-  return 0;
-}
-
 static unsigned
 calc_n32_struct_flags(int soft_float, ffi_type *arg,
 		      unsigned *loc, unsigned *arg_reg)
@@ -304,20 +246,23 @@ calc_n32_struct_flags(int soft_float, ffi_type *arg,
 
   while ((e = arg->elements[index]))
     {
-      if (e->type == FFI_TYPE_COMPLEX)
+      /* Align this object.  */
+      *loc = ALIGN(*loc, e->alignment);
+      if (e->type == FFI_TYPE_DOUBLE)
 	{
-	  if (calc_n32_struct_flags_element(&flags, e->elements[0], loc, arg_reg))
-	    break;
-	  if (calc_n32_struct_flags_element(&flags, e->elements[0], loc, arg_reg))
-	    break;
+          /* Already aligned to FFI_SIZEOF_ARG.  */
+          *arg_reg = *loc / FFI_SIZEOF_ARG;
+          if (*arg_reg > 7)
+            break;
+	  flags += (FFI_TYPE_DOUBLE << (*arg_reg * FFI_FLAG_BITS));
+          *loc += e->size;
 	}
       else
-	if (calc_n32_struct_flags_element(&flags, e, loc, arg_reg))
-	  break;
+        *loc += e->size;
       index++;
     }
   /* Next Argument register at alignment of FFI_SIZEOF_ARG.  */
-  *arg_reg = FFI_ALIGN(*loc, FFI_SIZEOF_ARG) / FFI_SIZEOF_ARG;
+  *arg_reg = ALIGN(*loc, FFI_SIZEOF_ARG) / FFI_SIZEOF_ARG;
 
   return flags;
 }
@@ -325,7 +270,7 @@ calc_n32_struct_flags(int soft_float, ffi_type *arg,
 static unsigned
 calc_n32_return_struct_flags(int soft_float, ffi_type *arg)
 {
-  unsigned flags;
+  unsigned flags = 0;
   unsigned small = FFI_TYPE_SMALLSTRUCT;
   ffi_type *e;
 
@@ -344,67 +289,51 @@ calc_n32_return_struct_flags(int soft_float, ffi_type *arg)
 
   e = arg->elements[0];
 
-  if (e->type == FFI_TYPE_COMPLEX)
-    {
-      int type = e->elements[0]->type;
+  if (e->type == FFI_TYPE_DOUBLE)
+    flags = FFI_TYPE_DOUBLE;
+  else if (e->type == FFI_TYPE_FLOAT)
+    flags = FFI_TYPE_FLOAT;
 
-      if (type != FFI_TYPE_DOUBLE && type != FFI_TYPE_FLOAT)
+  if (flags && (e = arg->elements[1]))
+    {
+      if (e->type == FFI_TYPE_DOUBLE)
+	flags += FFI_TYPE_DOUBLE << FFI_FLAG_BITS;
+      else if (e->type == FFI_TYPE_FLOAT)
+	flags += FFI_TYPE_FLOAT << FFI_FLAG_BITS;
+      else 
 	return small;
 
-      if (arg->elements[1])
+      if (flags && (arg->elements[2]))
 	{
-	  /* Two floating point fields with more fields!
-	     This must be passed the old way. */
+	  /* There are three arguments and the first two are 
+	     floats! This must be passed the old way. */
 	  return small;
 	}
-
-      flags = (type << FFI_FLAG_BITS) + type;
+      if (soft_float)
+	flags += FFI_TYPE_STRUCT_SOFT;
     }
   else
-    {
-      if (e->type != FFI_TYPE_DOUBLE && e->type != FFI_TYPE_FLOAT)
-	return small;
+    if (!flags)
+      return small;
 
-      flags = e->type;
-
-      if (arg->elements[1])
-	{
-	  e = arg->elements[1];
-	  if (e->type != FFI_TYPE_DOUBLE && e->type != FFI_TYPE_FLOAT)
-	    return small;
-
-	  if (arg->elements[2])
-	    {
-	      /* There are three arguments and the first two are
-		 floats! This must be passed the old way. */
-	      return small;
-	    }
-
-	  flags += e->type << FFI_FLAG_BITS;
-	}
-    }
-
-  if (soft_float)
-    flags += FFI_TYPE_STRUCT_SOFT;
   return flags;
 }
 
 #endif
 
 /* Perform machine dependent cif processing */
-static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
+ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 {
   cif->flags = 0;
-  cif->mips_nfixedargs = nfixedargs;
 
 #ifdef FFI_MIPS_O32
   /* Set the flags necessary for O32 processing.  FFI_O32_SOFT_FLOAT
    * does not have special handling for floating point args.
    */
 
-  if (cif->rtype->type != FFI_TYPE_STRUCT && cif->rtype->type != FFI_TYPE_COMPLEX && cif->abi == FFI_O32)
+  if (cif->rtype->type != FFI_TYPE_STRUCT && cif->abi == FFI_O32)
     {
-      if (cif->nargs > 0 && cif->nargs == nfixedargs)
+      if (cif->nargs > 0)
 	{
 	  switch ((cif->arg_types)[0]->type)
 	    {
@@ -470,10 +399,7 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
         case FFI_TYPE_STRUCT:
         case FFI_TYPE_FLOAT:
         case FFI_TYPE_DOUBLE:
-        case FFI_TYPE_COMPLEX:
           cif->flags += cif->rtype->type << (FFI_FLAG_BITS * 2);
-	  if (cif->rtype->type == FFI_TYPE_COMPLEX)
-            cif->flags +=  ((*cif->rtype->elements[0]).type) << (FFI_FLAG_BITS * 4);
           break;
 
         case FFI_TYPE_SINT64:
@@ -491,6 +417,7 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
 #ifdef FFI_MIPS_N32
   /* Set the flags necessary for N32 processing */
   {
+    int type;
     unsigned arg_reg = 0;
     unsigned loc = 0;
     unsigned count = (cif->nargs < 8) ? cif->nargs : 8;
@@ -522,21 +449,34 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
 
     while (count-- > 0 && arg_reg < 8)
       {
-	ffi_type *t = cif->arg_types[index];
-
-	switch (t->type)
+	type = (cif->arg_types)[index]->type;
+	if (soft_float)
+	  {
+	    switch (type)
+	      {
+	      case FFI_TYPE_FLOAT:
+		type = FFI_TYPE_UINT32;
+		break;
+	      case FFI_TYPE_DOUBLE:
+		type = FFI_TYPE_UINT64;
+		break;
+	      default:
+		break;
+	      }
+	  }
+	switch (type)
 	  {
 	  case FFI_TYPE_FLOAT:
 	  case FFI_TYPE_DOUBLE:
-	    if (!soft_float && index < nfixedargs)
-              cif->flags += t->type << (arg_reg * FFI_FLAG_BITS);
+	    cif->flags +=
+              ((cif->arg_types)[index]->type << (arg_reg * FFI_FLAG_BITS));
 	    arg_reg++;
 	    break;
           case FFI_TYPE_LONGDOUBLE:
             /* Align it.  */
-            arg_reg = FFI_ALIGN(arg_reg, 2);
+            arg_reg = ALIGN(arg_reg, 2);
             /* Treat it as two adjacent doubles.  */
-	    if (soft_float || index >= nfixedargs)
+	    if (soft_float) 
 	      {
 		arg_reg += 2;
 	      }
@@ -545,71 +485,17 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
 		cif->flags +=
 		  (FFI_TYPE_DOUBLE << (arg_reg * FFI_FLAG_BITS));
 		arg_reg++;
-		if (arg_reg >= 8)
-		  continue;
 		cif->flags +=
 		  (FFI_TYPE_DOUBLE << (arg_reg * FFI_FLAG_BITS));
 		arg_reg++;
 	      }
             break;
 
-	  case FFI_TYPE_COMPLEX:
-	    switch (t->elements[0]->type)
-	      {
-	      case FFI_TYPE_LONGDOUBLE:
-		arg_reg = FFI_ALIGN(arg_reg, 2);
-		if (soft_float || index >= nfixedargs)
-		  {
-		    arg_reg += 2;
-		  }
-		else
-		  {
-		    cif->flags +=
-		      (FFI_TYPE_DOUBLE << (arg_reg * FFI_FLAG_BITS));
-		    arg_reg++;
-		    if (arg_reg >= 8)
-		        continue;
-		    cif->flags +=
-		      (FFI_TYPE_DOUBLE << (arg_reg * FFI_FLAG_BITS));
-		    arg_reg++;
-		    if (arg_reg >= 8)
-		        continue;
-		  }
-		/* passthrough */
-	      case FFI_TYPE_FLOAT:
-		// one fpr can only holds one arg even it is single
-		cif->bytes += 16;
-		/* passthrough */
-	      case FFI_TYPE_SINT32:
-	      case FFI_TYPE_UINT32:
-	      case FFI_TYPE_DOUBLE:
-		if (soft_float || index >= nfixedargs)
-		  {
-		    arg_reg += 2;
-		  }
-		else
-		  {
-		    uint32_t type = t->elements[0]->type != FFI_TYPE_LONGDOUBLE? t->elements[0]->type: FFI_TYPE_DOUBLE;
-		    cif->flags +=
-		      (type << (arg_reg * FFI_FLAG_BITS));
-		    arg_reg++;
-		    if (arg_reg >= 8)
-		        continue;
-		    cif->flags +=
-		      (type << (arg_reg * FFI_FLAG_BITS));
-		    arg_reg++;
-		  }
-		break;
-	      default:
-		arg_reg += 2;
-		break;
-	      }
-	    break;
-
 	  case FFI_TYPE_STRUCT:
             loc = arg_reg * FFI_SIZEOF_ARG;
-	    cif->flags += calc_n32_struct_flags(soft_float || index >= nfixedargs,
-						t, &loc, &arg_reg);
+	    cif->flags += calc_n32_struct_flags(soft_float,
+						(cif->arg_types)[index],
+						&loc, &arg_reg);
 	    break;
 
 	  default:
@@ -647,7 +533,7 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
 
       case FFI_TYPE_POINTER:
 	if (cif->abi == FFI_N32_SOFT_FLOAT || cif->abi == FFI_N32)
-	  cif->flags += FFI_TYPE_UINT32 << (FFI_FLAG_BITS * 8);
+	  cif->flags += FFI_TYPE_SINT32 << (FFI_FLAG_BITS * 8);
 	else
 	  cif->flags += FFI_TYPE_INT << (FFI_FLAG_BITS * 8);
 	break;
@@ -671,9 +557,8 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
 	   two doubles.  */
 	if (soft_float)
 	  {
-	    /* if ret is long double, the ret is given by v0 and a0, no idea why
-	     * Let's us VOID | VOID | LONGDOUBLE for it*/
-	    cif->flags += FFI_TYPE_LONGDOUBLE << (FFI_FLAG_BITS * 8);
+	    cif->flags += FFI_TYPE_STRUCT << (FFI_FLAG_BITS * 8);
+	    cif->flags += FFI_TYPE_SMALLSTRUCT2 << (4 + (FFI_FLAG_BITS * 8));
  	  }
 	else
 	  {
@@ -683,71 +568,27 @@ static ffi_status ffi_prep_cif_machdep_int(ffi_cif *cif, unsigned nfixedargs)
 					      << (4 + (FFI_FLAG_BITS * 8));
 	  }
 	break;
-      case FFI_TYPE_COMPLEX:
-	{
-	  int type = cif->rtype->elements[0]->type;
-
-	  cif->flags += (FFI_TYPE_COMPLEX << (FFI_FLAG_BITS * 8));
-	  if (soft_float || (type != FFI_TYPE_FLOAT && type != FFI_TYPE_DOUBLE && type != FFI_TYPE_LONGDOUBLE))
-	    {
-	      switch (type)
-		{
-		case FFI_TYPE_DOUBLE:
-		case FFI_TYPE_SINT64:
-		case FFI_TYPE_UINT64:
-		case FFI_TYPE_INT:
-		  type = FFI_TYPE_SMALLSTRUCT2;
-		  break;
-		case FFI_TYPE_LONGDOUBLE:
-		  type = FFI_TYPE_LONGDOUBLE;
-		  break;
-		case FFI_TYPE_FLOAT:
-		default:
-		  type = FFI_TYPE_SMALLSTRUCT;
-		}
-	      cif->flags += type << (4 + (FFI_FLAG_BITS * 8));
-	    }
-	  else
-	    {
-	      //cif->flags += (type + (type << FFI_FLAG_BITS))
-		//	    << (4 + (FFI_FLAG_BITS * 8));
-	      cif->flags += type << (4 + (FFI_FLAG_BITS * 8));
-	    }
-	  break;
-	}
       default:
 	cif->flags += FFI_TYPE_INT << (FFI_FLAG_BITS * 8);
 	break;
       }
   }
 #endif
+  
   return FFI_OK;
-}
-
-ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
-{
-    return ffi_prep_cif_machdep_int(cif, cif->nargs);
-}
-
-ffi_status ffi_prep_cif_machdep_var(ffi_cif *cif,
-                                    unsigned nfixedargs,
-                                    unsigned ntotalargs MAYBE_UNUSED)
-{
-    return ffi_prep_cif_machdep_int(cif, nfixedargs);
 }
 
 /* Low level routine for calling O32 functions */
 extern int ffi_call_O32(void (*)(char *, extended_cif *, int, int), 
 			extended_cif *, unsigned, 
-			unsigned, unsigned *, void (*)(void), void *closure);
+			unsigned, unsigned *, void (*)(void));
 
 /* Low level routine for calling N32 functions */
 extern int ffi_call_N32(void (*)(char *, extended_cif *, int, int), 
 			extended_cif *, unsigned, 
-			unsigned, void *, void (*)(void), void *closure);
+			unsigned, void *, void (*)(void));
 
-void ffi_call_int(ffi_cif *cif, void (*fn)(void), void *rvalue, 
-	      void **avalue, void *closure)
+void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 {
   extended_cif ecif;
 
@@ -758,7 +599,7 @@ void ffi_call_int(ffi_cif *cif, void (*fn)(void), void *rvalue,
   /* value address then we need to make one		        */
   
   if ((rvalue == NULL) && 
-      (cif->rtype->type == FFI_TYPE_STRUCT || cif->rtype->type == FFI_TYPE_COMPLEX))
+      (cif->rtype->type == FFI_TYPE_STRUCT))
     ecif.rvalue = alloca(cif->rtype->size);
   else
     ecif.rvalue = rvalue;
@@ -769,7 +610,7 @@ void ffi_call_int(ffi_cif *cif, void (*fn)(void), void *rvalue,
     case FFI_O32:
     case FFI_O32_SOFT_FLOAT:
       ffi_call_O32(ffi_prep_args, &ecif, cif->bytes, 
-		   cif->flags, ecif.rvalue, fn, closure);
+		   cif->flags, ecif.rvalue, fn);
       break;
 #endif
 
@@ -801,7 +642,7 @@ void ffi_call_int(ffi_cif *cif, void (*fn)(void), void *rvalue,
 #endif
 	  }
         ffi_call_N32(ffi_prep_args, &ecif, cif->bytes,
-                     cif->flags, rvalue_copy, fn, closure);
+                     cif->flags, rvalue_copy, fn);
         if (copy_rvalue)
           memcpy(ecif.rvalue, rvalue_copy + copy_offset, cif->rtype->size);
       }
@@ -814,27 +655,11 @@ void ffi_call_int(ffi_cif *cif, void (*fn)(void), void *rvalue,
     }
 }
 
-void
-ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
-{
-  ffi_call_int (cif, fn, rvalue, avalue, NULL);
-}
-
-void
-ffi_call_go (ffi_cif *cif, void (*fn)(void), void *rvalue,
-	     void **avalue, void *closure)
-{
-  ffi_call_int (cif, fn, rvalue, avalue, closure);
-}
-
-
 #if FFI_CLOSURES
 #if defined(FFI_MIPS_O32)
 extern void ffi_closure_O32(void);
-extern void ffi_go_closure_O32(void);
 #else
 extern void ffi_closure_N32(void);
-extern void ffi_go_closure_N32(void);
 #endif /* FFI_MIPS_O32 */
 
 ffi_status
@@ -873,11 +698,7 @@ ffi_prep_closure_loc (ffi_closure *closure,
   /* lui  $12,high(codeloc) */
   tramp[2] = 0x3c0c0000 | ((unsigned)codeloc >> 16);
   /* jr   $25          */
-#if !defined(__mips_isa_rev) || (__mips_isa_rev<6)
   tramp[3] = 0x03200008;
-#else
-  tramp[3] = 0x03200009;
-#endif
   /* ori  $12,low(codeloc)  */
   tramp[4] = 0x358c0000 | ((unsigned)codeloc & 0xffff);
 #else
@@ -905,11 +726,7 @@ ffi_prep_closure_loc (ffi_closure *closure,
   /* ori  $25,low(fn)  */
   tramp[10] = 0x37390000 | ((unsigned long)fn  & 0xffff);
   /* jr   $25          */
-#if !defined(__mips_isa_rev) || (__mips_isa_rev<6)
   tramp[11] = 0x03200008;
-#else
-  tramp[11] = 0x03200009;
-#endif
   /* ori  $12,low(codeloc)  */
   tramp[12] = 0x358c0000 | ((unsigned long)codeloc & 0xffff);
 
@@ -919,13 +736,11 @@ ffi_prep_closure_loc (ffi_closure *closure,
   closure->fun = fun;
   closure->user_data = user_data;
 
-#if !defined(__FreeBSD__)
 #ifdef USE__BUILTIN___CLEAR_CACHE
   __builtin___clear_cache(clear_location, clear_location + FFI_TRAMPOLINE_SIZE);
 #else
   cacheflush (clear_location, FFI_TRAMPOLINE_SIZE, ICACHE);
 #endif
-#endif /* ! __FreeBSD__ */
   return FFI_OK;
 }
 
@@ -947,32 +762,26 @@ ffi_prep_closure_loc (ffi_closure *closure,
  * Based on the similar routine for sparc.
  */
 int
-ffi_closure_mips_inner_O32 (ffi_cif *cif,
-                            void (*fun)(ffi_cif*, void*, void**, void*),
-			    void *user_data,
+ffi_closure_mips_inner_O32 (ffi_closure *closure,
 			    void *rvalue, ffi_arg *ar,
 			    double *fpr)
 {
+  ffi_cif *cif;
   void **avaluep;
   ffi_arg *avalue;
   ffi_type **arg_types;
   int i, avn, argn, seen_int;
 
+  cif = closure->cif;
   avalue = alloca (cif->nargs * sizeof (ffi_arg));
   avaluep = alloca (cif->nargs * sizeof (ffi_arg));
 
-  seen_int = (cif->abi == FFI_O32_SOFT_FLOAT) || (cif->mips_nfixedargs != cif->nargs);
+  seen_int = (cif->abi == FFI_O32_SOFT_FLOAT);
   argn = 0;
 
   if ((cif->flags >> (FFI_FLAG_BITS * 2)) == FFI_TYPE_STRUCT)
     {
-      rvalue = (void *)(uintptr_t)ar[0];
-      argn = 1;
-      seen_int = 1;
-    }
-  if ((cif->flags >> (FFI_FLAG_BITS * 2)) == FFI_TYPE_COMPLEX)
-    {
-      rvalue = fpr;
+      rvalue = (void *)(UINT32)ar[0];
       argn = 1;
     }
 
@@ -982,8 +791,6 @@ ffi_closure_mips_inner_O32 (ffi_cif *cif,
 
   while (i < avn)
     {
-      if (arg_types[i]->alignment == 8 && (argn & 0x1))
-        argn++;
       if (i < 2 && !seen_int &&
 	  (arg_types[i]->type == FFI_TYPE_FLOAT ||
 	   arg_types[i]->type == FFI_TYPE_DOUBLE ||
@@ -998,6 +805,8 @@ ffi_closure_mips_inner_O32 (ffi_cif *cif,
 	}
       else
 	{
+	  if (arg_types[i]->alignment == 8 && (argn & 0x1))
+	    argn++;
 	  switch (arg_types[i]->type)
 	    {
 	      case FFI_TYPE_SINT8:
@@ -1026,12 +835,12 @@ ffi_closure_mips_inner_O32 (ffi_cif *cif,
 	    }
 	  seen_int = 1;
 	}
-      argn += FFI_ALIGN(arg_types[i]->size, FFI_SIZEOF_ARG) / FFI_SIZEOF_ARG;
+      argn += ALIGN(arg_types[i]->size, FFI_SIZEOF_ARG) / FFI_SIZEOF_ARG;
       i++;
     }
 
   /* Invoke the closure. */
-  fun(cif, rvalue, avaluep, user_data);
+  (closure->fun) (cif, rvalue, avaluep, closure->user_data);
 
   if (cif->abi == FFI_O32_SOFT_FLOAT)
     {
@@ -1047,9 +856,6 @@ ffi_closure_mips_inner_O32 (ffi_cif *cif,
     }
   else
     {
-      if (cif->rtype->type == FFI_TYPE_COMPLEX) {
-          __asm__ volatile ("move $v1, %0" : : "r"(cif->rtype->size));
-      }
       return cif->rtype->type;
     }
 }
@@ -1070,7 +876,7 @@ copy_struct_N32(char *target, unsigned offset, ffi_abi abi, ffi_type *type,
       char *argp;
       char *fpp;
 
-      o = FFI_ALIGN(offset, elt_type->alignment);
+      o = ALIGN(offset, elt_type->alignment);
       arg_offset += o - offset;
       offset = o;
       argn += arg_offset / sizeof(ffi_arg);
@@ -1110,12 +916,11 @@ copy_struct_N32(char *target, unsigned offset, ffi_abi abi, ffi_type *type,
  *
  */
 int
-ffi_closure_mips_inner_N32 (ffi_cif *cif, 
-			    void (*fun)(ffi_cif*, void*, void**, void*),
-                            void *user_data,
+ffi_closure_mips_inner_N32 (ffi_closure *closure,
 			    void *rvalue, ffi_arg *ar,
 			    ffi_arg *fpr)
 {
+  ffi_cif *cif;
   void **avaluep;
   ffi_arg *avalue;
   ffi_type **arg_types;
@@ -1123,6 +928,7 @@ ffi_closure_mips_inner_N32 (ffi_cif *cif,
   int soft_float;
   ffi_arg *argp;
 
+  cif = closure->cif;
   soft_float = cif->abi == FFI_N64_SOFT_FLOAT
     || cif->abi == FFI_N32_SOFT_FLOAT;
   avalue = alloca (cif->nargs * sizeof (ffi_arg));
@@ -1139,8 +945,6 @@ ffi_closure_mips_inner_N32 (ffi_cif *cif,
 #endif
       argn = 1;
     }
-  if (cif->rtype->type == FFI_TYPE_COMPLEX && cif->rtype->elements[0]->type == FFI_TYPE_LONGDOUBLE)
-    argn = 2;
 
   i = 0;
   avn = cif->nargs;
@@ -1152,10 +956,10 @@ ffi_closure_mips_inner_N32 (ffi_cif *cif,
 	  || arg_types[i]->type == FFI_TYPE_DOUBLE
 	  || arg_types[i]->type == FFI_TYPE_LONGDOUBLE)
         {
-          argp = (argn >= 8 || i >= cif->mips_nfixedargs || soft_float) ? ar + argn : fpr + argn;
-          if ((arg_types[i]->type == FFI_TYPE_LONGDOUBLE) && ((uintptr_t)argp & (arg_types[i]->alignment-1)))
+          argp = (argn >= 8 || soft_float) ? ar + argn : fpr + argn;
+          if ((arg_types[i]->type == FFI_TYPE_LONGDOUBLE) && ((unsigned)argp & (arg_types[i]->alignment-1)))
             {
-              argp=(ffi_arg*)FFI_ALIGN(argp,arg_types[i]->alignment);
+              argp=(ffi_arg*)ALIGN(argp,arg_types[i]->alignment);
               argn++;
             }
 #if defined(__MIPSEB__) || defined(_MIPSEB)
@@ -1165,47 +969,22 @@ ffi_closure_mips_inner_N32 (ffi_cif *cif,
 #endif
             avaluep[i] = (char *) argp;
         }
-      else if (arg_types[i]->type == FFI_TYPE_COMPLEX && arg_types[i]->elements[0]->type == FFI_TYPE_DOUBLE)
-        {
-          argp = (argn >= 8 || i >= cif->mips_nfixedargs || soft_float) ? ar + argn : fpr + argn;
-          avaluep[i] = (char *) argp;
-        }
-      else if (arg_types[i]->type == FFI_TYPE_COMPLEX && arg_types[i]->elements[0]->type == FFI_TYPE_LONGDOUBLE)
-        {
-	  /* align long double */
-	  argn += ((argn & 0x1)? 1 : 0);
-          argp = (argn >= 8 || i >= cif->mips_nfixedargs || soft_float) ? ar + argn : fpr + argn;
-          avaluep[i] = (char *) argp;
-        }
-      else if (arg_types[i]->type == FFI_TYPE_COMPLEX && arg_types[i]->elements[0]->type == FFI_TYPE_FLOAT)
-        {
-          if (argn >= 8 || i >= cif->mips_nfixedargs || soft_float)
-	     argp = ar + argn;
-	  else
-	    {
-	      argp = fpr + argn;
-	      /* the normal args for function holds 8bytes, while here we convert it to ptr */
-	      uint32_t *tmp = (uint32_t *)argp;
-	      tmp[1] = tmp[2];
-	    }
-          avaluep[i] = (char *) argp;
-        }
       else
         {
           unsigned type = arg_types[i]->type;
 
           if (arg_types[i]->alignment > sizeof(ffi_arg))
-            argn = FFI_ALIGN(argn, arg_types[i]->alignment / sizeof(ffi_arg));
+            argn = ALIGN(argn, arg_types[i]->alignment / sizeof(ffi_arg));
 
           argp = ar + argn;
 
           /* The size of a pointer depends on the ABI */
           if (type == FFI_TYPE_POINTER)
             type = (cif->abi == FFI_N64 || cif->abi == FFI_N64_SOFT_FLOAT)
-	      ? FFI_TYPE_SINT64 : FFI_TYPE_UINT32;
+	      ? FFI_TYPE_SINT64 : FFI_TYPE_SINT32;
 
 	  if (soft_float && type ==  FFI_TYPE_FLOAT)
-	    type = FFI_TYPE_SINT32;
+	    type = FFI_TYPE_UINT32;
 
           switch (type)
             {
@@ -1246,7 +1025,7 @@ ffi_closure_mips_inner_N32 (ffi_cif *cif,
                      it was passed in registers.  */
                   avaluep[i] = alloca(arg_types[i]->size);
                   copy_struct_N32(avaluep[i], 0, cif->abi, arg_types[i],
-                                  argn, 0, ar, fpr, i >= cif->mips_nfixedargs || soft_float);
+                                  argn, 0, ar, fpr, soft_float);
 
                   break;
                 }
@@ -1256,54 +1035,16 @@ ffi_closure_mips_inner_N32 (ffi_cif *cif,
               break;
             }
         }
-      argn += FFI_ALIGN(arg_types[i]->size, sizeof(ffi_arg)) / sizeof(ffi_arg);
+      argn += ALIGN(arg_types[i]->size, sizeof(ffi_arg)) / sizeof(ffi_arg);
       i++;
     }
 
   /* Invoke the closure. */
-  fun (cif, rvalue, avaluep, user_data);
+  (closure->fun) (cif, rvalue, avaluep, closure->user_data);
 
   return cif->flags >> (FFI_FLAG_BITS * 8);
 }
 
 #endif /* FFI_MIPS_N32 */
-
-#if defined(FFI_MIPS_O32)
-extern void ffi_closure_O32(void);
-extern void ffi_go_closure_O32(void);
-#else
-extern void ffi_closure_N32(void);
-extern void ffi_go_closure_N32(void);
-#endif /* FFI_MIPS_O32 */
-
-ffi_status
-ffi_prep_go_closure (ffi_go_closure* closure, ffi_cif* cif,
-		     void (*fun)(ffi_cif*,void*,void**,void*))
-{
-  void * fn;
-
-#if defined(FFI_MIPS_O32)
-  if (cif->abi != FFI_O32 && cif->abi != FFI_O32_SOFT_FLOAT)
-    return FFI_BAD_ABI;
-  fn = ffi_go_closure_O32;
-#else
-#if _MIPS_SIM ==_ABIN32
-  if (cif->abi != FFI_N32
-      && cif->abi != FFI_N32_SOFT_FLOAT)
-    return FFI_BAD_ABI;
-#else
-  if (cif->abi != FFI_N64
-      && cif->abi != FFI_N64_SOFT_FLOAT)
-    return FFI_BAD_ABI;
-#endif
-  fn = ffi_go_closure_N32;
-#endif /* FFI_MIPS_O32 */
-
-  closure->tramp = (void *)fn;
-  closure->cif = cif;
-  closure->fun = fun;
-
-  return FFI_OK;
-}
 
 #endif /* FFI_CLOSURES */

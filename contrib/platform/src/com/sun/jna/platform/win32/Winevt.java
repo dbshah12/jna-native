@@ -24,7 +24,6 @@
 package com.sun.jna.platform.win32;
 
 import com.sun.jna.*;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.platform.win32.WinDef.BOOL;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.win32.W32APITypeMapper;
@@ -161,7 +160,6 @@ public interface Winevt {
      * Contains event data or property values.
      * https://msdn.microsoft.com/en-us/library/windows/desktop/aa385611(v=vs.85).aspx
      */
-    @FieldOrder({"field1", "Count", "Type"})
     public static class EVT_VARIANT extends Structure {
         /**
          * <strong>Exposed to follow JNA rules, use the
@@ -218,6 +216,10 @@ public interface Winevt {
 
         public EVT_VARIANT() {
             super(W32APITypeMapper.DEFAULT);
+        }
+
+        protected List<String> getFieldOrder() {
+            return Arrays.asList("field1", "Count", "Type");
         }
 
         public EVT_VARIANT(Pointer peer) {
@@ -486,7 +488,7 @@ public interface Winevt {
                     return isArray() ? field1.getPointer().getPointer(0).getWideStringArray(0, Count) : field1.getPointer().getPointer(0).getWideString(0);
                 case EvtVarTypeFileTime:
                     if (isArray()) {
-                        WinBase.FILETIME resultFirst = Structure.newInstance(WinBase.FILETIME.class, field1.getPointer().getPointer(0));
+                        WinBase.FILETIME resultFirst = (WinBase.FILETIME) Structure.newInstance(WinBase.FILETIME.class, field1.getPointer().getPointer(0));
                         resultFirst.read();
                         return resultFirst.toArray(Count);
                     } else {
@@ -496,11 +498,11 @@ public interface Winevt {
                     }
                 case EvtVarTypeSysTime:
                     if (isArray()) {
-                        WinBase.SYSTEMTIME resultFirst = Structure.newInstance(WinBase.SYSTEMTIME.class, field1.getPointer().getPointer(0));
+                        WinBase.SYSTEMTIME resultFirst = (WinBase.SYSTEMTIME) Structure.newInstance(WinBase.SYSTEMTIME.class, field1.getPointer().getPointer(0));
                         resultFirst.read();
                         return resultFirst.toArray(Count);
                     } else {
-                        WinBase.SYSTEMTIME result = Structure.newInstance(WinBase.SYSTEMTIME.class, field1.getPointer().getPointer(0));
+                        WinBase.SYSTEMTIME result = (WinBase.SYSTEMTIME) Structure.newInstance(WinBase.SYSTEMTIME.class, field1.getPointer().getPointer(0));
                         result.read();
                         return result;
                     }
@@ -529,21 +531,21 @@ public interface Winevt {
                     return null;
                 case EvtVarTypeGuid:
                     if (isArray()) {
-                        Guid.GUID resultFirst = Structure.newInstance(Guid.GUID.class, field1.getPointer().getPointer(0));
+                        Guid.GUID resultFirst = (Guid.GUID) Structure.newInstance(Guid.GUID.class, field1.getPointer().getPointer(0));
                         resultFirst.read();
                         return resultFirst.toArray(Count);
                     } else {
-                        Guid.GUID result = Structure.newInstance(Guid.GUID.class, field1.getPointer().getPointer(0));
+                        Guid.GUID result = (Guid.GUID) Structure.newInstance(Guid.GUID.class, field1.getPointer().getPointer(0));
                         result.read();
                         return result;
                     }
                 case EvtVarTypeSid:
                     if (isArray()) {
-                        WinNT.PSID resultFirst = Structure.newInstance(WinNT.PSID.class, field1.getPointer().getPointer(0));
+                        WinNT.PSID resultFirst = (WinNT.PSID) Structure.newInstance(WinNT.PSID.class, field1.getPointer().getPointer(0));
                         resultFirst.read();
                         return resultFirst.toArray(Count);
                     } else {
-                        WinNT.PSID result = Structure.newInstance(WinNT.PSID.class, field1.getPointer().getPointer(0));
+                        WinNT.PSID result = (WinNT.PSID) Structure.newInstance(WinNT.PSID.class, field1.getPointer().getPointer(0));
                         result.read();
                         return result;
                     }
@@ -604,7 +606,6 @@ public interface Winevt {
      * Contains the information used to connect to a remote computer.
      * https://msdn.microsoft.com/en-us/library/windows/desktop/aa385566(v=vs.85).aspx
      */
-    @FieldOrder({"Server", "User", "Domain", "Password", "Flags"})
     public class EVT_RPC_LOGIN extends Structure {
 
         /** The name of the remote computer to connect to. */
@@ -627,6 +628,10 @@ public interface Winevt {
 
         public EVT_RPC_LOGIN() {
             super(W32APITypeMapper.UNICODE);
+        }
+
+        protected List<String> getFieldOrder() {
+            return Arrays.asList("Server", "User", "Domain", "Password", "Flags");
         }
 
         public EVT_RPC_LOGIN(String Server, String User, String Domain, String Password, int Flags) {
@@ -1544,8 +1549,7 @@ public interface Winevt {
 
     /**
      * Defines the identifiers that identify the metadata properties of an event definition.
-     *
-     * @see <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa385517%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396">MSDN</a>
+     * https://msdn.microsoft.com/en-us/library/windows/desktop/aa385517%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
      */
     public static interface EVT_EVENT_METADATA_PROPERTY_ID {
 

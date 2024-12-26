@@ -1,13 +1,11 @@
 ![Java Native Access - JNA](https://github.com/java-native-access/jna/raw/master/www/images/jnalogo.jpg "Java Native Access - JNA")
 
-[![Github Actions Build Status](https://github.com/java-native-access/jna/workflows/Java%20CI/badge.svg)](https://github.com/java-native-access/jna/actions?query=workflow%3A%22Java+CI%22)
-[![Travis Build Status](https://api.travis-ci.com/java-native-access/jna.svg?branch=master)](https://travis-ci.com/github/java-native-access/jna)
-[![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/j6vmpjrw5iktb8iu/branch/master?svg=true)](https://ci.appveyor.com/project/dblock/jna-gsxuq/branch/master)
+[![Build Status](https://travis-ci.org/java-native-access/jna.svg?branch=master)](https://travis-ci.org/java-native-access/jna)
 
 Java Native Access (JNA)
 ========================
 
-The definitive JNA reference (including an overview and usage details) is in the [JavaDoc](http://java-native-access.github.io/jna/5.16.0/javadoc/).  Please read the [overview](http://java-native-access.github.io/jna/5.16.0/javadoc/overview-summary.html#overview_description).  Questions, comments, or exploratory conversations should begin on the [mailing list](http://groups.google.com/group/jna-users), although you may find it easier to find answers to already-solved problems on [StackOverflow](http://stackoverflow.com/questions/tagged/jna).
+The definitive JNA reference (including an overview and usage details) is in the [JavaDoc](http://java-native-access.github.io/jna/4.5.1/javadoc/).  Please read the [overview](http://java-native-access.github.io/jna/4.5.1/javadoc/overview-summary.html#overview_description).  Questions, comments, or exploratory conversations should begin on the [mailing list](http://groups.google.com/group/jna-users), although you may find it easier to find answers to already-solved problems on [StackOverflow](http://stackoverflow.com/questions/tagged/jna).
 
 JNA provides Java programs easy access to native shared libraries without writing anything but Java code - no JNI or native code is required. This functionality is comparable to Windows' Platform/Invoke and Python's ctypes.
 
@@ -24,36 +22,30 @@ Projects Using JNA
 JNA is a mature library with dozens of contributors and hundreds of commercial and non-commercial projects that use it.  If you're using JNA, feel free to [tell us about it](http://groups.google.com/group/jna-users).  Include some details about your company, project name, purpose and size and tell us how you use the library.
 
 - [Apache Cassandra](http://cassandra.apache.org): Large-scale NoSQL data store.
-- [Rococoa](https://github.com/iterate-ch/rococoa): Java bindings to the Mac OS X Cocoa framework, by Duncan McGregor.
-- [jna-posix](https://github.com/jenkinsci/jna-posix): Common POSIX Functions for Java.
+- [Rococoa](http://rococoa.dev.java.net): Java bindings to the Mac OS X Cocoa framework, by Duncan McGregor.
+- [jna-posix](http://kenai.com/projects/jna-posix): Common POSIX Functions for Java.
 - [JNAerator](https://github.com/nativelibs4java/JNAerator): Pronounced "generator", auto-generates JNA mappings from C headers, by Olivier Chafik.
-- [Freedom for Media in Java](https://github.com/jitsi/fmj) by Ken Larson/Dieter Krachtus.
-- [GStreamer-Java](https://github.com/gstreamer-java/): Java bindings and utilities for [GStreamer 1.x](https://gstreamer.freedesktop.org/).
-- [VLCJ](https://github.com/caprica/vlcj): Java bindings for libVLC.
+- [Freedom for Media in Java](http://fmj.sf.net) by Ken Larson/Dieter Krachtus.
+- [gstreamer for Java](http://code.google.com/p/gstreamer-java) by Wayne Meissner.
+- [Videolan](http://trac.videolan.org/jvlc/): JVLC Java Multimedia Library.
 - [SVNKit](http://svnkit.com): Pure Java Subversion client library.
-- [OmegaT Computer-Aided Translation](https://omegat.org/).
-- [IntelliJ IDEA](https://www.jetbrains.com/idea) by JetBrains.
-- [Jetbrains Toolbox](https://www.jetbrains.com/toolbox-app/) by JetBrains.
-- [Apache NetBeans IDE](https://netbeans.apache.org/) by Apache Software Foundation.
+- [OmegaT Computer-Aided Translation](http://omegat.sf.net).
+- [IntelliJ IDEA](http://jetbrains.com) by JetBrains.
+- [NetBeans IDE](http://netbeans.org).
+- [Athena Backup](http://www.athenabackup.com) by Doug Patriarche.
 - [FileBot Media Renamer](http://www.filebot.net) by Reinhard Pointner.
 - [USB for Java](https://launchpad.net/libusb4j) by Mario Boikov.
 - [Waffle](https://github.com/dblock/waffle): Enables SSO on Windows in Java applications, by Daniel Doubrovkine.
-- [leveldb-jna](https://github.com/protonail/leveldb-jna): Cross-platform JNA based adapter for [LevelDB](https://github.com/google/leveldb).
-- [bolt-jna](https://github.com/protonail/bolt-jna): Cross-platform JNA based adapter for [Bolt](https://github.com/boltdb/bolt). It is to show how to use JNA for binding to Go library.
+- [leveldb-jna](https://github.com/protonail/leveldb-jna): Cross-platform JNA based adapter for [LevelDB](https://github.com/google/leveldb) (used in [Keylord](http://protonail.com)).
+- [bolt-jna](https://github.com/protonail/bolt-jna): Cross-platform JNA based adapter for [Bolt](https://github.com/boltdb/bolt) (used in [Keylord](http://protonail.com)). It is show how to use JNA for binding to Go library.
 - [JVM OpenVR Bindings](https://github.com/kotlin-graphics/openvr).
-- [Apache Ignite](https://ignite.apache.org/): Direct IO plugin
-- [Domino JNA](https://github.com/klehmann/domino-jna): Cross-platform access to HCL Notes/Domino C API methods from Java
-- [OSHI](https://github.com/oshi/oshi): Cross-platform Operating System and Hardware Information library for Java
-- [jAlbum](https://jalbum.net): Desktop based web gallery software for any web site.
-- [jacknji11](https://github.com/joelhockey/jacknji11): Provides a Java PKCS#11 interface.
-- [JNAJack](https://github.com/jaudiolibs/jnajack): Java bindings for [JACK Audio Connection Kit](https://jackaudio.org/).
-- [Elasticsearch](https://www.elastic.co/elasticsearch/): Large-scale distributed search and analytics engine.
-- [Aki](https://github.com/letmeNo1/Aki): Automated Testing on desktop
 
 *Interesting Investigations/Experiments*
 
 - [Drive Lego Mindstorm NXT](http://epirsch.blogspot.com/2008/02/jna-love-nxt.html) by Emmanuel Pirsch.
+- [A JavaFX Clock](http://sellmic.com/blog/2007/05/22/javafx-clock-update-now-with-transparency) by Augusto Sellhorn.
 - [Detect User Inactivity](http://ochafik.free.fr/blog/?p=98) by Olivier Chafik.
+- [IAXClient Applet](http://callino.cc/jiaxcapplet/) provides VOIP for Java, by Wolfgang Pichler.
 
 There are also a number of examples and projects within the `contrib` directory of the JNA project itself.
 
@@ -66,27 +58,13 @@ Pre-built platform support may be found [here](https://github.com/java-native-ac
 Download
 ========
 
-Version 5.16.0
+Version 4.5.1
 
-JNA
----
-
-[![Maven Central](https://img.shields.io/maven-central/v/net.java.dev.jna/jna.svg?label=Maven%20Central)](https://search.maven.org/artifact/net.java.dev.jna/jna/5.16.0/jar)&nbsp;[jna-5.16.0.jar](https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.16.0/jna-5.16.0.jar)&nbsp;[jna-jpms-5.16.0.jar](https://repo1.maven.org/maven2/net/java/dev/jna/jna-jpms/5.16.0/jna-jpms-5.16.0.jar)
-
-This is the core artifact of JNA and contains only the binding library and the
-core helper classes.
-
-JNA Platform
-------------
-
-[![Maven Central](https://img.shields.io/maven-central/v/net.java.dev.jna/jna-platform.svg?label=Maven%20Central)](https://search.maven.org/artifact/net.java.dev.jna/jna-platform/5.16.0/jar)&nbsp;[jna-platform-5.16.0.jar](https://repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.16.0/jna-platform-5.16.0.jar)&nbsp;[jna-platform-jpms-5.16.0.jar](https://repo1.maven.org/maven2/net/java/dev/jna/jna-platform-jpms/5.16.0/jna-platform-jpms-5.16.0.jar)
-
-This artifact holds cross-platform mappings and mappings for a number of commonly used platform
-functions, including a large number of Win32 mappings as well as a set of utility classes
-that simplify native access. The code is tested and the utility interfaces ensure that
-native memory management is taken care of correctly.
-
-See [PlatformLibrary.md](https://github.com/java-native-access/jna/blob/master/www/PlatformLibrary.md) for details.
+* [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.java.dev.jna/jna/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.java.dev.jna/jna) &nbsp;
+  [jna.jar](http://repo1.maven.org/maven2/net/java/dev/jna/jna/4.5.1/jna-4.5.1.jar)
+  
+* [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.java.dev.jna/jna-platform/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.java.dev.jna/jna-platform) &nbsp;
+  [jna-platform.jar](http://repo1.maven.org/maven2/net/java/dev/jna/jna-platform/4.5.1/jna-platform-4.5.1.jar)
 
 Features
 ========
@@ -147,12 +125,12 @@ Using the Library
 * [Platform Library](https://github.com/java-native-access/jna/blob/master/www/PlatformLibrary.md)
 * [Direct Method Mapping](https://github.com/java-native-access/jna/blob/master/www/DirectMapping.md) (Optimization)
 * [Frequently Asked Questions (FAQ)](https://github.com/java-native-access/jna/blob/master/www/FrequentlyAskedQuestions.md)
-* [Avoiding Crashes](http://java-native-access.github.io/jna/5.16.0/javadoc/overview-summary.html#crash-protection)
+* [Avoiding Crashes](http://java-native-access.github.io/jna/4.5.1/javadoc/overview-summary.html#crash-protection)
 
 Primary Documentation (JavaDoc)
 ===============================
 
-The definitive JNA reference is in the [JavaDoc](http://java-native-access.github.io/jna/5.16.0/javadoc/).
+The definitive JNA reference is in the [JavaDoc](http://java-native-access.github.io/jna/4.5.1/javadoc/).
 
 Developers
 ==========
@@ -165,7 +143,7 @@ Developers
 * [Releasing JNA](https://github.com/java-native-access/jna/blob/master/www/ReleasingJNA.md)
 * [Publishing to Maven Central](https://github.com/java-native-access/jna/blob/master/www/PublishingToMavenCentral.md)
 
-Contributing
+Contributing 
 ============
 
 You're encouraged to contribute to JNA. Fork the code from [https://github.com/java-native-access/jna](https://github.com/java-native-access/jna) and submit pull requests.
@@ -177,7 +155,7 @@ If you are interested in paid support, feel free to say so on the [jna-users mai
 License
 =======
 
-This library is licensed under the LGPL, version 2.1 or later, or (from version 4.0 onward) the Apache License, version 2.0. Commercial support may be available, please e-mail twall[at]users[dot]sf[dot]net. See [LICENSE](LICENSE) for more information.
+This library is licensed under the LGPL, version 2.1 or later, and (from version 4.0 onward) the Apache Software License, version 2.0. Commercial license arrangements are negotiable.
 
 *NOTE: Oracle is not sponsoring this project, even though the package name (com.sun.jna) might imply otherwise.*
 

@@ -1,28 +1,26 @@
-/*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+/* The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna;
 
-import com.sun.jna.internal.ReflectionUtils;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -35,14 +33,14 @@ import java.util.WeakHashMap;
  * Define an instance of your library like this:
  * <pre><code>
  * MyNativeLibrary INSTANCE = (MyNativeLibrary)
- *     Native.load("mylib", MyNativeLibrary.class);
+ *     Native.loadLibrary("mylib", MyNativeLibrary.class);
  * </code></pre>
  * <p>
  * By convention, method names are identical to the native names, although you
  * can map java names to different native names by providing a
  * {@link FunctionMapper} as a value for key {@link #OPTION_FUNCTION_MAPPER}
  * in the options map passed to the
- * {@link Native#load(String, Class, Map)} call.
+ * {@link Native#loadLibrary(String, Class, Map)} call.
  * <p>
  * Although the names for structures and structure fields may be chosen
  * arbitrarily, they should correspond as closely as possible to the native
@@ -58,10 +56,10 @@ import java.util.WeakHashMap;
  * <b>Optional fields</b><br>
  * Interface options will be automatically propagated to structures defined
  * within the library provided a call to
- * {@link Native#load(String,Class,Map)} is made prior to instantiating
+ * {@link Native#loadLibrary(String,Class,Map)} is made prior to instantiating
  * any of those structures.  One common way of ensuring this is to declare
  * an <b>INSTANCE</b> field in the interface which holds the
- * <code>load</code> result.
+ * <code>loadLibrary</code> result.
  * <p>
  * <b>OPTIONS</b> (an instance of {@link Map}),
  * <b>TYPE_MAPPER</b> (an instance of {@link TypeMapper}),
@@ -114,11 +112,6 @@ public interface Library {
      */
     String OPTION_CLASSLOADER = "classloader";
 
-    /**
-     * Supports a custom symbol provider for the NativeLibrary (see {@link SymbolProvider})
-     */
-    String OPTION_SYMBOL_PROVIDER = "symbol-provider";
-
     static class Handler implements InvocationHandler {
 
         static final Method OBJECT_TOSTRING;
@@ -144,18 +137,8 @@ public interface Library {
             final InvocationHandler handler;
             final Function function;
             final boolean isVarArgs;
-            final Object methodHandle;
             final Map<String, ?> options;
             final Class<?>[] parameterTypes;
-
-            FunctionInfo(Object mh) {
-                this.handler = null;
-                this.function = null;
-                this.isVarArgs = false;
-                this.options = null;
-                this.parameterTypes = null;
-                this.methodHandle = mh;
-            }
 
             FunctionInfo(InvocationHandler handler, Function function, Class<?>[] parameterTypes, boolean isVarArgs, Map<String, ?> options) {
                 this.handler = handler;
@@ -163,7 +146,6 @@ public interface Library {
                 this.isVarArgs = isVarArgs;
                 this.options = options;
                 this.parameterTypes = parameterTypes;
-                this.methodHandle = null;
             }
         }
 
@@ -172,7 +154,7 @@ public interface Library {
         // Library invocation options
         private final Map<String, Object> options;
         private final InvocationMapper invocationMapper;
-        private final Map<Method, FunctionInfo> functions = new WeakHashMap<>();
+        private final Map<Method, FunctionInfo> functions = new WeakHashMap<Method, FunctionInfo>();
         public Handler(String libname, Class<?> interfaceClass, Map<String, ?> options) {
 
             if (libname != null && "".equals(libname.trim())) {
@@ -184,7 +166,7 @@ public interface Library {
             }
 
             this.interfaceClass = interfaceClass;
-            this.options = new HashMap<>(options);
+            this.options = new HashMap<String, Object>(options);
             int callingConvention = AltCallingConvention.class.isAssignableFrom(interfaceClass)
                                   ? Function.ALT_CONVENTION
                                   : Function.C_CONVENTION;
@@ -233,42 +215,33 @@ public interface Library {
                 synchronized(functions) {
                     f = functions.get(method);
                     if (f == null) {
-                        boolean isDefault = ReflectionUtils.isDefault(method);
-                        if(! isDefault) {
-                            boolean isVarArgs = Function.isVarArgs(method);
-                            InvocationHandler handler = null;
-                            if (invocationMapper != null) {
-                                handler = invocationMapper.getInvocationHandler(nativeLibrary, method);
-                            }
-                            Function function = null;
-                            Class<?>[] parameterTypes = null;
-                            Map<String, Object> options = null;
-                            if (handler == null) {
-                                // Find the function to invoke
-                                function = nativeLibrary.getFunction(method.getName(), method);
-                                parameterTypes = method.getParameterTypes();
-                                options = new HashMap<>(this.options);
-                                options.put(Function.OPTION_INVOKING_METHOD, method);
-                            }
-                            f = new FunctionInfo(handler, function, parameterTypes, isVarArgs, options);
-                        } else {
-                            f = new FunctionInfo(ReflectionUtils.getMethodHandle(method));
+                        boolean isVarArgs = Function.isVarArgs(method);
+                        InvocationHandler handler = null;
+                        if (invocationMapper != null) {
+                            handler = invocationMapper.getInvocationHandler(nativeLibrary, method);
                         }
+                        Function function = null;
+                        Class<?>[] parameterTypes = null;
+                        Map<String, Object> options = null;
+                        if (handler == null) {
+                            // Find the function to invoke
+                            function = nativeLibrary.getFunction(method.getName(), method);
+                            parameterTypes = method.getParameterTypes();
+                            options = new HashMap<String, Object>(this.options);
+                            options.put(Function.OPTION_INVOKING_METHOD, method);
+                        }
+                        f = new FunctionInfo(handler, function, parameterTypes, isVarArgs, options);
                         functions.put(method, f);
                     }
                 }
             }
-            if (f.methodHandle != null) {
-                return ReflectionUtils.invokeDefaultMethod(proxy, f.methodHandle, inArgs);
-            } else {
-                if (f.isVarArgs) {
-                    inArgs = Function.concatenateVarArgs(inArgs);
-                }
-                if (f.handler != null) {
-                    return f.handler.invoke(proxy, method, inArgs);
-                }
-                return f.function.invoke(method, f.parameterTypes, method.getReturnType(), inArgs, f.options);
+            if (f.isVarArgs) {
+                inArgs = Function.concatenateVarArgs(inArgs);
             }
+            if (f.handler != null) {
+                return f.handler.invoke(proxy, method, inArgs);
+            }
+            return f.function.invoke(method, f.parameterTypes, method.getReturnType(), inArgs, f.options);
         }
     }
 }

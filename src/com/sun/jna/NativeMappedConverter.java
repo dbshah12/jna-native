@@ -1,23 +1,23 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -25,14 +25,13 @@ package com.sun.jna;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 /** Provides type conversion for instances of {@link NativeMapped}. */
 public class NativeMappedConverter implements TypeConverter {
     private static final Map<Class<?>, Reference<NativeMappedConverter>> converters =
-            new WeakHashMap<>();
+            new WeakHashMap<Class<?>, Reference<NativeMappedConverter>>();
     private final Class<?> type;
     private final Class<?> nativeType;
     private final NativeMapped instance;
@@ -43,7 +42,7 @@ public class NativeMappedConverter implements TypeConverter {
             NativeMappedConverter nmc = r != null ? r.get() : null;
             if (nmc == null) {
                 nmc = new NativeMappedConverter(cls);
-                converters.put(cls, new SoftReference<>(nmc));
+                converters.put(cls, new SoftReference<NativeMappedConverter>(nmc));
             }
             return nmc;
         }
@@ -58,13 +57,18 @@ public class NativeMappedConverter implements TypeConverter {
     }
 
     public NativeMapped defaultValue() {
-        if (type.isEnum()) {
-            return (NativeMapped) type.getEnumConstants()[0];
+        try {
+            return (NativeMapped)type.newInstance();
+        } catch (InstantiationException e) {
+            String msg = "Can't create an instance of " + type
+                + ", requires a no-arg constructor: " + e;
+            throw new IllegalArgumentException(msg);
+        } catch (IllegalAccessException e) {
+            String msg = "Not allowed to create an instance of " + type
+                + ", requires a public, no-arg constructor: " + e;
+            throw new IllegalArgumentException(msg);
         }
-
-        return (NativeMapped) Klass.newInstance(type);
     }
-
     @Override
     public Object fromNative(Object nativeValue, FromNativeContext context) {
         return instance.fromNative(nativeValue, context);

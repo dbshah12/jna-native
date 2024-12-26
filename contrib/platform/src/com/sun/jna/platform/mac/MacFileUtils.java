@@ -1,23 +1,23 @@
 /* Copyright (c) 2007-2013 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -42,7 +42,7 @@ public class MacFileUtils extends FileUtils {
 
     public interface FileManager extends Library {
 
-        FileManager INSTANCE = Native.load("CoreServices", FileManager.class);
+        FileManager INSTANCE = Native.loadLibrary("CoreServices", FileManager.class);
 
         int kFSFileOperationDefaultOptions = 0;
         int kFSFileOperationsOverwrite = 0x01;
@@ -53,9 +53,14 @@ public class MacFileUtils extends FileUtils {
         int kFSPathDefaultOptions = 0x0;
         int kFSPathMakeRefDoNotFollowLeafSymlink = 0x01;
 
-        @Structure.FieldOrder({"hidden"})
         class FSRef extends Structure {
+            public static final List<String> FIELDS = createFieldsOrder("hidden");
             public byte[] hidden = new byte[80];
+
+            @Override
+            protected List<String> getFieldOrder() {
+                return FIELDS;
+            }
         }
 
         // Deprecated; use trashItemAtURL instead:
@@ -68,8 +73,8 @@ public class MacFileUtils extends FileUtils {
     }
 
     @Override
-    public void moveToTrash(File... files) throws IOException {
-        List<String> failed = new ArrayList<>();
+    public void moveToTrash(File[] files) throws IOException {
+        List<String> failed = new ArrayList<String>();
         for (File src: files) {
             FileManager.FSRef fsref = new FileManager.FSRef();
             int status = FileManager.INSTANCE.FSPathMakeRefWithOptions(src.getAbsolutePath(),

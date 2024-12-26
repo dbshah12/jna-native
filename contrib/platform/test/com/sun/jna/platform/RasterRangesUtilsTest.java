@@ -1,25 +1,14 @@
 /* Copyright (c) 2008 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform;
 import java.awt.Graphics2D;
@@ -31,16 +20,15 @@ import java.awt.image.Raster;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.sun.jna.platform.RasterRangesUtils.RangesOutput;
-
 import junit.framework.TestCase;
+
+import com.sun.jna.platform.RasterRangesUtils.RangesOutput;
 
 public class RasterRangesUtilsTest extends TestCase {
 
-    Set<Rectangle> rects = new HashSet<>();
+    Set<Rectangle> rects = new HashSet<Rectangle>();
 
     RangesOutput out = new RangesOutput() {
-        @Override
         public boolean outputRange(int x, int y, int w, int h) {
             rects.add(new Rectangle(x, y, w, h));
             return true;
@@ -61,7 +49,7 @@ public class RasterRangesUtilsTest extends TestCase {
                 add(new Rectangle(0, 0, 100, 50));
                 add(new Rectangle(0, 50, 50, 50));
             }
-            private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
         };
 
         Area mask = new Area(new Rectangle(0, 0, 100, 100));
@@ -80,7 +68,7 @@ public class RasterRangesUtilsTest extends TestCase {
                 add(new Rectangle(75, 25, 25, 50));
                 add(new Rectangle(0, 75, 100, 25));
             }
-            private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
         };
 
         Area mask = new Area(new Rectangle(0, 0, 100, 100));

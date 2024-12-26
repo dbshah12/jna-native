@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <jni.h>
+#include <alloca.h>
 
 #if defined(_WIN32)
 #  define WIN32_LEAN_AND_MEAN
@@ -51,7 +52,7 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && !defined(_WIN32_WCE) && !defined(ASMFN_OFF)
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 #include "com_sun_jna_win32_DLLCallback.h"
 #ifdef _WIN64
 #ifdef _MSC_VER
@@ -133,19 +134,19 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
   }
   argc = (*env)->GetArrayLength(env, arg_classes);
 
-  cb = (callback *)calloc(1, sizeof(callback));
+  cb = (callback *)malloc(sizeof(callback));
   cb->closure = ffi_closure_alloc(sizeof(ffi_closure), &cb->x_closure);
   cb->saved_x_closure = cb->x_closure;
   cb->object = (*env)->NewWeakGlobalRef(env, obj);
   cb->methodID = (*env)->FromReflectedMethod(env, method);
 
   cb->vm = vm;
-  cb->arg_types = (ffi_type**)calloc(argc, sizeof(ffi_type*));
-  cb->java_arg_types = (ffi_type**)calloc(argc + 3, sizeof(ffi_type*));
-  cb->arg_jtypes = (char*)calloc(argc, sizeof(char));
-  cb->conversion_flags = (int *)calloc(argc, sizeof(int));
+  cb->arg_types = (ffi_type**)malloc(sizeof(ffi_type*) * argc);
+  cb->java_arg_types = (ffi_type**)malloc(sizeof(ffi_type*) * (argc + 3));
+  cb->arg_jtypes = (char*)malloc(sizeof(char) * argc);
+  cb->conversion_flags = (int *)malloc(sizeof(int) * argc);
   cb->rflag = CVT_DEFAULT;
-  cb->arg_classes = (jobject*)calloc(argc, sizeof(jobject));
+  cb->arg_classes = (jobject*)malloc(sizeof(jobject) * argc);
  
   cb->direct = direct;
   cb->java_arg_types[0] = cb->java_arg_types[1] = cb->java_arg_types[2] = &ffi_type_pointer;
@@ -154,7 +155,7 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
   for (i=0;i < argc;i++) {
     int jtype;
     jclass cls = (*env)->GetObjectArrayElement(env, arg_classes, i);
-    if (direct && ((cb->conversion_flags[i] = get_conversion_flag(env, cls)) != CVT_DEFAULT)) {
+    if ((cb->conversion_flags[i] = get_conversion_flag(env, cls)) != CVT_DEFAULT) {
       cb->arg_classes[i] = (*env)->NewWeakGlobalRef(env, cls);
       cvt = 1;
     }
@@ -163,9 +164,6 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
     }
 
     jtype = get_java_type(env, cls);
-    if((*env)->ExceptionCheck(env)) {
-      goto failure_cleanup;
-    }
     if (jtype == -1) {
       snprintf(msg, sizeof(msg), "Unsupported callback argument at index %d", i);
       throw_type = EIllegalArgument;
@@ -182,13 +180,7 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
         || cb->conversion_flags[i] == CVT_INTEGER_TYPE) {
       jclass ncls;
       ncls = getNativeType(env, cls);
-      if((*env)->ExceptionCheck(env)) {
-        goto failure_cleanup;
-      }
       jtype = get_java_type(env, ncls);
-      if((*env)->ExceptionCheck(env)) {
-        goto failure_cleanup;
-      }
       if (jtype == -1) {
         snprintf(msg, sizeof(msg), "Unsupported NativeMapped callback argument native type at argument %d", i);
         throw_type = EIllegalArgument;
@@ -208,16 +200,6 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
     if (cb->arg_types[i]->type == FFI_TYPE_FLOAT) {
       cb->java_arg_types[i+3] = &ffi_type_double;
       cb->conversion_flags[i] = CVT_FLOAT;
-      cvt = 1;
-    }
-    else if (cb->arg_types[i]->type == FFI_TYPE_UINT16 || cb->arg_types[i]->type == FFI_TYPE_SINT16) {
-      cb->java_arg_types[i+3] = &ffi_type_sint;
-      cb->conversion_flags[i] = CVT_SHORT;
-      cvt = 1;
-    }
-    else if (cb->arg_types[i]->type == FFI_TYPE_UINT8 || cb->arg_types[i]->type == FFI_TYPE_SINT8) {
-      cb->java_arg_types[i+3] = &ffi_type_sint;
-      cb->conversion_flags[i] = CVT_BYTE;
       cvt = 1;
     }
     else if (cb->java_arg_types[i+3]->type == FFI_TYPE_STRUCT) {
@@ -297,7 +279,7 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
     case 'D': cb->fptr_offset = OFFSETOF(env, CallDoubleMethod); break;
     default: cb->fptr_offset = OFFSETOF(env, CallObjectMethod); break;
     }
-    status = ffi_prep_cif_var(&cb->java_cif, java_abi, 3, argc+3, java_return_type, cb->java_arg_types);
+    status = ffi_prep_cif_var(&cb->java_cif, java_abi, 2, argc+3, java_return_type, cb->java_arg_types);
     if (!ffi_error(env, "callback setup (2)", status)) {
       ffi_prep_closure_loc(cb->closure, &cb->cif, dispatch_callback, cb,
                            cb->x_closure);
@@ -332,6 +314,7 @@ create_callback(JNIEnv* env, jobject obj, jobject method,
 }
 void 
 free_callback(JNIEnv* env, callback *cb) {
+  int i;
   (*env)->DeleteWeakGlobalRef(env, cb->object);
   ffi_closure_free(cb->closure);
   free(cb->arg_types);
@@ -350,7 +333,6 @@ free_callback(JNIEnv* env, callback *cb) {
   }
   free(cb->arg_jtypes);
 #ifdef DLL_FPTRS
-  int i;
   for (i=0;i < DLL_FPTRS;i++) {
     if (fn[i] == cb->saved_x_closure) {
       fn[i] = NULL;
@@ -447,14 +429,6 @@ invoke_callback(JNIEnv* env, callback *cb, ffi_cif* cif, void *resp, void **cbar
         case CVT_FLOAT:
 	  args[i+3] = alloca(sizeof(double));
 	  *((double *)args[i+3]) = *(float*)cbargs[i];
-          break;
-        case CVT_SHORT:
-	  args[i+3] = alloca(sizeof(int));
-	  *((int *)args[i+3]) = *(short*)cbargs[i];
-          break;
-        case CVT_BYTE:
-	  args[i+3] = alloca(sizeof(int));
-          *((int *)args[i+3]) = *(char*)cbargs[i];
           break;
         case CVT_DEFAULT:
           break;
@@ -569,7 +543,7 @@ static TLS_KEY_T tls_thread_data_key;
 static thread_storage* get_thread_storage(JNIEnv* env) {
   thread_storage* tls = (thread_storage *)TLS_GET(tls_thread_data_key);
   if (tls == NULL) {
-    tls = (thread_storage*)calloc(1, sizeof(thread_storage));
+    tls = (thread_storage*)malloc(sizeof(thread_storage));
     if (!tls) {
       throwByName(env, EOutOfMemory, "JNA: Can't allocate thread storage");
     }
@@ -713,14 +687,6 @@ dispatch_callback(ffi_cif* cif, void* resp, void** cbargs, void* user_data) {
     else {
       attach_status = (*jvm)->AttachCurrentThread(jvm, (void *)&env, &args);
     }
-    if (attach_status != JNI_OK) {
-      free((void *)args.name);
-      if (args.group) {
-        (*env)->DeleteWeakGlobalRef(env, args.group);
-      }
-      fprintf(stderr, "JNA: Can't attach native thread to VM for callback: %d (check stacksize for callbacks)\n", attach_status);
-      return;
-    }
     tls = get_thread_storage(env);
     if (tls) {
       snprintf(tls->name, sizeof(tls->name), "%s", args.name ? args.name : "<unconfigured native thread>");
@@ -729,11 +695,15 @@ dispatch_callback(ffi_cif* cif, void* resp, void** cbargs, void* user_data) {
     }
     // Dispose of allocated memory
     free((void *)args.name);
+    if (attach_status != JNI_OK) {
+      fprintf(stderr, "JNA: Can't attach native thread to VM for callback: %d\n", attach_status);
+      return;
+    }
     if (args.group) {
       (*env)->DeleteWeakGlobalRef(env, args.group);
     }
   }
-
+						
   if (!tls) {
     fprintf(stderr, "JNA: couldn't obtain thread-local storage\n");
     return;

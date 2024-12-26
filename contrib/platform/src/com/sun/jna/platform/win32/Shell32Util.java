@@ -1,37 +1,34 @@
 /* Copyright (c) 2010, 2013 Daniel Doubrovkine, Markus Karg, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
 import com.sun.jna.Native;
-import com.sun.jna.Pointer;
-import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Guid.GUID;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinNT.HRESULT;
-import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 
 /**
@@ -41,35 +38,38 @@ import com.sun.jna.ptr.PointerByReference;
  */
 public abstract class Shell32Util {
 
-    /**
-     * Get a special folder path.
-     *
-     * @param hwnd Parent window.
-     * @param nFolder Folder CSLID.
-     * @param dwFlags Flags.
-     *
-     * @return Special folder.
-     */
-    public static String getFolderPath(HWND hwnd, int nFolder, DWORD dwFlags) {
-        char[] pszPath = new char[WinDef.MAX_PATH];
-        HRESULT hr = Shell32.INSTANCE.SHGetFolderPath(hwnd,
-                nFolder, null, dwFlags, pszPath);
-        if (!hr.equals(W32Errors.S_OK)) {
-            throw new Win32Exception(hr);
-        }
-        return Native.toString(pszPath);
-    }
+	/**
+	 * Get a special folder path.
+	 * @param hwnd
+	 *  Parent window.
+	 * @param nFolder
+	 *  Folder CSLID.
+	 * @param dwFlags
+	 *  Flags.
+	 * @return
+	 *  Special folder.
+	 */
+	public static String getFolderPath(HWND hwnd, int nFolder, DWORD dwFlags) {
+    	char[] pszPath = new char[WinDef.MAX_PATH];
+    	HRESULT hr = Shell32.INSTANCE.SHGetFolderPath(hwnd,
+    			nFolder, null, dwFlags,
+    			pszPath);
+    	if (! hr.equals(W32Errors.S_OK)) {
+    		throw new Win32Exception(hr);
+    	}
+    	return Native.toString(pszPath);
+	}
 
-    /**
-     * Get a special folder path.
-     *
-     * @param nFolder Folder CSLID.
-     *
-     * @return Special folder path.
-     */
-    public static String getFolderPath(int nFolder) {
-        return getFolderPath(null, nFolder, ShlObj.SHGFP_TYPE_CURRENT);
-    }
+	/**
+	 * Get a special folder path.
+	 * @param nFolder
+	 *  Folder CSLID.
+	 * @return
+	 *  Special folder path.
+	 */
+	public static String getFolderPath(int nFolder) {
+		return getFolderPath(null, nFolder, ShlObj.SHGFP_TYPE_CURRENT);
+	}
 
     /**
      * Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID. This function replaces
@@ -99,7 +99,7 @@ public abstract class Shell32Util {
         return result;
     }
 
-    /**
+	/**
      * Retrieves the path of a special folder, identified by its CSIDL.
      *
      * @param csidl
@@ -114,29 +114,5 @@ public abstract class Shell32Util {
         if (!Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, csidl, create))
             throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
         return Native.toString(pszPath);
-    }
-
-    /**
-     * Parses a command line string and returns an array of Strings of the command
-     * line arguments.
-     *
-     * @param cmdLine
-     *            A string that contains the full command line. If this parameter is
-     *            an empty string the function returns the path to the current
-     *            executable file.
-     * @return An array of strings, similar to {@code argv}.
-     */
-    public static final String[] CommandLineToArgv(String cmdLine) {
-        WString cl = new WString(cmdLine);
-        IntByReference nargs = new IntByReference();
-        Pointer strArr = Shell32.INSTANCE.CommandLineToArgvW(cl, nargs);
-        if (strArr != null) {
-            try {
-                return strArr.getWideStringArray(0, nargs.getValue());
-            } finally {
-                Kernel32.INSTANCE.LocalFree(strArr);
-            }
-        }
-        throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
     }
 }

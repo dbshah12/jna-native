@@ -1,26 +1,4 @@
-/* Copyright 2016, Matthias Bläsing, All Rights Reserved
- *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
- */
+
 package com.sun.jna.platform.win32;
 
 import com.sun.jna.Memory;
@@ -70,14 +48,14 @@ public class DdemlUtilTest {
         rootLogger.getHandlers()[0].setLevel(Level.ALL);
         Logger.getLogger(DdeAdapter.class.getName()).setLevel(Level.FINE);
     }
-
+    
     @Test
     public void testNameService() throws InterruptedException {
         final String serviceName = "TestService";
         final CountDownLatch latch = new CountDownLatch(1);
         StandaloneDdeClient client = null;
         StandaloneDdeClient server = null;
-
+        
         try {
             client = new StandaloneDdeClient() {
                 private final RegisterHandler registerHandler = new RegisterHandler() {
@@ -87,13 +65,13 @@ public class DdemlUtilTest {
                         }
                     }
                 };
-
+                
                 {
                     registerRegisterHandler(registerHandler);
                     this.initialize(Ddeml.APPCMD_CLIENTONLY);
                 }
             };
-
+            
             server = new StandaloneDdeClient() {
                 {
                     this.initialize(Ddeml.APPCMD_FILTERINITS
@@ -101,16 +79,16 @@ public class DdemlUtilTest {
                             | Ddeml.CBF_FAIL_ALLSVRXACTIONS);
                 }
             };
-
+            
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
-
+    
             Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
         } finally {
             closeQuietly(server);
             closeQuietly(client);
         }
     }
-
+    
     @Test
     public void testConnectDisconnect() throws InterruptedException {
         final String serviceName = "TestService";
@@ -143,7 +121,7 @@ public class DdemlUtilTest {
                         }
                     }
                 };
-
+                        
                 private final DisconnectHandler disconnectHandler = new DisconnectHandler() {
                     public void onDisconnect(int transactionType, HCONV hconv, boolean sameInstance) {
                         disconnectLatch.countDown();
@@ -200,13 +178,13 @@ public class DdemlUtilTest {
             class Server extends StandaloneDdeClient {
                 private final CountDownLatch connectLatch;
                 private final CountDownLatch disconnectLatch;
-
+                
                 private final ConnectHandler connectHandler = new ConnectHandler() {
                     public boolean onConnect(int transactionType, HSZ topic, HSZ service, Ddeml.CONVCONTEXT convcontext, boolean sameInstance) {
                         return topicName.equals(queryString(topic));
                     }
                 };
-
+                
                 private final ConnectConfirmHandler connectConfirmHandler = new  ConnectConfirmHandler() {
                     public void onConnectConfirm(int transactionType, Ddeml.HCONV hconv, HSZ topic, HSZ service, boolean sameInstance) {
                         if (topicName.equals(queryString(topic))) {
@@ -220,13 +198,13 @@ public class DdemlUtilTest {
                         disconnectLatch.countDown();
                     }
                 };
-
+                    
                 private final WildconnectHandler wildconnectHandler = new WildconnectHandler() {
                     public List<Ddeml.HSZPAIR> onWildconnect(int transactionType, HSZ topic, HSZ service, Ddeml.CONVCONTEXT convcontext, boolean sameInstance) {
                         return Collections.singletonList(new Ddeml.HSZPAIR(service, topic));
                     }
                 };
-
+                
                 public Server(CountDownLatch connectLatch, CountDownLatch disconnectLatch) {
                     registerConnectHandler(connectHandler);
                     registerConnectConfirmHandler(connectConfirmHandler);
@@ -255,9 +233,9 @@ public class DdemlUtilTest {
             assertNotNull(con2);
             IDdeConnection con3 = connectionList.queryNextServer(con2);
             assertNull(con3);
-
+            
             connectionList.close();
-
+            
             assertTrue(connectLatch1.await(5, TimeUnit.SECONDS));
             assertTrue(connectLatch2.await(5, TimeUnit.SECONDS));
             assertTrue(disconnectLatch1.await(5, TimeUnit.SECONDS));
@@ -268,7 +246,7 @@ public class DdemlUtilTest {
             closeQuietly(server2);
         }
     }
-
+    
     @Test
     public void testExecute() throws InterruptedException {
         final String serviceName = "TestService";
@@ -289,7 +267,7 @@ public class DdemlUtilTest {
             };
 
             server = new StandaloneDdeClient() {
-
+                
                 private final ConnectHandler connectHandler = new ConnectHandler() {
                     public boolean onConnect(int transactionType, HSZ topic, HSZ service, Ddeml.CONVCONTEXT convcontext, boolean sameInstance) {
                         return topicName.equals(queryString(topic));
@@ -313,7 +291,7 @@ public class DdemlUtilTest {
                         return Ddeml.DDE_FNOTPROCESSED;
                     }
                 };
-
+                
                 {
                     registerConnectHandler(connectHandler);
                     registerExecuteHandler(executeHandler);
@@ -324,17 +302,17 @@ public class DdemlUtilTest {
             };
 
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
-
+            
             IDdeConnection con = client.connect(serviceName, topicName, null);
             con.execute(testExecute, 5 * 1000, null, null);
-
+            
             assertTrue(executeReceived.await(5, TimeUnit.SECONDS));
         } finally {
             closeQuietly(client);
             closeQuietly(server);
         }
     }
-
+    
     @Test
     public void testPoke() throws InterruptedException {
         final String serviceName = "TestService";
@@ -357,11 +335,11 @@ public class DdemlUtilTest {
 
             server = new StandaloneDdeClient() {
                 private final ConnectHandler connectHandler = new ConnectHandler() {
-                    public boolean onConnect(int transactionType, HSZ topic, HSZ service, Ddeml.CONVCONTEXT convcontext, boolean sameInstance) {
+                     public boolean onConnect(int transactionType, HSZ topic, HSZ service, Ddeml.CONVCONTEXT convcontext, boolean sameInstance) {
                         return topicName.equals(queryString(topic));
-                    }
+                     }
                 };
-
+                 
                 private final PokeHandler pokeHandler = new PokeHandler() {
                     @Override
                     public int onPoke(int transactionType, int dataFormat, HCONV hconv, HSZ topic, HSZ item, Ddeml.HDDEDATA hdata) {
@@ -379,7 +357,7 @@ public class DdemlUtilTest {
                         return Ddeml.DDE_FNOTPROCESSED;
                     }
                 };
-
+                
                 {
                     registerConnectHandler(connectHandler);
                     registerPokeHandler(pokeHandler);
@@ -390,19 +368,19 @@ public class DdemlUtilTest {
             };
 
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
-
+            
             IDdeConnection con = client.connect(serviceName, topicName, null);
             Memory mem = new Memory( (testValue.length() + 1 ) * 2);
             mem.setWideString(0, testValue);
             con.poke(mem, (int) mem.size(), itemName, WinUser.CF_UNICODETEXT, 5 * 1000, null, null);
-
+            
             assertTrue(pokeReceived.await(5, TimeUnit.SECONDS));
         } finally {
             closeQuietly(client);
             closeQuietly(server);
         }
     }
-
+    
     @Test
     public void testRequest() throws InterruptedException {
         final String serviceName = "TestService";
@@ -429,7 +407,7 @@ public class DdemlUtilTest {
                         return topicName.equals(queryString(topic));
                     }
                 };
-
+                
                 private final RequestHandler requestHandler = new RequestHandler() {
                     public HDDEDATA onRequest(int transactionType, int dataFormat, HCONV hconv, HSZ topic, HSZ item) {
                         if (dataFormat == WinUser.CF_UNICODETEXT && queryString(topic).equals(topicName) && queryString(item).equals(itemName)) {
@@ -454,7 +432,7 @@ public class DdemlUtilTest {
             };
 
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
-
+            
             IDdeConnection con = client.connect(serviceName, topicName, null);
             HDDEDATA data = con.request(itemName, WinUser.CF_UNICODETEXT, 5 * 1000, null, null);
             try {
@@ -467,7 +445,7 @@ public class DdemlUtilTest {
             } finally {
                 server.freeDataHandle(data);
             }
-
+            
             assertTrue(pokeReceived.await(5, TimeUnit.SECONDS));
         } finally {
             closeQuietly(client);
@@ -533,7 +511,7 @@ public class DdemlUtilTest {
                         }
                     }
                 };
-
+                
                 {
                     registerConnectHandler(connectHandler);
                     registerExecuteHandler(executeHandler);
@@ -544,19 +522,19 @@ public class DdemlUtilTest {
             };
 
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
-
+            
             IDdeConnection con = client.connect(serviceName, topicName, null);
-
+            
             WinDef.DWORDByReference result = new WinDef.DWORDByReference();
             con.execute(testExecute, Ddeml.TIMEOUT_ASYNC, result, null);
             con.execute(testExecute, Ddeml.TIMEOUT_ASYNC, result, null);
             int transactionId2 = result.getValue().intValue();
             con.execute(testExecute, Ddeml.TIMEOUT_ASYNC, result, null);
-
+            
             con.abandonTransaction(transactionId2);
-
+            
             allTransactionsInvoked.countDown();
-
+            
             assertFalse(executesProcessed.await(2, TimeUnit.SECONDS));
             assertThat(executesProcessed.getCount(), is(1L));
         } finally {
@@ -564,7 +542,7 @@ public class DdemlUtilTest {
             closeQuietly(server);
         }
     }
-
+    
     @Test
     public void testEnableCallback() throws InterruptedException {
         final String serviceName = "TestService";
@@ -581,7 +559,7 @@ public class DdemlUtilTest {
                     public void onXactComplete(int transactionType, int dataFormat, HCONV hConv, HSZ topic, HSZ item, HDDEDATA hdata, ULONG_PTR transactionIdentifier, ULONG_PTR statusFlag) {
                         executesProcessed.countDown();
                     }
-
+                    
                 };
 
                 {
@@ -616,7 +594,7 @@ public class DdemlUtilTest {
                         return Ddeml.DDE_FNOTPROCESSED;
                     }
                 };
-
+                
                 {
                     registerConnectHandler(connectHandler);
                     registerExecuteHandler(executeHandler);
@@ -628,20 +606,20 @@ public class DdemlUtilTest {
 
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
             server.enableCallback(Ddeml.EC_DISABLE);
-
+            
             assertThat(server.enableCallback(Ddeml.EC_QUERYWAITING), is(false));
-
+            
             IDdeConnection con = client.connect(serviceName, topicName, null);
-
+            
             WinDef.DWORDByReference result = new WinDef.DWORDByReference();
             con.execute(testExecute, Ddeml.TIMEOUT_ASYNC, result, null);
             con.execute(testExecute, Ddeml.TIMEOUT_ASYNC, result, null);
             con.execute(testExecute, Ddeml.TIMEOUT_ASYNC, result, null);
-
+            
             assertThat(server.enableCallback(Ddeml.EC_QUERYWAITING), is(true));
-
+            
             server.enableCallback(Ddeml.EC_ENABLEALL);
-
+            
             assertTrue(executesProcessed.await(3, TimeUnit.SECONDS));
         } finally {
             closeQuietly(client);
@@ -668,7 +646,7 @@ public class DdemlUtilTest {
                             executesProcessed.countDown();
                         }
                     }
-
+                    
                 };
 
                 {
@@ -702,7 +680,7 @@ public class DdemlUtilTest {
                         return Ddeml.DDE_FNOTPROCESSED;
                     }
                 };
-
+                
                 {
                     registerConnectHandler(connectHandler);
                     registerExecuteHandler(executeHandler);
@@ -724,7 +702,7 @@ public class DdemlUtilTest {
             closeQuietly(server);
         }
     }
-
+    
     @Test
     public void testAdvise() throws InterruptedException {
         final String serviceName = "TestService";
@@ -790,7 +768,7 @@ public class DdemlUtilTest {
                                 && itemName.equals(queryString(item));
                     }
                 };
-
+                
                 {
                     registerConnectHandler(connectHandler);
                     registerAdvReqHandler(advreqHandler);
@@ -802,14 +780,14 @@ public class DdemlUtilTest {
             };
 
             server.nameService(serviceName, Ddeml.DNS_REGISTER);
-
+            
             IDdeConnection con = client.connect(serviceName, topicName, null);
             con.advstart(itemName, WinUser.CF_UNICODETEXT, 5 * 1000, null, null);
-
+            
             assertTrue(adviseStartReceived.await(5, TimeUnit.SECONDS));
-
+            
             server.postAdvise(topicName, itemName);
-
+            
             assertTrue(adviseDataRequestReceived.await(5, TimeUnit.SECONDS));
             assertTrue(adviseDataReceived.await(5, TimeUnit.SECONDS));
         } finally {
@@ -817,7 +795,7 @@ public class DdemlUtilTest {
             closeQuietly(server);
         }
     }
-
+    
     private static void closeQuietly(Closeable closeable) {
         if (closeable != null) {
             try {

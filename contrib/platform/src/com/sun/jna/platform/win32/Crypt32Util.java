@@ -1,33 +1,28 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
-import java.util.Arrays;
-
-import com.sun.jna.Pointer;
-import com.sun.jna.Memory;
-import com.sun.jna.Native;
 import com.sun.jna.platform.win32.WinCrypt.CRYPTPROTECT_PROMPTSTRUCT;
 import com.sun.jna.platform.win32.WinCrypt.DATA_BLOB;
 import com.sun.jna.ptr.PointerByReference;
@@ -82,44 +77,17 @@ public abstract class Crypt32Util {
         DATA_BLOB pDataIn = new DATA_BLOB(data);
         DATA_BLOB pDataProtected = new DATA_BLOB();
         DATA_BLOB pEntropy = (entropy == null) ? null : new DATA_BLOB(entropy);
-        Win32Exception err = null;
-        byte[] protectedData = null;
         try {
             if (! Crypt32.INSTANCE.CryptProtectData(pDataIn, description,
                     pEntropy, null, prompt, flags, pDataProtected)) {
-                err = new Win32Exception(Kernel32.INSTANCE.GetLastError());
-            } else {
-                protectedData = pDataProtected.getData();
+                throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
             }
+            return pDataProtected.getData();
         } finally {
-            if (pDataIn.pbData != null) {
-                pDataIn.pbData.clear(pDataIn.cbData);
-            }
-            if (pEntropy != null && pEntropy.pbData != null) {
-                pEntropy.pbData.clear(pEntropy.cbData);
-            }
             if (pDataProtected.pbData != null) {
-                pDataProtected.pbData.clear(pDataProtected.cbData);
-                try {
-                    Kernel32Util.freeLocalMemory(pDataProtected.pbData);
-                } catch(Win32Exception e) {
-                    if (err == null) {
-                        err = e;
-                    } else {
-                        err.addSuppressedReflected(e);
-                    }
-                }
+                Kernel32Util.freeLocalMemory(pDataProtected.pbData);
             }
         }
-
-        if (err != null) {
-            if (protectedData != null) {
-                Arrays.fill(protectedData, (byte) 0);
-            }
-            throw err;
-        }
-
-        return protectedData;
     }
 
     /**
@@ -164,26 +132,32 @@ public abstract class Crypt32Util {
         DATA_BLOB pDataIn = new DATA_BLOB(data);
         DATA_BLOB pDataUnprotected = new DATA_BLOB();
         DATA_BLOB pEntropy = (entropy == null) ? null : new DATA_BLOB(entropy);
+        PointerByReference pDescription = new PointerByReference();
         Win32Exception err = null;
         byte[] unProtectedData = null;
         try {
-            if (! Crypt32.INSTANCE.CryptUnprotectData(pDataIn, null,
+            if (! Crypt32.INSTANCE.CryptUnprotectData(pDataIn, pDescription,
                     pEntropy, null, prompt, flags, pDataUnprotected)) {
                 err = new Win32Exception(Kernel32.INSTANCE.GetLastError());
             } else {
                 unProtectedData = pDataUnprotected.getData();
             }
         } finally {
-            if (pDataIn.pbData != null) {
-                pDataIn.pbData.clear(pDataIn.cbData);
-            }
-            if (pEntropy != null && pEntropy.pbData != null) {
-                pEntropy.pbData.clear(pEntropy.cbData);
-            }
             if (pDataUnprotected.pbData != null) {
-                pDataUnprotected.pbData.clear(pDataUnprotected.cbData);
                 try {
                     Kernel32Util.freeLocalMemory(pDataUnprotected.pbData);
+                } catch(Win32Exception e) {
+                    if (err == null) {
+                        err = e;
+                    } else {
+                        err.addSuppressedReflected(e);
+                    }
+                }
+            }
+
+            if (pDescription.getValue() != null) {
+                try {
+                    Kernel32Util.freeLocalMemory(pDescription.getValue());
                 } catch(Win32Exception e) {
                     if (err == null) {
                         err = e;
@@ -195,56 +169,9 @@ public abstract class Crypt32Util {
         }
 
         if (err != null) {
-            if (unProtectedData != null) {
-                Arrays.fill(unProtectedData, (byte) 0);
-            }
             throw err;
         }
 
         return unProtectedData;
-    }
-
-    /**
-     * Utility method to call to Crypt32's CertNameToStr that allocates the
-     * assigns the required memory for the psz parameter based on the type
-     * mapping used, calls to CertNameToStr, and returns the received string.
-     *
-     * @param dwCertEncodingType The certificate encoding type that was used to
-     * encode the name. The message encoding type identifier, contained in the
-     * high WORD of this value, is ignored by this function.
-     * @param pName A pointer to the CERT_NAME_BLOB structure to be converted.
-     * @param dwStrType This parameter specifies the format of the output
-     * string. This parameter also specifies other options for the contents of
-     * the string.
-     * @return Returns the retrieved string.
-     */
-    public static String CertNameToStr(int dwCertEncodingType, int dwStrType, DATA_BLOB pName) {
-        int charToBytes = Boolean.getBoolean("w32.ascii") ? 1 : Native.WCHAR_SIZE;
-
-        // Initialize the signature structure.
-        int requiredSize = Crypt32.INSTANCE.CertNameToStr(
-                dwCertEncodingType,
-                pName,
-                dwStrType,
-                Pointer.NULL,
-                0);
-
-        Memory mem = new Memory(requiredSize * charToBytes);
-
-        // Initialize the signature structure.
-        int resultBytes = Crypt32.INSTANCE.CertNameToStr(
-                dwCertEncodingType,
-                pName,
-                dwStrType,
-                mem,
-                requiredSize);
-
-        assert resultBytes == requiredSize;
-
-        if (Boolean.getBoolean("w32.ascii")) {
-            return mem.getString(0);
-        } else {
-            return mem.getWideString(0);
-        }
     }
 }

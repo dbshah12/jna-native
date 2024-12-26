@@ -1,23 +1,23 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -25,11 +25,11 @@ package com.sun.jna.platform.win32;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.List;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 
 /**
  * Ported from Guid.h. Microsoft Windows SDK 6.0A.
@@ -46,12 +46,10 @@ public interface Guid {
      *
      * @author Tobias Wolf, wolf.tobias@gmx.net
      */
-    @FieldOrder({"Data1", "Data2", "Data3", "Data4"})
     public static class GUID extends Structure {
 
-        public static class ByValue extends GUID implements Structure.ByValue {
-
-            public ByValue() {
+    	public static class ByValue extends GUID implements Structure.ByValue {
+    		public ByValue() {
                 super();
             }
             public ByValue(GUID guid) {
@@ -65,7 +63,7 @@ public interface Guid {
             public ByValue(Pointer memory) {
                 super(memory);
             }
-        }
+    	}
 
         /**
          * The Class ByReference.
@@ -106,6 +104,8 @@ public interface Guid {
                 super(memory);
             }
         }
+
+        public static final List<String> FIELDS = createFieldsOrder("Data1", "Data2", "Data3", "Data4");
 
         /** The Data1. */
         public int Data1;
@@ -396,9 +396,14 @@ public interface Guid {
          * Write fields to backing memory.
          */
         protected void writeFieldsToMemory() {
-            for (String name : getFieldOrder()) {
+            for (String name : FIELDS) {
                 this.writeField(name);
             }
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 
@@ -472,30 +477,22 @@ public interface Guid {
 
     /**
      * REFIID is a pointer to an IID.
-     *
-     * <p>
+     * 
      * This type needs to be seperate from IID, as the REFIID can be passed in
-     * from external code, that does not allow writes to memory.</p>
-     *
-     * <p>
-     * With the normal JNA behaviour a structure, that crosses the
-     * native&lt;-%gt;Java border will be autowritten, which causes a fault when
-     * written. Observed was this behaviour in COM-Callbacks, which get the
-     * REFIID passed into Invoke-method.</p>
-     *
-     * <p>
-     * So a IID can't be used directly, although the typedef of REFIID (from
-     * MSDN):</p>
-     *
-     * <p>
-     * {@code typedef IID* REFIID;}</p>
-     *
-     * <p>
-     * and the jna behaviour is described as:</p>
-     *
-     * <p>
-     * "When a function requires a pointer to a struct, a Java Structure should
-     * be used."</p>
+     * from external code, that does not allow writes to memory.
+     * 
+     * With the normal JNA behaviour a structure, that crosses the native<->Java
+     * border will be autowritten, which causes a fault when written.
+     * Observed was this behaviour in COM-Callbacks, which get the REFIID passed
+     * into Invoke-method.
+     * 
+     * So a IID can't be used directly, although the typedef of REFIID (from MSDN):
+     * 
+     * typedef IID* REFIID;
+     * 
+     * and the jna behaviour is described as:
+     * 
+     * "When a function requires a pointer to a struct, a Java Structure should be used."
      */
     public class REFIID extends PointerType {
 
@@ -518,7 +515,7 @@ public interface Guid {
         public REFIID(IID guid) {
             super(guid.getPointer());
         }
-
+        
         public void setValue(IID value) {
             setPointer(value.getPointer());
         }
@@ -548,7 +545,7 @@ public interface Guid {
             return getValue().hashCode();
         }
     }
-
+    
     /**
      * The Class IID.
      *

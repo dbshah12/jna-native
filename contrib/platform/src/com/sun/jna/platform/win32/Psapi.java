@@ -1,35 +1,34 @@
 /* Copyright (c) 2015 Andreas "PAX" L\u00FCck, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
+import java.util.List;
+
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.ByReference;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.platform.win32.BaseTSD.SIZE_T;
-import com.sun.jna.platform.win32.BaseTSD.ULONG_PTR;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HMODULE;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
@@ -45,8 +44,8 @@ import com.sun.jna.win32.W32APIOptions;
  * @author Andreas "PAX" L&uuml;ck, onkelpax-git[at]yahoo.de
  */
 public interface Psapi extends StdCallLibrary {
-    Psapi INSTANCE = Native.load("psapi", Psapi.class, W32APIOptions.DEFAULT_OPTIONS);
-
+    Psapi INSTANCE = Native.loadLibrary("psapi", Psapi.class, W32APIOptions.DEFAULT_OPTIONS);
+    
     /**
      * Retrieves the fully qualified path for the file containing the specified
      * module.
@@ -228,8 +227,6 @@ public interface Psapi extends StdCallLibrary {
     boolean GetModuleInformation(HANDLE hProcess, HMODULE hModule, MODULEINFO lpmodinfo, int cb);
 
     /**
-     * Retrieves the name of the executable file for the specified process.
-     *
      * @param hProcess
      *            A handle to the process. The handle must have the
      *            PROCESS_QUERY_INFORMATION or PROCESS_QUERY_LIMITED_INFORMATION
@@ -254,7 +251,7 @@ public interface Psapi extends StdCallLibrary {
     /**
      * Retrieves the performance values contained in the
      * {@link PERFORMANCE_INFORMATION} structure.
-     *
+     * 
      * @param pPerformanceInformation
      *            A pointer to a {@link PERFORMANCE_INFORMATION} structure that
      *            receives the performance information.
@@ -267,57 +264,24 @@ public interface Psapi extends StdCallLibrary {
      * @see <a href="http://msdn.microsoft.com/en-us/library/ms683210(VS.85).aspx">MSDN</a>
      */
     boolean GetPerformanceInfo(PERFORMANCE_INFORMATION pPerformanceInformation, int cb);
-
-    /**
-     * Retrieves the process identifier for each process object in the system. <br>
-     * It is a good idea to use a large array, because it is hard to predict how
-     * many processes there will be at the time you call EnumProcesses. <br>
-     * To determine how many processes were enumerated, divide the pBytesReturned
-     * value by sizeof(DWORD). There is no indication given when the buffer is too
-     * small to store all process identifiers. Therefore, if pBytesReturned equals
-     * cb, consider retrying the call with a larger array. <br>
-     * To obtain process handles for the processes whose identifiers you have just
-     * obtained, call the OpenProcess function.
-     *
-     * @param lpidProcess
-     *            A pointer to an array that receives the list of process
-     *            identifiers
-     * @param cb
-     *            The size of the lpidProcess array, in bytes.
-     * @param lpcbNeeded
-     *            The number of bytes returned in the pProcessIds array.
-     * @return If the function succeeds, the return value is nonzero. If the
-     *         function fails, the return value is zero. To get extended error
-     *         information, call GetLastError.
-     * @see <a href=
-     *      "https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-enumprocesses">MSDN</a>
-     */
-    boolean EnumProcesses(int[] lpidProcess, int cb, IntByReference lpcbNeeded);
-
-    /**
-     * Retrieves extended information about the pages at specific
-     * virtual addresses in the address space of the specified process.
-     *
-     * @param hProcess A Handle to the Process
-     * @param pv       A pointer to an array of PSAPI_WORKING_SET_EX_INFORMATION structures
-     * @param cb       The size of the pv buffer, in bytes.
-     * @return If the function succeeds, the return value is nonzero.
-     * @see <a href="https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-queryworkingsetex">MSDN</a>
-     */
-    boolean QueryWorkingSetEx(HANDLE hProcess, Pointer pv, int cb);
-
-    @FieldOrder({"lpBaseOfDll", "SizeOfImage", "EntryPoint"})
+    
     class MODULEINFO extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("lpBaseOfDll", "SizeOfImage", "EntryPoint");
+
         public Pointer EntryPoint;
         public Pointer lpBaseOfDll;
         public int     SizeOfImage;
-    }
 
-    @FieldOrder({"cb", "CommitTotal", "CommitLimit", "CommitPeak",
-        "PhysicalTotal", "PhysicalAvailable", "SystemCache", "KernelTotal",
-        "KernelPaged", "KernelNonpaged", "PageSize", "HandleCount",
-        "ProcessCount", "ThreadCount"})
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
+    }
+    
     class PERFORMANCE_INFORMATION extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("cb", "CommitTotal", "CommitLimit", 
+            "CommitPeak", "PhysicalTotal", "PhysicalAvailable", "SystemCache", "KernelTotal", "KernelPaged",
+            "KernelNonpaged", "PageSize", "HandleCount", "ProcessCount", "ThreadCount");
 
         public DWORD cb;
         public SIZE_T CommitTotal;
@@ -333,93 +297,10 @@ public interface Psapi extends StdCallLibrary {
         public DWORD HandleCount;
         public DWORD ProcessCount;
         public DWORD ThreadCount;
-    }
 
-    @FieldOrder({"VirtualAddress", "VirtualAttributes"})
-    class PSAPI_WORKING_SET_EX_INFORMATION extends Structure {
-
-        public Pointer VirtualAddress;
-        public ULONG_PTR VirtualAttributes;
-
-        /**
-         * If this bit is 1, the subsequent members are valid; otherwise they
-         * should be ignored.
-         */
-        public boolean isValid() {
-            return getBitFieldValue(1, 0) == 1;
-        }
-
-        /**
-         * The number of processes that share this page. The maximum value of
-         * this member is 7.
-         */
-        public int getShareCount() {
-            return getBitFieldValue(3, 1);
-        }
-
-        /**
-         * The memory protection attributes of the page. For a list of values
-         * see below.
-         *
-         * @see
-         * <a href="https://docs.microsoft.com/en-us/windows/desktop/Memory/memory-protection-constants">Memory
-         * Protection Constants</a>.
-         */
-        public int getWin32Protection() {
-            return getBitFieldValue(11, 3 + 1);
-        }
-
-        /**
-         * If this bit is 1, the page can be shared.
-         */
-        public boolean isShared() {
-            return getBitFieldValue(1, 11 + 3 + 1) == 1;
-        }
-
-        /**
-         * The NUMA node. The maximum value of this member is 63.
-         */
-        public int getNode() {
-            return getBitFieldValue(6, 1 + 11 + 3 + 1);
-        }
-
-        /**
-         * If this bit is 1, the virtual page is locked in physical memory.
-         */
-        public boolean isLocked() {
-            return getBitFieldValue(1, 6 + 1 + 11 + 3 + 1) == 1;
-        }
-
-        /**
-         * If this bit is 1, the page is a large page.
-         */
-        public boolean isLargePage() {
-            return getBitFieldValue(1, 1 + 6 + 1 + 11 + 3 + 1) == 1;
-        }
-
-        /**
-         * If this bit is 1, the page is has been reported as bad.
-         */
-        public boolean isBad() {
-            return getBitFieldValue(1, 1 + 1 + 1 + 6 + 1 + 11 + 3 + 1) == 1;
-        }
-
-        /**
-         * Returns innerValue after shifting the value rightShiftAmount, and
-         * applying a Bit Mask of size maskLength. Example, <br/>
-         * innerValue = 0011<br/> getBitFieldValue(2, 1) = 0011 >> 1 & 11 = 01
-         *
-         * @param maskLength Size of the Bit Mask
-         * @param rightShiftAmount Amount to Shift innerValue to the right by
-         * @return innerValue with the mask and shift applied.
-         */
-        private int getBitFieldValue(final int maskLength, final int rightShiftAmount) {
-            long bitMask = 0;
-
-            for (int l = 0; l < maskLength; l++) {
-                bitMask |= 1 << l;
-            }
-            return (int) ((VirtualAttributes.longValue() >>> rightShiftAmount) & bitMask);
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 }

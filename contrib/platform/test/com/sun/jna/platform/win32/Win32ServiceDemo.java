@@ -1,28 +1,27 @@
 /*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Winsvc.HandlerEx;
 import com.sun.jna.platform.win32.Winsvc.SC_HANDLE;
@@ -34,7 +33,7 @@ import com.sun.jna.platform.win32.Winsvc.SERVICE_TABLE_ENTRY;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.ProtectionDomain;
+import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -72,15 +71,14 @@ public class Win32ServiceDemo {
 
     public static final String serviceName = "Win32ServiceDemo";
     public static final String description = "TestService Description";
-    private static final Set<String> SUFFIXES = new HashSet<>();
+    private static final Set<String> SUFFIXES = new HashSet<String>();
 
     static {
         SUFFIXES.add("jna.jar");
         SUFFIXES.add("jna-test.jar");
         SUFFIXES.add("classes");
-        SUFFIXES.add("test-classes");
     }
-
+    
     private final Object waitObject = new Object();
     private ServiceMain serviceMain;
     private ServiceControl serviceControl;
@@ -102,45 +100,36 @@ public class Win32ServiceDemo {
         // a) an URLClassLoader
         // b) holds all relevant dependencies
         String invocation;
-        StringBuilder sb = new StringBuilder();
-        for(Class c : new Class[]{W32ServiceTest.class,Native.class,W32Service.class}) {
-            ProtectionDomain pd = c.getProtectionDomain();
-            URL u = pd.getCodeSource().getLocation();
-
-            if ("file".equals(u.getProtocol())) {
-                try {
-                    File f = new File(u.toURI());
-                    if (SUFFIXES.contains(f.getName())) {
-                        if (sb.length() != 0) {
-                            sb.append(";");
+        ClassLoader cl = W32ServiceTest.class.getClassLoader();
+        if (cl instanceof URLClassLoader) {
+            StringBuilder sb = new StringBuilder();
+            for (URL u : ((URLClassLoader) cl).getURLs()) {
+                if ("file".equals(u.getProtocol())) {
+                    try {
+                        File f = new File(u.toURI());
+                        if (SUFFIXES.contains(f.getName())) {
+                            if (sb.length() != 0) {
+                                sb.append(";");
+                            }
+                            sb.append(f.getAbsolutePath());
                         }
-                        sb.append(f.getAbsolutePath());
+                    } catch (URISyntaxException ex) {
+                        Logger.getLogger(W32ServiceTest.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } catch (URISyntaxException ex) {
-                    Logger.getLogger(W32ServiceTest.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-        }
-
-        String JAVA_HOME = System.getProperty("java.home", System.getenv("JAVA_HOME"));
-        String javaBinary = "java.exe";
-        if(JAVA_HOME != null) {
-            javaBinary = "\"" + new File(JAVA_HOME, "\\bin\\java.exe").getAbsolutePath() + "\"";
+            invocation = String.format("java.exe -cp %s com.sun.jna.platform.win32.Win32ServiceDemo", sb.toString());
+            System.out.println("Invocation: " + invocation);
         } else {
-            javaBinary = "java.exe";
+            throw new IllegalStateException("Classloader loading Win32ServiceDemo must be an URLClassLoader");
         }
-
-        invocation = String.format("%s -Djna.nosys=true -cp %s com.sun.jna.platform.win32.Win32ServiceDemo",
-                javaBinary,
-                sb.toString());
-        System.out.println("Invocation: " + invocation);
 
         SERVICE_DESCRIPTION desc = new SERVICE_DESCRIPTION();
         desc.lpDescription = description;
 
         SC_HANDLE serviceManager = openServiceControlManager(null, Winsvc.SC_MANAGER_ALL_ACCESS);
 
-        try {
+        if (serviceManager != null) {
             SC_HANDLE service = Advapi32.INSTANCE.CreateService(
                     serviceManager,
                     serviceName,
@@ -161,7 +150,6 @@ public class Win32ServiceDemo {
             } else {
                 throw new IllegalStateException("Failed to install service ");
             }
-        } finally {
             Advapi32.INSTANCE.CloseServiceHandle(serviceManager);
         }
         return success;
@@ -177,14 +165,13 @@ public class Win32ServiceDemo {
 
         SC_HANDLE serviceManager = openServiceControlManager(null, Winsvc.SC_MANAGER_ALL_ACCESS);
 
-        try {
+        if (serviceManager != null) {
             SC_HANDLE service = Advapi32.INSTANCE.OpenService(serviceManager, serviceName, Winsvc.SERVICE_ALL_ACCESS);
 
             if (service != null) {
                 success = Advapi32.INSTANCE.DeleteService(service);
                 Advapi32.INSTANCE.CloseServiceHandle(service);
             }
-        } finally {
             Advapi32.INSTANCE.CloseServiceHandle(serviceManager);
         }
         return success;
@@ -200,14 +187,13 @@ public class Win32ServiceDemo {
 
         SC_HANDLE serviceManager = openServiceControlManager(null, WinNT.GENERIC_EXECUTE);
 
-        try {
+        if (serviceManager != null) {
             SC_HANDLE service = Advapi32.INSTANCE.OpenService(serviceManager, serviceName, WinNT.GENERIC_EXECUTE);
 
             if (service != null) {
                 success = Advapi32.INSTANCE.StartService(service, 0, null);
                 Advapi32.INSTANCE.CloseServiceHandle(service);
             }
-        } finally {
             Advapi32.INSTANCE.CloseServiceHandle(serviceManager);
         }
 
@@ -224,7 +210,7 @@ public class Win32ServiceDemo {
 
         SC_HANDLE serviceManager = openServiceControlManager(null, WinNT.GENERIC_EXECUTE);
 
-        try {
+        if (serviceManager != null) {
             SC_HANDLE service = Advapi32.INSTANCE.OpenService(serviceManager, serviceName, WinNT.GENERIC_EXECUTE);
 
             if (service != null) {
@@ -232,7 +218,6 @@ public class Win32ServiceDemo {
                 success = Advapi32.INSTANCE.ControlService(service, Winsvc.SERVICE_CONTROL_STOP, serviceStatus);
                 Advapi32.INSTANCE.CloseServiceHandle(service);
             }
-        } finally {
             Advapi32.INSTANCE.CloseServiceHandle(serviceManager);
         }
 
@@ -256,15 +241,10 @@ public class Win32ServiceDemo {
      *
      * @param machine name of the machine or null for localhost
      * @param access access flags
-     * @return handle to ServiceControlManager
-     * @throws Win32Exception If manager not opened
+     * @return handle to ServiceControlManager or null when failed
      */
     private static SC_HANDLE openServiceControlManager(String machine, int access) {
-        SC_HANDLE handle = Advapi32.INSTANCE.OpenSCManager(machine, null, access);
-        if (handle == null) {
-            throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
-        }
-        return handle;
+        return Advapi32.INSTANCE.OpenSCManager(machine, null, access);
     }
 
     /**
@@ -346,7 +326,7 @@ public class Win32ServiceDemo {
 
             // Avoid returning from ServiceMain, which will cause a crash
             // See http://support.microsoft.com/kb/201349, which recommends
-            // having init() wait for this thread.
+            // having init() wait for this thread.  
             // Waiting on this thread in init() won't fix the crash, though.
             //System.exit(0);
         }

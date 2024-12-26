@@ -1,25 +1,14 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.win32;
 
@@ -62,8 +51,8 @@ public abstract class AbstractWin32TestSupport extends AbstractPlatformTestSuppo
      */
     public static final Set<String> detectDuplicateMethods(Class<?> ifc) {
         Method[] methods = ifc.getMethods();
-        Set<String> nameSet = new HashSet<>(methods.length);
-        Set<String> dupSet = new HashSet<>();
+        Set<String> nameSet = new HashSet<String>(methods.length);
+        Set<String> dupSet = new HashSet<String>();
         for (Method m : methods) {
             String name = m.getName();
             if (!nameSet.add(name)) {
@@ -132,9 +121,9 @@ public abstract class AbstractWin32TestSupport extends AbstractPlatformTestSuppo
 
         return handle;
     }
-
+    
     public static final LCID systemLCID = Kernel32.INSTANCE.GetSystemDefaultLCID();
-    public static final boolean isEnglishLocale =
+    public static final boolean isEnglishLocale = 
             systemLCID.intValue() == 0x409 // en_US
             || systemLCID.intValue() == 0x809 // en_GB
             ;
@@ -155,39 +144,5 @@ public abstract class AbstractWin32TestSupport extends AbstractPlatformTestSuppo
             hRes = Kernel32.INSTANCE.Process32Next(hSnapShot, process);
         }
         Kernel32.INSTANCE.CloseHandle(hSnapShot);
-    }
-
-    /**
-     * Return true if the supplied uuid can be found in the registry.
-     *
-     * @param uuid Format: {&lt;UID&gt;}
-     */
-    public static boolean checkCOMRegistered(String uuid) {
-        WinReg.HKEYByReference phkKey = null;
-        try {
-            phkKey = Advapi32Util.registryGetKey(WinReg.HKEY_CLASSES_ROOT, "Interface\\" + uuid, WinNT.KEY_READ);
-            if(phkKey != null) {
-                return true;
-            }
-        } catch (Win32Exception ex) {
-            // Ok - failed ...
-        } finally {
-            if(phkKey != null && phkKey.getValue() != null) {
-                Advapi32Util.registryCloseKey(phkKey.getValue());
-            }
-        }
-        try {
-            phkKey = Advapi32Util.registryGetKey(WinReg.HKEY_CLASSES_ROOT, "CLSID\\" + uuid, WinNT.KEY_READ);
-            if(phkKey != null) {
-                return true;
-            }
-        } catch (Win32Exception ex) {
-            // Ok - failed ...
-        } finally {
-            if(phkKey != null && phkKey.getValue() != null) {
-                Advapi32Util.registryCloseKey(phkKey.getValue());
-            }
-        }
-        return false;
     }
 }

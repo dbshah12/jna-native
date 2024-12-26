@@ -1,30 +1,28 @@
 /* Copyright (c) 2007 Wayne Meissner, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 
 package com.sun.jna;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Represents a native integer value, which may have a platform-specific size
@@ -76,37 +74,31 @@ public abstract class IntegerType extends Number implements NativeMapped {
         long truncated = value;
         this.value = value;
         switch (size) {
-            case 1:
-                if (unsigned) {
-                    this.value = value & 0xFFL;
-                }
-                truncated = (byte) value;
-                this.number = Byte.valueOf((byte) value);
-                break;
-            case 2:
-                if (unsigned) {
-                    this.value = value & 0xFFFFL;
-                }
-                truncated = (short) value;
-                this.number = Short.valueOf((short) value);
-                break;
-            case 4:
-                if (unsigned) {
-                    this.value = value & 0xFFFFFFFFL;
-                }
-                truncated = (int) value;
-                this.number = Integer.valueOf((int) value);
-                break;
-            case 8:
-                this.number = Long.valueOf(value);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported size: " + size);
+        case 1:
+            if (unsigned) this.value = value & 0xFFL;
+            truncated = (byte) value;
+            this.number = Byte.valueOf((byte) value);
+            break;
+        case 2:
+            if (unsigned) this.value = value & 0xFFFFL;
+            truncated = (short) value;
+            this.number = Short.valueOf((short) value);
+            break;
+        case 4:
+            if (unsigned) this.value = value & 0xFFFFFFFFL;
+            truncated = (int) value;
+            this.number = Integer.valueOf((int) value);
+            break;
+        case 8:
+            this.number = Long.valueOf(value);
+            break;
+        default:
+            throw new IllegalArgumentException("Unsupported size: " + size);
         }
         if (size < 8) {
-            long mask = ~((1L << (size * 8)) - 1);
+            long mask = ~((1L << (size*8)) - 1);
             if ((value < 0 && truncated != value)
-                    || (value >= 0 && (mask & value) != 0)) {
+                || (value >= 0 && (mask & value) != 0)) {
                 throw new IllegalArgumentException("Argument value 0x"
                         + Long.toHexString(value) + " exceeds native capacity ("
                         + size + " bytes) mask=0x" + Long.toHexString(mask));
@@ -124,9 +116,19 @@ public abstract class IntegerType extends Number implements NativeMapped {
         // be forgiving of null values read from memory
         long value = nativeValue == null
             ? 0 : ((Number) nativeValue).longValue();
-        IntegerType number = Klass.newInstance(getClass());
-        number.setValue(value);
-        return number;
+        try {
+            IntegerType number = getClass().newInstance();
+            number.setValue(value);
+            return number;
+        }
+        catch (InstantiationException e) {
+            throw new IllegalArgumentException("Can't instantiate "
+                    + getClass());
+        }
+        catch (IllegalAccessException e) {
+            throw new IllegalArgumentException("Not allowed to instantiate "
+                    + getClass());
+        }
     }
 
     @Override

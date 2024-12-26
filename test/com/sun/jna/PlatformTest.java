@@ -1,23 +1,23 @@
 /* Copyright (c) 2013 Timothy Wall, All Rights Reserved
- *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * 
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -27,7 +27,7 @@ import junit.framework.TestCase;
 
 //@SuppressWarnings("unused")
 public class PlatformTest extends TestCase {
-
+    
     public void testOSPrefix() {
         assertEquals("Wrong resource path", "win32-x86",
                      Platform.getNativeLibraryResourcePrefix(Platform.WINDOWS,
@@ -38,18 +38,15 @@ public class PlatformTest extends TestCase {
         assertEquals("Wrong resource path Windows CE/arm", "w32ce-arm",
                      Platform.getNativeLibraryResourcePrefix(Platform.WINDOWSCE,
                                                              "arm", "Windows CE"));
-        assertEquals("Wrong resource path Mac/x86", "darwin-x86",
+        assertEquals("Wrong resource path Mac/x86", "darwin",
                      Platform.getNativeLibraryResourcePrefix(Platform.MAC,
                                                              "x86", "Darwin"));
-        assertEquals("Wrong resource path Mac/x86", "darwin-x86",
+        assertEquals("Wrong resource path Mac/x86", "darwin",
                      Platform.getNativeLibraryResourcePrefix(Platform.MAC,
                                                              "i386", "Darwin"));
-        assertEquals("Wrong resource path Mac/x86_64", "darwin-x86-64",
+        assertEquals("Wrong resource path Mac/x86_64", "darwin",
                      Platform.getNativeLibraryResourcePrefix(Platform.MAC,
                                                              "x86_64", "Mac"));
-        assertEquals("Wrong resource path Mac/aarch64", "darwin-aarch64",
-                    Platform.getNativeLibraryResourcePrefix(Platform.MAC,
-                                                             "aarch64", "Mac"));
         assertEquals("Wrong resource path Solaris/sparc", "sunos-sparc",
                      Platform.getNativeLibraryResourcePrefix(Platform.SOLARIS,
                                                              "sparc", "Solaris"));
@@ -83,9 +80,6 @@ public class PlatformTest extends TestCase {
                     Platform.getNativeLibraryResourcePrefix(Platform.LINUX,
                             "arm", "Linux/Gnu"));
         }
-        assertEquals("Wrong resource path DragonFlyBSD/x86-64", "dragonflybsd-x86-64",
-                     Platform.getNativeLibraryResourcePrefix(Platform.DRAGONFLYBSD,
-                                                             "x86-64", "DragonFlyBSD"));
         assertEquals("Wrong resource path OpenBSD/x86", "openbsd-x86",
                      Platform.getNativeLibraryResourcePrefix(Platform.OPENBSD,
                                                              "x86", "OpenBSD"));
@@ -104,16 +98,16 @@ public class PlatformTest extends TestCase {
         assertEquals("Wrong resource path other/other", "name-ppc",
                      Platform.getNativeLibraryResourcePrefix(Platform.UNSPECIFIED,
                                                              "PowerPC", "Name Of System"));
-
+        
     }
 
     public void testSystemProperty() {
         String demoOverride = "demoOverride";
         assertFalse(demoOverride.equals(Platform.getNativeLibraryResourcePrefix()));
-
+        
         System.setProperty("jna.prefix", demoOverride);
         assertTrue(demoOverride.equals(Platform.getNativeLibraryResourcePrefix()));
-
+        
         System.clearProperty("jna.prefix");
     }
 

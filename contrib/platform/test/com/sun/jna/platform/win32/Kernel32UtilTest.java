@@ -1,25 +1,14 @@
 /* Copyright (c) 2010, 2013 Daniel Doubrovkine, Markus Karg, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.win32;
 
@@ -30,25 +19,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Tlhelp32.MODULEENTRY32W;
-import com.sun.jna.platform.win32.WinDef.DWORD;
-import com.sun.jna.platform.win32.WinNT.CACHE_RELATIONSHIP;
-import com.sun.jna.platform.win32.WinNT.GROUP_RELATIONSHIP;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinNT.HRESULT;
 import com.sun.jna.platform.win32.WinNT.LARGE_INTEGER;
-import com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP;
-import com.sun.jna.platform.win32.WinNT.NUMA_NODE_RELATIONSHIP;
-import com.sun.jna.platform.win32.WinNT.PROCESSOR_CACHE_TYPE;
-import com.sun.jna.platform.win32.WinNT.PROCESSOR_RELATIONSHIP;
-import com.sun.jna.platform.win32.WinNT.SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-import com.sun.jna.platform.win32.WinNT.SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX;
 
 import junit.framework.TestCase;
 
@@ -160,18 +139,6 @@ public class Kernel32UtilTest extends TestCase {
         }
     }
 
-    public void testFormatMessageFromErrorCodeWithNonEnglishLocale() {
-        int errorCode = W32Errors.S_OK.intValue();
-        String formattedMsgInDefaultLocale = Kernel32Util.formatMessage(errorCode);
-        // primary and sub languages id's of the english locale, because it is present on most machines
-        String formattedMsgInEnglishLocale = Kernel32Util.formatMessage(errorCode, 9, 1);
-        if(AbstractWin32TestSupport.isEnglishLocale) {
-            assertEquals(formattedMsgInDefaultLocale, formattedMsgInEnglishLocale);
-        } else {
-            assertNotSame(formattedMsgInDefaultLocale, formattedMsgInEnglishLocale);
-        }
-    }
-
     public void testGetTempPath() {
         assertTrue(Kernel32Util.getTempPath().length() > 0);
     }
@@ -211,10 +178,10 @@ public class Kernel32UtilTest extends TestCase {
     public final void testGetPrivateProfileInt() throws IOException {
         final File tmp = File.createTempFile("testGetPrivateProfileInt", "ini");
         tmp.deleteOnExit();
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer.println("[Section]");
-            writer.println("existingKey = 123");
-        }
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        writer.println("[Section]");
+        writer.println("existingKey = 123");
+        writer.close();
 
         assertEquals(123, Kernel32Util.getPrivateProfileInt("Section", "existingKey", 456, tmp.getCanonicalPath()));
         assertEquals(456, Kernel32Util.getPrivateProfileInt("Section", "missingKey", 456, tmp.getCanonicalPath()));
@@ -223,10 +190,10 @@ public class Kernel32UtilTest extends TestCase {
     public final void testGetPrivateProfileString() throws IOException {
         final File tmp = File.createTempFile("testGetPrivateProfileString", "ini");
         tmp.deleteOnExit();
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer.println("[Section]");
-            writer.println("existingKey = ABC");
-        }
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        writer.println("[Section]");
+        writer.println("existingKey = ABC");
+        writer.close();
 
         assertEquals("ABC", Kernel32Util.getPrivateProfileString("Section", "existingKey", "DEF", tmp.getCanonicalPath()));
         assertEquals("DEF", Kernel32Util.getPrivateProfileString("Section", "missingKey", "DEF", tmp.getCanonicalPath()));
@@ -235,38 +202,35 @@ public class Kernel32UtilTest extends TestCase {
     public final void testWritePrivateProfileString() throws IOException {
         final File tmp = File.createTempFile("testWritePrivateProfileString", "ini");
         tmp.deleteOnExit();
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer.println("[Section]");
-            writer.println("existingKey = ABC");
-            writer.println("removedKey = JKL");
-        }
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        writer.println("[Section]");
+        writer.println("existingKey = ABC");
+        writer.println("removedKey = JKL");
+        writer.close();
 
         Kernel32Util.writePrivateProfileString("Section", "existingKey", "DEF", tmp.getCanonicalPath());
         Kernel32Util.writePrivateProfileString("Section", "addedKey", "GHI", tmp.getCanonicalPath());
         Kernel32Util.writePrivateProfileString("Section", "removedKey", null, tmp.getCanonicalPath());
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(tmp))) {
-            assertEquals(reader.readLine(), "[Section]");
-            assertTrue(reader.readLine().matches("existingKey\\s*=\\s*DEF"));
-            assertTrue(reader.readLine().matches("addedKey\\s*=\\s*GHI"));
-            assertEquals(reader.readLine(), null);
-        }
+        final BufferedReader reader = new BufferedReader(new FileReader(tmp));
+        assertEquals(reader.readLine(), "[Section]");
+        assertTrue(reader.readLine().matches("existingKey\\s*=\\s*DEF"));
+        assertTrue(reader.readLine().matches("addedKey\\s*=\\s*GHI"));
+        assertEquals(reader.readLine(), null);
+        reader.close();
     }
 
     public final void testGetPrivateProfileSection() throws IOException {
         final File tmp = File.createTempFile("testGetPrivateProfileSection", ".ini");
         tmp.deleteOnExit();
 
-        try (PrintWriter writer0 = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer0.println("[X]");
-        }
-
-        final String[] lines0 = Kernel32Util.getPrivateProfileSection("X", tmp.getCanonicalPath());
-        assertEquals(lines0.length, 0);
-
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp, true)))) {
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        try {
+            writer.println("[X]");
             writer.println("A=1");
             writer.println("foo=bar");
+        } finally {
+            writer.close();
         }
 
         final String[] lines = Kernel32Util.getPrivateProfileSection("X", tmp.getCanonicalPath());
@@ -279,13 +243,16 @@ public class Kernel32UtilTest extends TestCase {
         final File tmp = File.createTempFile("testGetPrivateProfileSectionNames", "ini");
         tmp.deleteOnExit();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        try {
             writer.println("[S1]");
             writer.println("A=1");
             writer.println("B=X");
             writer.println("[S2]");
             writer.println("C=2");
             writer.println("D=Y");
+        } finally {
+            writer.close();
         }
 
         String[] sectionNames = Kernel32Util.getPrivateProfileSectionNames(tmp.getCanonicalPath());
@@ -298,49 +265,41 @@ public class Kernel32UtilTest extends TestCase {
         final File tmp = File.createTempFile("testWritePrivateProfileSecion", "ini");
         tmp.deleteOnExit();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        try {
             writer.println("[S1]");
             writer.println("A=1");
             writer.println("B=X");
             writer.println("[S2]");
             writer.println("C=2");
             writer.println("foo=bar");
+        } finally {
+            writer.close();
         }
 
         Kernel32Util.writePrivateProfileSection("S1", new String[] { "A=3", "E=Z" }, tmp.getCanonicalPath());
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(tmp))) {
+        final BufferedReader reader = new BufferedReader(new FileReader(tmp));
+        try {
             assertEquals(reader.readLine(), "[S1]");
             assertEquals(reader.readLine(), "A=3");
             assertEquals(reader.readLine(), "E=Z");
             assertEquals(reader.readLine(), "[S2]");
             assertEquals(reader.readLine(), "C=2");
             assertEquals(reader.readLine(), "foo=bar");
+        } finally {
+            reader.close();
         }
     }
 
     public final void testQueryFullProcessImageName() {
-        int pid = Kernel32.INSTANCE.GetCurrentProcessId();
-
-        HANDLE h = Kernel32.INSTANCE.OpenProcess(WinNT.PROCESS_QUERY_INFORMATION, false, pid);
+        HANDLE h = Kernel32.INSTANCE.OpenProcess(WinNT.PROCESS_QUERY_INFORMATION, false, Kernel32.INSTANCE.GetCurrentProcessId());
         assertNotNull("Failed (" + Kernel32.INSTANCE.GetLastError() + ") to get process handle", h);
         try {
             String name = Kernel32Util.QueryFullProcessImageName(h, 0);
-            assertNotNull("Failed to query process image name, null path returned", name);
             assertTrue("Failed to query process image name, empty path returned", name.length() > 0);
         } finally {
             Kernel32Util.closeHandle(h);
-        }
-
-        String name = Kernel32Util.QueryFullProcessImageName(pid, 0);
-        assertNotNull("Failed to query process image name, null path returned", name);
-        assertTrue("Failed to query process image name, empty path returned", name.length() > 0);
-
-        try {
-            Kernel32Util.QueryFullProcessImageName(0, 0); // the system process
-            fail("Should never reach here");
-        } catch (Win32Exception expected) {
-            assertEquals("Should get Invalid Parameter error", Kernel32.ERROR_INVALID_PARAMETER, expected.getErrorCode());
         }
     }
 
@@ -382,207 +341,5 @@ public class Kernel32UtilTest extends TestCase {
         // since this is supposed to return all the modules in a process, there should be an EXE and at least 1 Windows DLL
         // so assert total count is at least two
         assertTrue("This is supposed to return all the modules in a process, so there should be an EXE and at least 1 Windows API DLL.", results.size() > 2);
-    }
-
-    public void testExpandEnvironmentStrings() {
-        Kernel32.INSTANCE.SetEnvironmentVariable("DemoVariable", "DemoValue");
-        assertEquals("DemoValue", Kernel32Util.expandEnvironmentStrings("%DemoVariable%"));
-    }
-
-    public void testGetLogicalProcessorInformation() {
-        SYSTEM_LOGICAL_PROCESSOR_INFORMATION[] procInfo = Kernel32Util
-                .getLogicalProcessorInformation();
-        assertTrue(procInfo.length > 0);
-    }
-
-    public void testGetLogicalProcessorInformationEx() {
-        SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX[] procInfo = Kernel32Util
-                .getLogicalProcessorInformationEx(WinNT.LOGICAL_PROCESSOR_RELATIONSHIP.RelationAll);
-        List<GROUP_RELATIONSHIP> groups = new ArrayList<>();
-        List<PROCESSOR_RELATIONSHIP> packages = new ArrayList<>();
-        List<NUMA_NODE_RELATIONSHIP> numaNodes = new ArrayList<>();
-        List<CACHE_RELATIONSHIP> caches = new ArrayList<>();
-        List<PROCESSOR_RELATIONSHIP> cores = new ArrayList<>();
-
-        for (int i = 0; i < procInfo.length; i++) {
-            // Build list from relationship
-            switch (procInfo[i].relationship) {
-                case LOGICAL_PROCESSOR_RELATIONSHIP.RelationGroup:
-                    groups.add((GROUP_RELATIONSHIP) procInfo[i]);
-                    break;
-                case LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorPackage:
-                    packages.add((PROCESSOR_RELATIONSHIP) procInfo[i]);
-                    break;
-                case LOGICAL_PROCESSOR_RELATIONSHIP.RelationNumaNode:
-                    numaNodes.add((NUMA_NODE_RELATIONSHIP) procInfo[i]);
-                    break;
-                case LOGICAL_PROCESSOR_RELATIONSHIP.RelationCache:
-                    caches.add((CACHE_RELATIONSHIP) procInfo[i]);
-                    break;
-                case LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore:
-                    cores.add((PROCESSOR_RELATIONSHIP) procInfo[i]);
-                    break;
-                default:
-                    throw new IllegalStateException("Unmapped relationship.");
-            }
-            // Test that native provided size matches JNA structure size
-            assertEquals(procInfo[i].size, procInfo[i].size());
-        }
-
-        // Test that getting all relations matches the same totals as
-        // individuals.
-        assertEquals(groups.size(), Kernel32Util
-                .getLogicalProcessorInformationEx(WinNT.LOGICAL_PROCESSOR_RELATIONSHIP.RelationGroup).length);
-        assertEquals(packages.size(), Kernel32Util.getLogicalProcessorInformationEx(
-                WinNT.LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorPackage).length);
-        assertEquals(numaNodes.size(), Kernel32Util
-                .getLogicalProcessorInformationEx(WinNT.LOGICAL_PROCESSOR_RELATIONSHIP.RelationNumaNode).length);
-        assertEquals(caches.size(), Kernel32Util
-                .getLogicalProcessorInformationEx(WinNT.LOGICAL_PROCESSOR_RELATIONSHIP.RelationCache).length);
-        assertEquals(cores.size(), Kernel32Util
-                .getLogicalProcessorInformationEx(WinNT.LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore).length);
-
-        // Test GROUP_RELATIONSHIP
-        assertEquals(1, groups.size()); // Should only be one group structure
-        for (GROUP_RELATIONSHIP group : groups) {
-            assertEquals(LOGICAL_PROCESSOR_RELATIONSHIP.RelationGroup, group.relationship);
-            assertTrue(group.activeGroupCount <= group.maximumGroupCount);
-            assertEquals(group.activeGroupCount, group.groupInfo.length);
-            for (int j = 0; j < group.activeGroupCount; j++) {
-                assertTrue(group.groupInfo[j].activeProcessorCount <= group.groupInfo[j].maximumProcessorCount);
-                assertEquals(group.groupInfo[j].activeProcessorCount,
-                        Long.bitCount(group.groupInfo[j].activeProcessorMask.longValue()));
-                assertTrue(group.groupInfo[j].maximumProcessorCount <= 64);
-            }
-        }
-
-        // Test PROCESSOR_RELATIONSHIP packages
-        assertTrue(cores.size() >= packages.size());
-        for (PROCESSOR_RELATIONSHIP pkg : packages) {
-            assertEquals(LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorPackage, pkg.relationship);
-            assertEquals(0, pkg.flags); // packages have 0 flags
-            assertEquals(0, pkg.efficiencyClass); // packages have 0 efficiency
-            assertEquals(pkg.groupCount, pkg.groupMask.length);
-        }
-
-        // Test PROCESSOR_RELATIONSHIP cores
-        for (PROCESSOR_RELATIONSHIP core : cores) {
-            assertEquals(LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, core.relationship);
-            // Hyperthreading flag set if at least 2 logical processors
-            assertTrue(Long.bitCount(core.groupMask[0].mask.longValue()) > 0);
-            if (Long.bitCount(core.groupMask[0].mask.longValue()) > 1) {
-                assertEquals(WinNT.LTP_PC_SMT, core.flags);
-            } else {
-                assertEquals(0, core.flags);
-            }
-            // Cores are always in one group
-            assertEquals(1, core.groupCount);
-            assertEquals(1, core.groupMask.length);
-        }
-
-        // Test NUMA_NODE_RELATIONSHIP
-        for (NUMA_NODE_RELATIONSHIP numaNode : numaNodes) {
-            assertEquals(LOGICAL_PROCESSOR_RELATIONSHIP.RelationNumaNode, numaNode.relationship);
-            assertTrue(numaNode.nodeNumber >= 0);
-        }
-
-        // Test CACHE_RELATIONSHIP
-        for (CACHE_RELATIONSHIP cache : caches) {
-            assertEquals(LOGICAL_PROCESSOR_RELATIONSHIP.RelationCache, cache.relationship);
-            assertTrue(cache.level >= 1);
-            assertTrue(cache.level <= 4);
-            assertTrue(cache.cacheSize > 0);
-            assertTrue(cache.lineSize > 0);
-            assertTrue(cache.type == PROCESSOR_CACHE_TYPE.CacheUnified
-                    || cache.type == PROCESSOR_CACHE_TYPE.CacheInstruction
-                    || cache.type == PROCESSOR_CACHE_TYPE.CacheData || cache.type == PROCESSOR_CACHE_TYPE.CacheTrace);
-            assertTrue(cache.associativity == WinNT.CACHE_FULLY_ASSOCIATIVE || cache.associativity > 0);
-        }
-    }
-
-    public void testGetCurrentProcessPriority() {
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32Util.getCurrentProcessPriority()));
-    }
-
-    public void testSetCurrentProcessPriority() {
-        Kernel32Util.setCurrentProcessPriority(Kernel32.HIGH_PRIORITY_CLASS);
-    }
-
-    public void testSetCurrentProcessBackgroundMode() {
-        try {
-            Kernel32Util.setCurrentProcessBackgroundMode(true);
-        } finally {
-            try {
-                Kernel32Util.setCurrentProcessBackgroundMode(false); // Reset the "background" mode!
-            } catch (Exception e) { }
-        }
-    }
-
-    public void testGetCurrentThreadPriority() {
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32Util.getCurrentThreadPriority()));
-    }
-
-    public void testSetCurrentThreadPriority() {
-        Kernel32Util.setCurrentThreadPriority(Kernel32.THREAD_PRIORITY_ABOVE_NORMAL);
-    }
-
-    public void testSetCurrentThreadBackgroundMode() {
-        try {
-            Kernel32Util.setCurrentThreadBackgroundMode(true);
-        } finally {
-            try {
-                Kernel32Util.setCurrentThreadBackgroundMode(false); // Reset the "background" mode!
-            } catch (Exception e) { }
-        }
-    }
-
-    public void testGetProcessPriority() {
-        final int pid = Kernel32.INSTANCE.GetCurrentProcessId();
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32Util.getProcessPriority(pid)));
-    }
-
-    public void testSetProcessPriority() {
-        final int pid = Kernel32.INSTANCE.GetCurrentProcessId();
-        Kernel32Util.setProcessPriority(pid, Kernel32.HIGH_PRIORITY_CLASS);
-    }
-
-    public void testGetThreadPriority() {
-        final int tid = Kernel32.INSTANCE.GetCurrentThreadId();
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32Util.getThreadPriority(tid)));
-    }
-
-    public void testSetThreadPriority() {
-        final int tid = Kernel32.INSTANCE.GetCurrentThreadId();
-        Kernel32Util.setThreadPriority(tid, Kernel32.THREAD_PRIORITY_ABOVE_NORMAL);
-    }
-
-    public void testIsValidPriorityClass() {
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.NORMAL_PRIORITY_CLASS));
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.IDLE_PRIORITY_CLASS));
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.HIGH_PRIORITY_CLASS));
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.REALTIME_PRIORITY_CLASS));
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.BELOW_NORMAL_PRIORITY_CLASS));
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.ABOVE_NORMAL_PRIORITY_CLASS));
-        assertFalse(Kernel32Util.isValidPriorityClass(new DWORD(0L)));
-        assertFalse(Kernel32Util.isValidPriorityClass(new DWORD(1L)));
-        assertFalse(Kernel32Util.isValidPriorityClass(new DWORD(0xFFFFFFFF)));
-        assertFalse(Kernel32Util.isValidPriorityClass(Kernel32.PROCESS_MODE_BACKGROUND_BEGIN));
-        assertFalse(Kernel32Util.isValidPriorityClass(Kernel32.PROCESS_MODE_BACKGROUND_END));
-    }
-
-    public void testIsValidThreadPriority() {
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_IDLE));
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_LOWEST));
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_BELOW_NORMAL));
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_NORMAL));
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_ABOVE_NORMAL));
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_HIGHEST));
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_PRIORITY_TIME_CRITICAL));
-        assertFalse(Kernel32Util.isValidThreadPriority(  3));
-        assertFalse(Kernel32Util.isValidThreadPriority( -3));
-        assertFalse(Kernel32Util.isValidThreadPriority( 16));
-        assertFalse(Kernel32Util.isValidThreadPriority(-16));
-        assertFalse(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_MODE_BACKGROUND_BEGIN));
-        assertFalse(Kernel32Util.isValidThreadPriority(Kernel32.THREAD_MODE_BACKGROUND_END));
     }
 }

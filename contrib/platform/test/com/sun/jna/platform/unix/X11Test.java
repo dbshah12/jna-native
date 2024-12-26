@@ -1,29 +1,17 @@
 /* Copyright (c) 2015 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * <p/>
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.unix;
 
-import com.sun.jna.StructureFieldOrderInspector;
 import java.awt.GraphicsEnvironment;
 
 import com.sun.jna.ptr.PointerByReference;
@@ -99,12 +87,12 @@ public class X11Test extends TestCase {
     public void testXGetWMProtocols() {
         X11.Atom[] sentAtoms = new X11.Atom[]{ X11.INSTANCE.XInternAtom(display, "WM_DELETE_WINDOW", false), X11.INSTANCE.XInternAtom(display, "WM_TAKE_FOCUS", false) };
         X11.INSTANCE.XSetWMProtocols(display, root, sentAtoms, sentAtoms.length);
-
+        
         PointerByReference protocols = new PointerByReference();
         IntByReference count = new IntByReference();
-
+        
         int status = X11.INSTANCE.XGetWMProtocols(display, root, protocols, count);
-
+        
         X11.Atom[] receivedAtoms = new X11.Atom[count.getValue()];
         for(int i = count.getValue() - 1; i >= 0; i--) {
             receivedAtoms[i] = new X11.Atom(protocols.getValue().getLong(X11.Atom.SIZE * i));
@@ -114,28 +102,6 @@ public class X11Test extends TestCase {
         Assert.assertNotEquals("Bad status for XGetWMProtocols", 0, status);
         Assert.assertEquals("Wrong number of protocols returned for XGetWMProtocols", sentAtoms.length, receivedAtoms.length);
         Assert.assertArrayEquals("Sent protocols were not equal to returned procols for XGetWMProtocols", sentAtoms, receivedAtoms);
-    }
-
-    public void testXQueryExtension() {
-        final IntByReference opcode = new IntByReference(0);
-        final IntByReference first_event = new IntByReference(0);
-        final IntByReference first_error = new IntByReference(0);
-
-        // check if the XTEST extension is available
-        if (X11.INSTANCE.XQueryExtension(display, "XTEST", opcode, first_event, first_error)) {
-            // Opcode for extension should be assigned in range 128-255
-            Assert.assertTrue("Value for opcode should be between 128-255.", (opcode.getValue() & 0x80) > 0);
-            // No first_event defined for XTEST
-            Assert.assertEquals("Wrong value for first_event returned", 0, first_event.getValue());
-            // No first_error defined for XTEST
-            Assert.assertEquals("Wrong value for first_error returned", 0, first_error.getValue());
-        } else {
-            // XTEST extension is not supported by the X server
-        }
-    }
-
-    public void testStructureFieldOrder() {
-        StructureFieldOrderInspector.batchCheckStructureGetFieldOrder(X11.class, null, true);
     }
 
     public static void main(java.lang.String[] argList) {

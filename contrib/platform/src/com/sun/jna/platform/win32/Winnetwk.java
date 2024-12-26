@@ -1,23 +1,23 @@
 /* Copyright (c) 2015 Adam Marcionek, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -28,7 +28,6 @@ import java.util.List;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.win32.W32APITypeMapper;
 
 /**
@@ -281,7 +280,6 @@ public abstract class Winnetwk {
     /**
      * The NETRESOURCE structure contains information about a network resource.
      */
-    @FieldOrder({"dwScope", "dwType", "dwDisplayType", "dwUsage", "lpLocalName", "lpRemoteName", "lpComment", "lpProvider"})
     public static class NETRESOURCE extends Structure {
 
         public static class ByReference extends NETRESOURCE implements Structure.ByReference {
@@ -294,6 +292,9 @@ public abstract class Winnetwk {
                 super(memory);
             }
         }
+
+        public static final List<String> FIELDS = createFieldsOrder(
+                "dwScope", "dwType", "dwDisplayType", "dwUsage", "lpLocalName", "lpRemoteName", "lpComment", "lpProvider");
 
         /**
          * The scope of the enumeration. This member can be one of the values
@@ -363,6 +364,11 @@ public abstract class Winnetwk {
             super(address, Structure.ALIGN_DEFAULT, W32APITypeMapper.DEFAULT);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     //
@@ -375,7 +381,6 @@ public abstract class Winnetwk {
      * The UNIVERSAL_NAME_INFO structure contains a pointer to a Universal
      * Naming Convention (UNC) name string for a network resource.
      */
-    @FieldOrder({"lpUniversalName"})
     public static class UNIVERSAL_NAME_INFO extends Structure {
 
         public static class ByReference extends REMOTE_NAME_INFO implements Structure.ByReference {
@@ -389,6 +394,7 @@ public abstract class Winnetwk {
             }
         }
 
+        public static final List<String> FIELDS = createFieldsOrder("lpUniversalName");
         /**
          * Pointer to the null-terminated UNC name string that identifies a
          * network resource.
@@ -403,6 +409,11 @@ public abstract class Winnetwk {
             super(address, Structure.ALIGN_DEFAULT, W32APITypeMapper.DEFAULT);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
@@ -411,7 +422,6 @@ public abstract class Winnetwk {
      * Universal Naming Convention (UNC) name string for the resource, and two
      * members that point to additional network connection information strings.
      */
-    @FieldOrder({"lpUniversalName", "lpConnectionName", "lpRemainingPath"})
     public static class REMOTE_NAME_INFO extends Structure {
 
         public static class ByReference extends REMOTE_NAME_INFO implements Structure.ByReference {
@@ -424,6 +434,8 @@ public abstract class Winnetwk {
                 super(memory);
             }
         }
+
+        public static final List<String> FIELDS = createFieldsOrder("lpUniversalName", "lpConnectionName", "lpRemainingPath");
 
         /**
          * Pointer to the null-terminated UNC name string that identifies a
@@ -449,6 +461,11 @@ public abstract class Winnetwk {
         public REMOTE_NAME_INFO(Pointer address) {
             super(address, Structure.ALIGN_DEFAULT, W32APITypeMapper.DEFAULT);
             read();
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 }

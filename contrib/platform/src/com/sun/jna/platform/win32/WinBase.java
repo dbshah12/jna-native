@@ -1,38 +1,39 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.Union;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinNT.LARGE_INTEGER;
@@ -49,7 +50,7 @@ public interface WinBase extends WinDef, BaseTSD {
 
     /** Constant value representing an invalid HANDLE. */
     HANDLE INVALID_HANDLE_VALUE =
-        new HANDLE(Pointer.createConstant(Native.POINTER_SIZE == 8
+        new HANDLE(Pointer.createConstant(Pointer.SIZE == 8
                                           ? -1 : 0xFFFFFFFFL));
 
     int WAIT_FAILED = 0xFFFFFFFF;
@@ -218,16 +219,9 @@ public interface WinBase extends WinDef, BaseTSD {
     int FileIdExtdDirectoryInfo         = 19; // 0x13
     int FileIdExtdDirectoryRestartInfo  = 20; // 0x14
 
-    int FILE_MAP_COPY = WinNT.SECTION_QUERY;
-    int FILE_MAP_WRITE = WinNT.SECTION_MAP_WRITE;
-    int FILE_MAP_READ = WinNT.SECTION_MAP_READ;
-    int FILE_MAP_ALL_ACCESS = WinNT.SECTION_ALL_ACCESS;
-    int FILE_MAP_EXECUTE = WinNT.SECTION_MAP_EXECUTE_EXPLICIT;
-
     /**
      * Contains the basic information for a file. Used for file handles.
      */
-    @FieldOrder({"CreationTime", "LastAccessTime", "LastWriteTime", "ChangeTime", "FileAttributes"})
     public static class FILE_BASIC_INFO extends Structure {
 
         public static class ByReference extends FILE_BASIC_INFO implements Structure.ByReference {
@@ -270,6 +264,11 @@ public interface WinBase extends WinDef, BaseTSD {
         public static int sizeOf()
         {
             return Native.getNativeSize(FILE_BASIC_INFO.class, null);
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "CreationTime", "LastAccessTime", "LastWriteTime", "ChangeTime", "FileAttributes" });
         }
 
         public FILE_BASIC_INFO() {
@@ -316,7 +315,6 @@ public interface WinBase extends WinDef, BaseTSD {
     /**
      * Receives extended information for the file. Used for file handles. Use only when calling GetFileInformationByHandleEx.
      */
-    @FieldOrder({"AllocationSize", "EndOfFile", "NumberOfLinks", "DeletePending", "Directory"})
     public static class FILE_STANDARD_INFO extends Structure {
 
         public static class ByReference extends FILE_STANDARD_INFO implements Structure.ByReference {
@@ -358,6 +356,11 @@ public interface WinBase extends WinDef, BaseTSD {
             return Native.getNativeSize(FILE_STANDARD_INFO.class, null);
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "AllocationSize", "EndOfFile", "NumberOfLinks", "DeletePending", "Directory" });
+        }
+
         public FILE_STANDARD_INFO() {
             super();
         }
@@ -384,7 +387,6 @@ public interface WinBase extends WinDef, BaseTSD {
     /**
      * Indicates whether a file should be deleted. Used for any handles. Use only when calling SetFileInformationByHandle.
      */
-    @FieldOrder({"DeleteFile"})
     public static class FILE_DISPOSITION_INFO extends Structure {
 
         public static class ByReference extends FILE_DISPOSITION_INFO  implements Structure.ByReference {
@@ -407,6 +409,11 @@ public interface WinBase extends WinDef, BaseTSD {
             return Native.getNativeSize(FILE_DISPOSITION_INFO.class, null);
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "DeleteFile" });
+        }
+
         public FILE_DISPOSITION_INFO () {
             super();
         }
@@ -425,7 +432,6 @@ public interface WinBase extends WinDef, BaseTSD {
     /**
      * Receives extended information for the file. Used for file handles. Use only when calling GetFileInformationByHandleEx.
      */
-    @FieldOrder({"CompressedFileSize", "CompressionFormat", "CompressionUnitShift", "ChunkShift", "ClusterShift", "Reserved"})
     public static class FILE_COMPRESSION_INFO extends Structure {
 
         public static class ByReference extends FILE_COMPRESSION_INFO implements Structure.ByReference {
@@ -472,6 +478,11 @@ public interface WinBase extends WinDef, BaseTSD {
             return Native.getNativeSize(FILE_COMPRESSION_INFO.class, null);
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "CompressedFileSize", "CompressionFormat", "CompressionUnitShift", "ChunkShift", "ClusterShift", "Reserved" });
+        }
+
         public FILE_COMPRESSION_INFO() {
             super(W32APITypeMapper.DEFAULT);
         }
@@ -499,7 +510,6 @@ public interface WinBase extends WinDef, BaseTSD {
     /**
      * Receives the requested file attribute information. Used for any handles. Use only when calling GetFileInformationByHandleEx.
      */
-    @FieldOrder({"FileAttributes", "ReparseTag"})
     public static class FILE_ATTRIBUTE_TAG_INFO extends Structure {
 
         public static class ByReference extends FILE_ATTRIBUTE_TAG_INFO implements Structure.ByReference {
@@ -526,6 +536,11 @@ public interface WinBase extends WinDef, BaseTSD {
             return Native.getNativeSize(FILE_ATTRIBUTE_TAG_INFO.class, null);
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "FileAttributes", "ReparseTag" });
+        }
+
         public FILE_ATTRIBUTE_TAG_INFO() {
             super();
         }
@@ -548,7 +563,6 @@ public interface WinBase extends WinDef, BaseTSD {
      * GetFileInformationByHandleEx function when FileIdInfo is passed in the
      * FileInformationClass parameter.
      */
-    @FieldOrder({"VolumeSerialNumber", "FileId"})
     public static class FILE_ID_INFO extends Structure {
 
         public static class ByReference extends FILE_ID_INFO implements Structure.ByReference {
@@ -560,9 +574,13 @@ public interface WinBase extends WinDef, BaseTSD {
             }
         }
 
-        @FieldOrder({"Identifier"})
         public static class FILE_ID_128 extends Structure {
             public BYTE[] Identifier = new BYTE[16];
+
+            @Override
+            protected List<String> getFieldOrder() {
+                return Arrays.asList(new String[] { "Identifier" });
+            }
 
             public FILE_ID_128() {
                 super();
@@ -592,6 +610,11 @@ public interface WinBase extends WinDef, BaseTSD {
         public static int sizeOf()
         {
             return Native.getNativeSize(FILE_ID_INFO.class, null);
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "VolumeSerialNumber", "FileId" });
         }
 
         public FILE_ID_INFO() {
@@ -656,7 +679,6 @@ public interface WinBase extends WinDef, BaseTSD {
     /**
      * Contains information about the file that is found by the FindFirstFile, FindFirstFileEx, or FindNextFile function.
      */
-    @FieldOrder({"dwFileAttributes", "ftCreationTime", "ftLastAccessTime", "ftLastWriteTime", "nFileSizeHigh", "nFileSizeLow", "dwReserved0", "dwReserved1", "cFileName", "cAlternateFileName"})
     public static class WIN32_FIND_DATA extends Structure {
 
         public static class ByReference extends WIN32_FIND_DATA implements Structure.ByReference {
@@ -755,6 +777,11 @@ public interface WinBase extends WinDef, BaseTSD {
             return Native.getNativeSize(WIN32_FIND_DATA.class, null);
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "dwFileAttributes", "ftCreationTime", "ftLastAccessTime", "ftLastWriteTime", "nFileSizeHigh", "nFileSizeLow", "dwReserved0", "dwReserved1", "cFileName", "cAlternateFileName" });
+        }
+
         public WIN32_FIND_DATA() {
             super(W32APITypeMapper.DEFAULT);
         }
@@ -807,10 +834,14 @@ public interface WinBase extends WinDef, BaseTSD {
      * Conversion code in this class Copyright 2002-2004 Apache Software Foundation.
      * @author Rainer Klute (klute@rainer-klute.de) for the Apache Software Foundation (org.apache.poi.hpsf)
      */
-    @FieldOrder({"dwLowDateTime", "dwHighDateTime"})
     public static class FILETIME extends Structure {
         public int dwLowDateTime;
         public int dwHighDateTime;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "dwLowDateTime", "dwHighDateTime" });
+        }
 
         public static class ByReference extends FILETIME implements Structure.ByReference {
             public ByReference() {
@@ -906,6 +937,18 @@ public interface WinBase extends WinDef, BaseTSD {
         }
 
         /**
+         * <p>Converts this filetime into a number of milliseconds which have
+         * passed since January 1, 1970 (UTC).</p>
+         * @return This filetime as a number of milliseconds which have passed
+         * since January 1, 1970 (UTC)
+         * @deprecated Replaced by {@link #toTime()}
+         */
+        @Deprecated
+        public long toLong() {
+            return toDate().getTime();
+        }
+
+        /**
          * <p>Converts the two 32-bit unsigned integer parts of this filetime
          * into a 64-bit unsigned integer representing the number of
          * 100-nanosecond intervals since January 1, 1601 (UTC).</p>
@@ -947,7 +990,6 @@ public interface WinBase extends WinDef, BaseTSD {
      * on the function that is being called.
      * @see <A HREF="http://msdn.microsoft.com/en-us/library/ms724950(VS.85).aspx">SYSTEMTIME structure</A>
      */
-    @FieldOrder({"wYear", "wMonth", "wDayOfWeek", "wDay", "wHour", "wMinute", "wSecond", "wMilliseconds"})
     public static class SYSTEMTIME extends Structure {
         // The year. The valid values for this member are 1601 through 30827.
         public short wYear;
@@ -1008,11 +1050,16 @@ public interface WinBase extends WinDef, BaseTSD {
         }
 
         @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "wYear", "wMonth", "wDayOfWeek", "wDay", "wHour", "wMinute", "wSecond", "wMilliseconds" });
+        }
+
+        @Override
         public String toString() {
             // if not initialized, return the default representation
             if ((wYear == 0) && (wMonth == 0) && (wDay == 0)
-                && (wHour == 0) && (wMinute == 0) && (wSecond == 0)
-                && (wMilliseconds == 0)) {
+             && (wHour == 0) && (wMinute == 0) && (wSecond == 0)
+             && (wMilliseconds == 0)) {
                 return super.toString();
             }
 
@@ -1026,7 +1073,6 @@ public interface WinBase extends WinDef, BaseTSD {
      * Specifies settings for a time zone.
      * http://msdn.microsoft.com/en-us/library/windows/desktop/ms725481(v=vs.85).aspx
      */
-    @FieldOrder({"Bias", "StandardName", "StandardDate", "StandardBias", "DaylightName", "DaylightDate", "DaylightBias"})
     public static class TIME_ZONE_INFORMATION extends Structure {
         public LONG       Bias;
         public String      StandardName;
@@ -1038,6 +1084,11 @@ public interface WinBase extends WinDef, BaseTSD {
 
         public TIME_ZONE_INFORMATION() {
             super(W32APITypeMapper.DEFAULT);
+        }
+        
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "Bias", "StandardName", "StandardDate", "StandardBias", "DaylightName", "DaylightDate", "DaylightBias" });
         }
     }
 
@@ -1121,27 +1172,29 @@ public interface WinBase extends WinDef, BaseTSD {
      * The OVERLAPPED structure contains information used in
      * asynchronous (or overlapped) input and output (I/O).
      */
-    @FieldOrder({"Internal", "InternalHigh", "Offset", "OffsetHigh", "hEvent"})
     public static class OVERLAPPED extends Structure {
         public ULONG_PTR Internal;
         public ULONG_PTR InternalHigh;
         public int Offset;
         public int OffsetHigh;
         public HANDLE hEvent;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "Internal", "InternalHigh", "Offset", "OffsetHigh", "hEvent" });
+        }
     }
 
-    int INFINITE = 0xFFFFFFFF;
+   int INFINITE = 0xFFFFFFFF;
 
     /**
      * Contains information about the current computer system. This includes the architecture and
      * type of the processor, the number of processors in the system, the page size, and other such
      * information.
      */
-    @FieldOrder({"processorArchitecture", "dwPageSize", "lpMinimumApplicationAddress", "lpMaximumApplicationAddress", "dwActiveProcessorMask", "dwNumberOfProcessors", "dwProcessorType", "dwAllocationGranularity", "wProcessorLevel", "wProcessorRevision"})
     public static class SYSTEM_INFO extends Structure {
 
         /** Unnamed inner structure. */
-        @FieldOrder({"wProcessorArchitecture", "wReserved"})
         public static class PI extends Structure {
 
             public static class ByReference extends PI implements Structure.ByReference {
@@ -1162,6 +1215,11 @@ public interface WinBase extends WinDef, BaseTSD {
              * Reserved for future use.
              */
             public WORD wReserved;
+
+            @Override
+            protected List<String> getFieldOrder() {
+                return Arrays.asList(new String[] { "wProcessorArchitecture", "wReserved" });
+            }
         }
 
         /** Unnamed inner union. */
@@ -1182,18 +1240,6 @@ public interface WinBase extends WinDef, BaseTSD {
              * Processor architecture (unnamed struct).
              */
             public PI pi;
-
-            @Override
-            public void read() {
-                // dwOemID is obsolete but users may have come to rely on its value because it
-                // was initialized by default, so we retain its initialization for
-                // compatibility.
-                setType("dwOemID");
-                super.read();
-                // pi requires type defined for initialization as a structure.
-                setType("pi");
-                super.read();
-            }
         }
 
         /**
@@ -1244,13 +1290,17 @@ public interface WinBase extends WinDef, BaseTSD {
          * Architecture-dependent processor revision.
          */
         public WORD wProcessorRevision;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "processorArchitecture", "dwPageSize", "lpMinimumApplicationAddress", "lpMaximumApplicationAddress", "dwActiveProcessorMask", "dwNumberOfProcessors", "dwProcessorType", "dwAllocationGranularity", "wProcessorLevel", "wProcessorRevision"});
+        }
     }
 
     /**
      * Contains information about the current state of both physical and virtual memory, including
      * extended memory. The GlobalMemoryStatusEx function stores information in this structure.
      */
-    @FieldOrder({"dwLength", "dwMemoryLoad", "ullTotalPhys", "ullAvailPhys", "ullTotalPageFile", "ullAvailPageFile", "ullTotalVirtual", "ullAvailVirtual", "ullAvailExtendedVirtual"})
     public static class MEMORYSTATUSEX extends Structure {
         /**
          * The size of the structure, in bytes.
@@ -1294,6 +1344,11 @@ public interface WinBase extends WinDef, BaseTSD {
          */
         public DWORDLONG ullAvailExtendedVirtual;
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "dwLength", "dwMemoryLoad", "ullTotalPhys", "ullAvailPhys", "ullTotalPageFile", "ullAvailPageFile", "ullTotalVirtual", "ullAvailVirtual", "ullAvailExtendedVirtual" });
+        }
+
         public MEMORYSTATUSEX() {
             dwLength = new DWORD(size());
         }
@@ -1306,7 +1361,6 @@ public interface WinBase extends WinDef, BaseTSD {
      * objects created by various functions, such as {@link Kernel32#CreateFile},
      * {@link Kernel32#CreatePipe}, or {@link Advapi32#RegCreateKeyEx}.
      */
-    @FieldOrder({"dwLength", "lpSecurityDescriptor", "bInheritHandle"})
     public static class SECURITY_ATTRIBUTES extends Structure {
         /**
          * The size of the structure, in bytes.
@@ -1324,6 +1378,11 @@ public interface WinBase extends WinDef, BaseTSD {
          */
         public boolean bInheritHandle;
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "dwLength", "lpSecurityDescriptor", "bInheritHandle" });
+        }
+
         public SECURITY_ATTRIBUTES() {
             dwLength = new DWORD(size());
         }
@@ -1333,7 +1392,6 @@ public interface WinBase extends WinDef, BaseTSD {
      * Specifies the window station, desktop, standard handles, and appearance of the main
      * window for a process at creation time.
      */
-    @FieldOrder({"cb", "lpReserved", "lpDesktop", "lpTitle", "dwX", "dwY", "dwXSize", "dwYSize", "dwXCountChars", "dwYCountChars", "dwFillAttribute", "dwFlags", "wShowWindow", "cbReserved2", "lpReserved2", "hStdInput", "hStdOutput", "hStdError"})
     public static class STARTUPINFO extends Structure {
         /**
          * The size of the structure, in bytes.
@@ -1497,6 +1555,11 @@ public interface WinBase extends WinDef, BaseTSD {
          */
         public HANDLE hStdError;
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "cb", "lpReserved", "lpDesktop", "lpTitle", "dwX", "dwY", "dwXSize", "dwYSize", "dwXCountChars", "dwYCountChars", "dwFillAttribute", "dwFlags", "wShowWindow", "cbReserved2", "lpReserved2", "hStdInput", "hStdOutput", "hStdError" });
+        }
+
         public STARTUPINFO() {
             super(W32APITypeMapper.DEFAULT);
             cb = new DWORD(size());
@@ -1508,7 +1571,6 @@ public interface WinBase extends WinDef, BaseTSD {
      * thread. It is used with the CreateProcess, CreateProcessAsUser,
      * CreateProcessWithLogonW, or CreateProcessWithTokenW function.
      */
-    @FieldOrder({"hProcess", "hThread", "dwProcessId", "dwThreadId"})
     public static class PROCESS_INFORMATION extends Structure {
 
         /**
@@ -1540,6 +1602,11 @@ public interface WinBase extends WinDef, BaseTSD {
          * identifier may be reused.
          */
         public DWORD dwThreadId;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "hProcess", "hThread", "dwProcessId", "dwThreadId" });
+        }
 
         public static class ByReference extends PROCESS_INFORMATION implements Structure.ByReference {
             public ByReference() {
@@ -1626,9 +1693,13 @@ public interface WinBase extends WinDef, BaseTSD {
      * Represents a thread entry point in another process. Can only be expressed as a pointer, as
      * the location has no meaning in the Java process.
      */
-    @FieldOrder({"foreignLocation"})
     public class FOREIGN_THREAD_START_ROUTINE extends Structure {
-        public LPVOID foreignLocation;
+        LPVOID foreignLocation;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "foreignLocation" });
+        }
     }
 
     /**
@@ -1772,10 +1843,10 @@ public interface WinBase extends WinDef, BaseTSD {
      *
      * @author Markus
      */
-    @FieldOrder({"ReadIntervalTimeout", "ReadTotalTimeoutMultiplier",
-                "ReadTotalTimeoutConstant", "WriteTotalTimeoutMultiplier",
-                "WriteTotalTimeoutConstant"})
     public static class COMMTIMEOUTS extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("ReadIntervalTimeout", "ReadTotalTimeoutMultiplier",
+                "ReadTotalTimeoutConstant", "WriteTotalTimeoutMultiplier", "WriteTotalTimeoutConstant");
+
         /**
          *
          * The maximum time allowed to elapse before the arrival of the next
@@ -1836,14 +1907,16 @@ public interface WinBase extends WinDef, BaseTSD {
          *
          */
         public DWORD WriteTotalTimeoutConstant;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * Defines the control setting for a serial communications device.
      */
-    @FieldOrder({"DCBlength", "BaudRate", "controllBits", "wReserved", "XonLim",
-        "XoffLim", "ByteSize", "Parity", "StopBits", "XonChar", "XoffChar",
-        "ErrorChar", "EofChar", "EvtChar", "wReserved1"})
     public static class DCB extends Structure {
 
         /**
@@ -2243,6 +2316,13 @@ public interface WinBase extends WinDef, BaseTSD {
         public DCB() {
             DCBlength = new DWORD(size());
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "DCBlength", "BaudRate", "controllBits", "wReserved", "XonLim",
+                    "XoffLim", "ByteSize", "Parity", "StopBits", "XonChar", "XoffChar", "ErrorChar", "EofChar",
+                    "EvtChar", "wReserved1" });
+        }
     }
 
     /**
@@ -2459,7 +2539,7 @@ public interface WinBase extends WinDef, BaseTSD {
          */
         boolean invoke(HMODULE module, Pointer type, Pointer name, Pointer lParam);
     }
-
+    
     /**
      * Enables away mode. This value must be specified with {@link #ES_CONTINUOUS}.
      *
@@ -2489,8 +2569,4 @@ public interface WinBase extends WinDef, BaseTSD {
      * be set.
      */
     int ES_USER_PRESENT = 0x00000004;
-
-
-    int MUTEX_MODIFY_STATE = WinNT.MUTANT_QUERY_STATE;
-    int MUTEX_ALL_ACCESS = WinNT.MUTANT_ALL_ACCESS;
 }

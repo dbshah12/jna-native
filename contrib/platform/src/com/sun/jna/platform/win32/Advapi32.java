@@ -1,23 +1,23 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -67,7 +67,7 @@ import com.sun.jna.win32.W32APIOptions;
  * @author dblock[at]dblock.org
  */
 public interface Advapi32 extends StdCallLibrary {
-    Advapi32 INSTANCE = Native.load("Advapi32", Advapi32.class, W32APIOptions.DEFAULT_OPTIONS);
+    Advapi32 INSTANCE = Native.loadLibrary("Advapi32", Advapi32.class, W32APIOptions.DEFAULT_OPTIONS);
 
     int MAX_KEY_LENGTH = 255;
     int MAX_VALUE_NAME = 16383;
@@ -82,7 +82,6 @@ public interface Advapi32 extends StdCallLibrary {
     int RRF_RT_REG_NONE = 0x00000001;
     int RRF_RT_REG_QWORD = 0x00000040;
     int RRF_RT_REG_SZ = 0x00000002;
-    int REG_PROCESS_APPKEY = 0x00000001;
 
     /**
      * LOGON_WITH_PROFILE: 0x00000001<br>
@@ -856,68 +855,6 @@ public interface Advapi32 extends StdCallLibrary {
                      int samDesired, HKEYByReference phkResult);
 
     /**
-     * The RegLoadAppKey function loads the specified registry hive
-     * as an application hive.
-     *
-     * @param lpFile
-     *            The name of the hive file.
-     *            If the file does not exist, an empty hive file is created
-     *            with the specified name.
-     * @param phkResult
-     *            Pointer to the handle for the root key of the loaded hive.
-     * @param samDesired
-     *            Access mask that specifies the desired access rights to the
-     * @param dwOptions
-     *            If this parameter is REG_PROCESS_APPKEY,
-     *            the hive cannot be loaded again while it is loaded by the caller.
-     *            This prevents access to this registry hive by another caller.
-     * @param Reserved
-     *            Reserved; must be zero.
-     */
-    int RegLoadAppKey(String lpFile, HKEYByReference phkResult,
-                       int samDesired, int dwOptions, int Reserved);
-
-    /**
-     * Establishes a connection to a predefined registry key on another
-     * computer.
-     * @param lpMachineName
-     *            The name of the remote computer. The string has
-     *            the following form:<br />
-     *            <pre><code>\\computername</code></pre>
-     *            The caller must have access to the remote computer or the
-     *            function fails.<br />
-     *            If this parameter is <c>null</c>, the local computer name
-     *            is used.
-     * @param hKey
-     *            A predefined registry handle. This parameter can be one of
-     *            the following predefined keys on the remote computer.<br />
-     *            <ul>
-     *                <li>{@link WinReg#HKEY_LOCAL_MACHINE}</li>
-     *                <li>{@link WinReg#HKEY_PERFORMANCE_DATA}</li>
-     *                <li>{@link WinReg#HKEY_USERS}</li>
-     *            </ul>
-     * @param phkResult
-     *            A pointer to a variable that receives a key handle
-     *            identifying the predefined handle on the remote computer.
-     * @return If the function succeeds, the return value is
-     *         {@link WinError#ERROR_SUCCESS}.<br />
-     *         If the remote computer cannot be found or if its Remote Registry
-     *         service is disabled, the function fails and returns
-     *         {@link WinError#ERROR_BAD_NETPATH}.<br />
-     *         If attempting to use a registry handle other than one of the
-     *         three predefined handles, the function fails and returns
-     *         {@link WinError#ERROR_INVALID_HANDLE}.<br />
-     *         If access to the registry is denied, the function fails and
-     *         returns {@link WinError#ERROR_ACCESS_DENIED}. <br />
-     *         If the function fails for some other reason, you can use the
-     *         {@link Native#getLastError} method to get a generic description
-     *         of the error.
-     * @see <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms724840.aspx">RegConnectRegistry function (Windows)</a>
-     * @see <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms724836.aspx">Predefined Keys (Windows)</a>
-     */
-    int RegConnectRegistry(String lpMachineName, HKEY hKey, HKEYByReference phkResult);
-
-    /**
      * The RegQueryValueEx function retrieves the type and data for a specified
      * value name associated with an open registry key.
      *
@@ -963,21 +900,21 @@ public interface Advapi32 extends StdCallLibrary {
      *         defined in Winerror.h.
      */
     int RegQueryValueEx(HKEY hKey, String lpValueName, int lpReserved,
-            IntByReference lpType, char[] lpData, IntByReference lpcbData);
+			IntByReference lpType, char[] lpData, IntByReference lpcbData);
 
     int RegQueryValueEx(HKEY hKey, String lpValueName, int lpReserved,
-            IntByReference lpType, byte[] lpData, IntByReference lpcbData);
+			IntByReference lpType, byte[] lpData, IntByReference lpcbData);
 
     int RegQueryValueEx(HKEY hKey, String lpValueName, int lpReserved,
-            IntByReference lpType, IntByReference lpData,
-            IntByReference lpcbData);
+			IntByReference lpType, IntByReference lpData,
+			IntByReference lpcbData);
 
     int RegQueryValueEx(HKEY hKey, String lpValueName, int lpReserved,
-            IntByReference lpType, LongByReference lpData,
-            IntByReference lpcbData);
+			IntByReference lpType, LongByReference lpData,
+			IntByReference lpcbData);
 
     int RegQueryValueEx(HKEY hKey, String lpValueName, int lpReserved,
-            IntByReference lpType, Pointer lpData, IntByReference lpcbData);
+			IntByReference lpType, Pointer lpData, IntByReference lpcbData);
 
     /**
      * The RegCloseKey function releases a handle to the specified registry key.
@@ -1039,17 +976,8 @@ public interface Advapi32 extends StdCallLibrary {
      *         defined in Winerror.h.
      */
     int RegSetValueEx(HKEY hKey, String lpValueName, int Reserved,
-                  int dwType, Pointer lpData, int cbData);
-
-    /**
-     * See {@link #RegSetValueEx(com.sun.jna.platform.win32.WinReg.HKEY, java.lang.String, int, int, com.sun.jna.Pointer, int) }
-     */
-    int RegSetValueEx(HKEY hKey, String lpValueName, int Reserved,
                       int dwType, char[] lpData, int cbData);
 
-    /**
-     * See {@link #RegSetValueEx(com.sun.jna.platform.win32.WinReg.HKEY, java.lang.String, int, int, com.sun.jna.Pointer, int) }
-     */
     int RegSetValueEx(HKEY hKey, String lpValueName, int Reserved,
                       int dwType, byte[] lpData, int cbData);
 
@@ -1175,13 +1103,6 @@ public interface Advapi32 extends StdCallLibrary {
      */
     int RegEnumValue(HKEY hKey, int dwIndex, char[] lpValueName,
                      IntByReference lpcchValueName, IntByReference reserved,
-                     IntByReference lpType, Pointer lpData, IntByReference lpcbData);
-
-    /**
-     * See {@link #RegEnumValue(com.sun.jna.platform.win32.WinReg.HKEY, int, char[], com.sun.jna.ptr.IntByReference, com.sun.jna.ptr.IntByReference, com.sun.jna.ptr.IntByReference, com.sun.jna.Pointer, com.sun.jna.ptr.IntByReference)}.
-     */
-    int RegEnumValue(HKEY hKey, int dwIndex, char[] lpValueName,
-                     IntByReference lpcchValueName, IntByReference reserved,
                      IntByReference lpType, byte[] lpData, IntByReference lpcbData);
 
     /**
@@ -1235,12 +1156,12 @@ public interface Advapi32 extends StdCallLibrary {
      *         defined in Winerror.h.
      */
     int RegQueryInfoKey(HKEY hKey, char[] lpClass,
-            IntByReference lpcClass, IntByReference lpReserved,
-            IntByReference lpcSubKeys, IntByReference lpcMaxSubKeyLen,
-            IntByReference lpcMaxClassLen, IntByReference lpcValues,
-            IntByReference lpcMaxValueNameLen, IntByReference lpcMaxValueLen,
-            IntByReference lpcbSecurityDescriptor,
-            WinBase.FILETIME lpftLastWriteTime);
+			IntByReference lpcClass, IntByReference lpReserved,
+			IntByReference lpcSubKeys, IntByReference lpcMaxSubKeyLen,
+			IntByReference lpcMaxClassLen, IntByReference lpcValues,
+			IntByReference lpcMaxValueNameLen, IntByReference lpcMaxValueLen,
+			IntByReference lpcbSecurityDescriptor,
+			WinBase.FILETIME lpftLastWriteTime);
 
     /**
      * Retrieves the type and data for the specified registry value.
@@ -1374,158 +1295,8 @@ public interface Advapi32 extends StdCallLibrary {
      * @return status
      */
     int RegGetValue(HKEY hkey, String lpSubKey, String lpValue,
-                    int dwFlags, IntByReference pdwType, Pointer pvData,
-                    IntByReference pcbData);
-
-    /**
-     * See {@link #RegGetValue(com.sun.jna.platform.win32.WinReg.HKEY, java.lang.String, java.lang.String, int, com.sun.jna.ptr.IntByReference, com.sun.jna.Pointer, com.sun.jna.ptr.IntByReference)}.
-     */
-    int RegGetValue(HKEY hkey, String lpSubKey, String lpValue,
                     int dwFlags, IntByReference pdwType, byte[] pvData,
                     IntByReference pcbData);
-
-    /**
-     * Notifies the caller about changes to the attributes or contents of a
-     * specified registry key.
-     *
-     * @param hKey           A handle to an open registry key. This handle is
-     *                       returned by the {@code RegCreateKeyEx} or
-     *                       {@code RegOpenKeyEx} function. It can also be one of
-     *                       the following <a href=
-     *                       "https://docs.microsoft.com/en-us/windows/desktop/SysInfo/predefined-keys">predefined
-     *                       keys</a>. The key must have been opened with the
-     *                       {@code KEY_NOTIFY} access right. For more information,
-     *                       see <a href=
-     *                       "https://docs.microsoft.com/en-us/windows/desktop/SysInfo/registry-key-security-and-access-rights">Registry
-     *                       Key Security and Access Rights</a>.
-     * @param bWatchSubtree  If this parameter is {@code TRUE}, the function reports
-     *                       changes in the specified key and its subkeys. If the
-     *                       parameter is {@code FALSE}, the function reports
-     *                       changes only in the specified key.
-     * @param dwNotifyFilter A value that indicates the changes that should be
-     *                       reported. This parameter can be one or more of the
-     *                       following values.
-     *                       <table>
-     *                       <col width="35%"/> <col width="65%"/> <thead>
-     *                       <tr>
-     *                       <th>Value</th>
-     *                       <th>Meaning</th>
-     *                       </tr>
-     *                       <thead> <tbody>
-     *                       <tr>
-     *                       <td><tt><b>REG_NOTIFY_CHANGE_NAME</b></tt><br/>
-     *                       <tt>0x00000001L</tt></td>
-     *                       <td>Notify the caller if a subkey is added or deleted.
-     *                       </td>
-     *                       </tr>
-     *                       <tr>
-     *                       <td><tt><b>REG_NOTIFY_CHANGE_ATTRIBUTES</b></tt><br/>
-     *                       <tt>0x00000002L</tt></td>
-     *                       <td>Notify the caller of changes to the attributes of
-     *                       the key, such as the security descriptor
-     *                       information.</td>
-     *                       </tr>
-     *                       <tr>
-     *                       <td><tt><b>REG_NOTIFY_CHANGE_LAST_SET</b></tt><br/>
-     *                       <tt>0x00000004L</tt></td>
-     *                       <td>Notify the caller of changes to a value of the key.
-     *                       This can include adding or deleting a value, or
-     *                       changing an existing value.</td>
-     *                       </tr>
-     *                       <tr>
-     *                       <td><tt><b>REG_NOTIFY_CHANGE_SECURITY</b></tt><br/>
-     *                       <tt>0x00000008L</tt></td>
-     *                       <td>Notify the caller of changes to the security
-     *                       descriptor of the key.</td>
-     *                       </tr>
-     *                       <tr>
-     *                       <td><tt><b>REG_NOTIFY_THREAD_AGNOSTIC</b></tt><br/>
-     *                       <tt>0x10000000L</tt></td>
-     *                       <td>Indicates that the lifetime of the registration
-     *                       must not be tied to the lifetime of the thread issuing
-     *                       the RegNotifyChangeKeyValue call.<br/>
-     *                       <b>Note:</b> This flag value is only supported in
-     *                       Windows 8 and later.</td>
-     *                       </tr>
-     *                       </tbody>
-     *                       </table>
-     * @param hEvent         A handle to an event. If the {@code fAsynchronous}
-     *                       parameter is {@code TRUE}, the function returns
-     *                       immediately and changes are reported by signaling this
-     *                       event. If {@code fAsynchronous} is {@code FALSE},
-     *                       {@code hEvent} is ignored.
-     * @param fAsynchronous  If this parameter is {@code TRUE}, the function returns
-     *                       immediately and reports changes by signaling the
-     *                       specified event. If this parameter is {@code FALSE},
-     *                       the function does not return until a change has
-     *                       occurred. If {@code hEvent} does not specify a valid
-     *                       event, the {@code fAsynchronous} parameter cannot be
-     *                       {@code TRUE}.
-     * @return If the function succeeds, the return value is {@code ERROR_SUCCESS}.
-     *         If the function fails, the return value is a nonzero error code
-     *         defined in Winerror.h. You can use the {@code FormatMessage} function
-     *         with the {@code FORMAT_MESSAGE_FROM_SYSTEM} flag to get a generic
-     *         description of the error.
-     *         <p>
-     *         <b>Remarks:</b> This function detects a single change. After the
-     *         caller receives a notification event, it should call the function
-     *         again to receive the next notification.
-     *         <p>
-     *         This function cannot be used to detect changes to the registry that
-     *         result from using the RegRestoreKey function.
-     *         <p>
-     *         If the specified key is closed, the event is signaled. This means
-     *         that an application should not depend on the key being open after
-     *         returning from a wait operation on the event.
-     *         <p>
-     *         The {@code REG_NOTIFY_THREAD_AGNOSTIC} flag introduced in Windows 8
-     *         enables the use of {@code RegNotifyChangeKeyValue} for ThreadPool
-     *         threads.
-     *         <p>
-     *         If the thread that called {@code RegNotifyChangeKeyValue} exits, the
-     *         event is signaled. To continue to monitor additional changes in the
-     *         value of the key, call {@code RegNotifyChangeKeyValue} again from
-     *         another thread.
-     *         <p>
-     *         With the exception of {@code RegNotifyChangeKeyValue} calls with
-     *         {@code REG_NOTIFY_THREAD_AGNOSTIC} set, this function must be called
-     *         on persistent threads. If the calling thread is from a thread pool
-     *         and it is not persistent, the event is signaled every time the thread
-     *         terminates, not just when there is a registry change. To ensure
-     *         accurate results, run the thread pool work in a persistent thread by
-     *         using the {@code SetThreadpoolCallbackPersistent} function, or create
-     *         your own thread using the CreateThread function. (For the original
-     *         thread pool API, specify {@code WT_EXECUTEINPERSISTENTTHREAD} using
-     *         the QueueUserWorkItem function.)
-     *         <p>
-     *         This function should not be called multiple times with the same value
-     *         for the hKey but different values for the {@code bWatchSubtree} and
-     *         {@code dwNotifyFilter} parameters. The function will succeed but the
-     *         changes will be ignored. To change the watch parameters, you must
-     *         first close the key handle by calling {@code RegCloseKey}, reopen the
-     *         key handle by calling {@code RegOpenKeyEx}, and then call
-     *         {@code RegNotifyChangeKeyValue} with the new parameters.
-     *         <p>
-     *         Each time a process calls {@code RegNotifyChangeKeyValue} with the
-     *         same set of parameters, it establishes another wait operation,
-     *         creating a resource leak. Therefore, check that you are not calling
-     *         {@code RegNotifyChangeKeyValue} with the same parameters until the
-     *         previous wait operation has completed.
-     *         <p>
-     *         To monitor registry operations in more detail, see <a href=
-     *         "https://docs.microsoft.com/en-us/windows/desktop/ETW/registry">Registry</a>.
-     *         <p>
-     *         Windows XP/2000: When {@code RegNotifyChangeKeyValue} is called for a
-     *         particular key handle, change notifications occur for as long as the
-     *         key handle is valid. This causes a second call to
-     *         {@code RegNotifyChangeKeyValue} to return immediately, if any changes
-     *         occur in the interim between the first and second calls. If the
-     *         function is being used asynchronously, the passed event handle will
-     *         be signaled immediately if any changes occur in the interim.
-     *
-     */
-    int RegNotifyChangeKeyValue(HKEY hKey, boolean bWatchSubtree, int dwNotifyFilter, HANDLE hEvent,
-                                boolean fAsynchronous);
 
     /**
      * Retrieves a registered handle to the specified event log.
@@ -1648,8 +1419,8 @@ public interface Advapi32 extends StdCallLibrary {
      *         GetLastError.
      */
     boolean ReportEvent(HANDLE hEventLog, int wType, int wCategory,
-            int dwEventID, PSID lpUserSid, int wNumStrings, int dwDataSize,
-            String[] lpStrings, Pointer lpRawData);
+			int dwEventID, PSID lpUserSid, int wNumStrings, int dwDataSize,
+			String[] lpStrings, Pointer lpRawData);
 
     /**
      * Clears the specified event log, and optionally saves the current copy of
@@ -1853,25 +1624,6 @@ public interface Advapi32 extends StdCallLibrary {
                                  IntByReference pcbBytesNeeded);
 
     /**
-     * Retrieves the current status of the specified service based on the
-     * specified information level.
-     *
-     * @param hService
-     *            A handle to the service. This handle is returned by the
-     *            OpenService(SC_HANDLE, String, int) or CreateService()
-     *            function, and it must have the SERVICE_QUERY_STATUS access
-     *            right. For more information, see <a
-     *            href="http://msdn.microsoft.com/en-us/library/ms685981.aspx"
-     *            >Service Security and Access Rights</a>.
-     * @param lpServiceStatus
-     *            A pointer to a SERVICE_STATUS structure that receives the status information.
-     * @return If the function succeeds, the return value is true. If the
-     *         function fails, the return value is false. To get extended error
-     *         information, call GetLastError.
-     */
-    boolean QueryServiceStatus(SC_HANDLE hService, SERVICE_STATUS lpServiceStatus);
-
-    /**
      * Sends a control code to a service. To specify additional information when
      * stopping a service, use the ControlServiceEx function.
      *
@@ -2014,205 +1766,6 @@ public interface Advapi32 extends StdCallLibrary {
      *         code defined in Winerror.h.
      */
     SC_HANDLE OpenSCManager(String lpMachineName, String lpDatabaseName, int dwDesiredAccess);
-
-    /**
-     * Retrieves the name and status of each service that depends on the
-     * specified service; that is, the specified service must be running before
-     * the dependent services can run.
-     *
-     * @param hService           A handle to the service. This handle is
-     *                           returned by the OpenService or CreateService
-     *                           function, and it must have the
-     *                           SERVICE_ENUMERATE_DEPENDENTS access right. For
-     *                           more information, see Service Security and
-     *                           Access Rights.
-     * @param dwServiceState     The state of the services to be enumerated.
-     *                           This parameter can be one of the following
-     *                           values.
-     * <table>
-     * <tr><th>Value</th><th>Meaning</th></tr>
-     * <tr><td>{@link Winsvc#SERVICE_ACTIVE}</td><td>Enumerates services that
-     * are in the following states:
-     * {@link Winsvc#SERVICE_START_PENDING}, {@link Winsvc#SERVICE_STOP_PENDING}, {@link Winsvc#SERVICE_RUNNING}, {@link Winsvc#SERVICE_CONTINUE_PENDING}, {@link Winsvc#SERVICE_PAUSE_PENDING},
-     * and {@link Winsvc#SERVICE_PAUSED}.</td></tr>
-     * <tr><td>{@link Winsvc#SERVICE_INACTIVE}</td><td>Enumerates services that
-     * are in the {@link Winsvc#SERVICE_STOPPED} state.</td></tr>
-     * <tr><td>{@link Winsvc#SERVICE_STATE_ALL}</td><td>Combines the following
-     * states: {@link Winsvc#SERVICE_ACTIVE} and
-     * {@link Winsvc#SERVICE_INACTIVE}.</td></tr>
-     * </table>
-     * @param lpService          A pointer to an array of ENUM_SERVICE_STATUS
-     *                           structures that receives the name and service
-     *                           status information for each dependent service
-     *                           in the database. The buffer must be large
-     *                           enough to hold the structures, plus the strings
-     *                           to which their members point.
-     * <p>
-     * The order of the services in this array is the reverse of the start order
-     * of the services. In other words, the first service in the array is the
-     * one that would be started last, and the last service in the array is the
-     * one that would be started first.</p>
-     * <p>
-     * The maximum size of this array is 64,000 bytes. To determine the required
-     * size, specify NULL for this parameter and 0 for the cbBufSize parameter.
-     * The function will fail and GetLastError will return ERROR_MORE_DATA. The
-     * pcbBytesNeeded parameter will receive the required size.</p>
-     * @param cbBufSize          The size of the buffer pointed to by the
-     *                           lpServices parameter, in bytes.
-     * @param pcbBytesNeeded     A pointer to a variable that receives the
-     *                           number of bytes needed to store the array of
-     *                           service entries. The variable only receives
-     *                           this value if the buffer pointed to by
-     *                           lpServices is too small, indicated by function
-     *                           failure and the ERROR_MORE_DATA error;
-     *                           otherwise, the contents of pcbBytesNeeded are
-     *                           undefined.
-     * @param lpServicesReturned A pointer to a variable that receives the
-     *                           number of service entries returned.
-     *
-     * @return If the function succeeds, the return value is nonzero.
-     *
-     * <p>If the function fails, the return value is zero. To get extended error
-     * information, call GetLastError.</p>
-     *
-     * <p>The following error codes may be set by the service control manager.
-     * Other error codes may be set by the registry functions that are called by
-     * the service control manager.</p>
-     *
-     * <table>
-     * <tr><th>Return code</th><th>Description</th></tr>
-     * <tr><td>{@link WinError#ERROR_ACCESS_DENIED}</td><td>The handle does not have the {@link Winsvc#SERVICE_ENUMERATE_DEPENDENTS} access right.</td></tr>
-     * <tr><td>{@link WinError#ERROR_INVALID_HANDLE}</td><td>The specified handle is invalid.</td></tr>
-     * <tr><td>{@link WinError#ERROR_INVALID_PARAMETER}</td><td>A parameter that was specified is invalid.</td></tr>
-     * <tr><td>{@link WinError#ERROR_MORE_DATA}</td><td>The buffer pointed to by lpServices is not large enough. The function sets the variable pointed to by lpServicesReturned to the actual number of service entries stored into the buffer. The function sets the variable pointed to by pcbBytesNeeded to the number of bytes required to store all of the service entries.</td></tr>
-     * </table>
-     */
-    boolean EnumDependentServices(SC_HANDLE hService, int dwServiceState,
-            Pointer lpService, int cbBufSize, IntByReference pcbBytesNeeded,
-            IntByReference lpServicesReturned);
-
-    /**
-     * Enumerates services in the specified service control manager database.
-     * The name and status of each service are provided, along with additional
-     * data based on the specified information level.
-     *
-     * @param hSCManager         A handle to the service control manager
-     *                           database. This handle is returned by the
-     *                           {@link #OpenSCManager} function, and must have
-     *                           the {@link Winsvc#SC_MANAGER_ENUMERATE_SERVICE}
-     *                           access right. For more information, see Service
-     *                           Security and Access Rights.
-     * @param InfoLevel          The service attributes that are to be returned.
-     *                           Use {@link Winsvc#SC_ENUM_PROCESS_INFO} to
-     *                           retrieve the name and service status
-     *                           information for each service in the database.
-     *                           The lpServices parameter is a pointer to a
-     *                           buffer that receives an array of
-     *                           {@link Winsvc.ENUM_SERVICE_STATUS_PROCESS}
-     *                           structures. The buffer must be large enough to
-     *                           hold the structures as well as the strings to
-     *                           which their members point.
-     *
-     * <p>Currently, no other information levels are defined.</p>
-     * @param dwServiceType      The type of services to be enumerated. This
-     *                           parameter can be one or more of the following
-     *                           values.
-     *
-     * <table>
-     * <tr><th>Value</th><th>Meaning</th></tr>
-     * <tr><td>{@link WinNT#SERVICE_DRIVER}</td><td>Services of type {@link WinNT#SERVICE_KERNEL_DRIVER} and {@link WinNT#SERVICE_FILE_SYSTEM_DRIVER}.</td></tr>
-     * <tr><td>{@link WinNT#SERVICE_FILE_SYSTEM_DRIVER}</td><td>File system driver services.</td></tr>
-     * <tr><td>{@link WinNT#SERVICE_KERNEL_DRIVER}</td><td>Driver services.</td></tr>
-     * <tr><td>{@link WinNT#SERVICE_WIN32}</td><td>Services of type {@link WinNT#SERVICE_WIN32_OWN_PROCESS} and {@link WinNT#SERVICE_WIN32_SHARE_PROCESS}.</td></tr>
-     * <tr><td>{@link WinNT#SERVICE_WIN32_OWN_PROCESS}</td><td>Services that run in their own processes.</td></tr>
-     * <tr><td>{@link WinNT#SERVICE_WIN32_SHARE_PROCESS}</td><td>Services that share a process with one or more other services. For more information, see Service Programs.</td></tr>
-     * </table>
-     *
-     * @param dwServiceState     The state of the services to be enumerated.
-     *                           This parameter can be one of the following
-     *                           values.
-     * <table>
-     * <tr><th>Value</th><th>Meaning</th></tr>
-     * <tr><td>{@link Winsvc#SERVICE_ACTIVE}</td><td>Enumerates services that
-     * are in the following states:
-     * {@link Winsvc#SERVICE_START_PENDING}, {@link Winsvc#SERVICE_STOP_PENDING}, {@link Winsvc#SERVICE_RUNNING}, {@link Winsvc#SERVICE_CONTINUE_PENDING}, {@link Winsvc#SERVICE_PAUSE_PENDING},
-     * and {@link Winsvc#SERVICE_PAUSED}.</td></tr>
-     * <tr><td>{@link Winsvc#SERVICE_INACTIVE}</td><td>Enumerates services that
-     * are in the {@link Winsvc#SERVICE_STOPPED} state.</td></tr>
-     * <tr><td>{@link Winsvc#SERVICE_STATE_ALL}</td><td>Combines the following
-     * states: {@link Winsvc#SERVICE_ACTIVE} and
-     * {@link Winsvc#SERVICE_INACTIVE}.</td></tr>
-     * </table>
-     * @param lpServices          A pointer to the buffer that receives the
-     *                           status information. The format of this data
-     *                           depends on the value of the InfoLevel
-     *                           parameter.
-     *
-     * <p>The maximum size of this array is 256K bytes. To determine the required
-     * size, specify NULL for this parameter and 0 for the cbBufSize parameter.
-     * The function will fail and GetLastError will return ERROR_MORE_DATA. The
-     * pcbBytesNeeded parameter will receive the required size.</p>
-     *
-     * <p><b>Windows Server 2003 and Windows XP:</b> The maximum size of this array is 64K
-     * bytes. This limit was increased as of Windows Server 2003 with SP1 and
-     * Windows XP with SP2.</p>
-
-     * @param cbBufSize          The size of the buffer pointed to by the
-     *                           lpServices parameter, in bytes.
-     * @param pcbBytesNeeded     A pointer to a variable that receives the
-     *                           number of bytes needed to store the array of
-     *                           service entries. The variable only receives
-     *                           this value if the buffer pointed to by
-     *                           lpServices is too small, indicated by function
-     *                           failure and the ERROR_MORE_DATA error;
-     *                           otherwise, the contents of pcbBytesNeeded are
-     *                           undefined.
-     * @param lpServicesReturned A pointer to a variable that receives the
-     *                           number of service entries returned.
-     * @param lpResumeHandle     A pointer to a variable that, on input,
-     *                           specifies the starting point of enumeration.
-     *                           You must set this value to zero the first time
-     *                           the {@link #EnumServicesStatusEx} function is
-     *                           called. On output, this value is zero if the
-     *                           function succeeds. However, if the function
-     *                           returns zero and the
-     *                           {@link Kernel32#GetLastError} function returns
-     *                           {@link WinError#ERROR_MORE_DATA}, this value
-     *                           indicates the next service entry to be read
-     *                           when the {@link #EnumServicesStatusEx} function
-     *                           is called to retrieve the additional data.
-     * @param pszGroupName       The load-order group name. If this parameter is
-     *                           a string, the only services enumerated are
-     *                           those that belong to the group that has the
-     *                           name specified by the string. If this parameter
-     *                           is an empty string, only services that do not
-     *                           belong to any group are enumerated. If this
-     *                           parameter is NULL, group membership is ignored
-     *                           and all services are enumerated.
-     *
-     * @return If the function succeeds, the return value is nonzero.
-     *
-     * <p>
-     * If the function succeeds, the return value is nonzero.</p>
-     * <p>
-     * If the function fails, the return value is zero. To get extended error
-     * information, call GetLastError. The following errors may be returned.</p>
-     *
-     * <table>
-     * <tr><th>Return code</th><th>Description</th></tr>
-     * <tr><td>{@link WinError#ERROR_ACCESS_DENIED}</td><td>The handle does not have the {@link Winsvc#SERVICE_ENUMERATE_DEPENDENTS} access right.</td></tr>
-     * <tr><td>{@link WinError#ERROR_MORE_DATA}</td><td>The buffer pointed to by lpServices is not large enough. The function sets the variable pointed to by lpServicesReturned to the actual number of service entries stored into the buffer. The function sets the variable pointed to by pcbBytesNeeded to the number of bytes required to store all of the service entries.</td></tr>
-     * <tr><td>{@link WinError#ERROR_INVALID_HANDLE}</td><td>The specified handle is invalid.</td></tr>
-     * <tr><td>{@link WinError#ERROR_INVALID_PARAMETER}</td><td>A parameter that was specified is invalid.</td></tr>
-     * <tr><td>{@link WinError#ERROR_INVALID_LEVEL}</td><td>The InfoLevel parameter contains an unsupported value.</td></tr>
-     * <tr><td>{@link WinError#ERROR_SHUTDOWN_IN_PROGRESS}</td><td>The system is shutting down; this function cannot be called.</td></tr>
-     * </table>
-     */
-    boolean EnumServicesStatusEx(SC_HANDLE hSCManager, int InfoLevel,
-            int dwServiceType, int dwServiceState, Pointer lpServices,
-            int cbBufSize, IntByReference pcbBytesNeeded,
-            IntByReference lpServicesReturned, IntByReference lpResumeHandle,
-            String pszGroupName);
 
     /**
      * Creates a new process and its primary thread. The new process runs in the
@@ -2616,7 +2169,7 @@ public interface Advapi32 extends StdCallLibrary {
      *            which to set security information. This can be
      *            the name of a local or remote file or directory on an NTFS file
      *            system, network share, registry key, semaphore, event, mutex,
-     *            file mapping, or waitable timer. *
+     *            file mapping, or waitable timer.	 *
      *            For descriptions of the string formats for the different
      *            object types, see SE_OBJECT_TYPE.
      * @param ObjectType [in]
@@ -3282,7 +2835,7 @@ public interface Advapi32 extends StdCallLibrary {
      *                       that can execute in the calling process. The
      *                       members of the last entry in the table must have
      *                       NULL values to designate the end of the table.
-     *
+     * 
      * @return true if function succeeds. To get extended error information, call
      * GetLastError. Possible error codes:
      * <table>
@@ -3362,7 +2915,7 @@ public interface Advapi32 extends StdCallLibrary {
      * @param lpServiceStatus A pointer to the SERVICE_STATUS structure the
      *                        contains the latest status information for the
      *                        calling service.
-     *
+     *  
      * @return true if function succeeds. To get extended error information, call
      * GetLastError. Possible error codes:
      * <table>
@@ -3413,17 +2966,17 @@ public interface Advapi32 extends StdCallLibrary {
      * <tr><td>SERVICE_WIN32_OWN_PROCESS<br>0x00000010</td><td>Service that runs in its own process.</td></tr>
      * <tr><td>SERVICE_WIN32_SHARE_PROCESS<br>0x00000020</td><td>Service that shares a process with one or more other services. For more information, see Service Programs.</td></tr>
      * </table>
-     *
+     * 
      * <p>If you specify either SERVICE_WIN32_OWN_PROCESS or SERVICE_WIN32_SHARE_PROCESS, and the service is running in the context of the LocalSystem account, you can also specify the following value.</p>
-     *
+     * 
      * <table>
      * <tr><th>Value</th><th>Meaning</th></tr>
      * <tr><td>SERVICE_INTERACTIVE_PROCESS<br>0x00000100</td><td>The service can interact with the desktop.</td></tr>
      * </table>
-     *
+     * 
      * @param dwStartType        [in] The service start options. This parameter
      *                           can be one of the following values.
-     *
+     * 
      * <table>
      * <tr><th>Value</th><th>Meaning</th></tr>
      * <tr><td>SERVICE_AUTO_START<br>0x00000002</td><td>A service started automatically by the service control manager during system startup.</td></tr>
@@ -3436,7 +2989,7 @@ public interface Advapi32 extends StdCallLibrary {
      * @param dwErrorControl     [in] The severity of the error, and action
      *                           taken, if this service fails to start. This
      *                           parameter can be one of the following values.
-     *
+     * 
      * <table>
      * <tr><th>Value</th><th>Meaning</th></tr>
      * <tr><td>SERVICE_ERROR_CRITICAL<br>0x00000003</td><td>The startup program logs the error in the event log, if possible. If the last-known-good configuration is being started, the startup operation fails. Otherwise, the system is restarted with the last-known good configuration.</td></tr>
@@ -3452,29 +3005,29 @@ public interface Advapi32 extends StdCallLibrary {
      *                           share\\myservice.exe" should be specified as
      *                           "\"d:\\my share\\myservice.exe\"".
      *
-     *                           <p>The path can also include arguments for an
-     *                           auto-start service. For example,
+     *                           <p>The path can also include arguments for an 
+     *                           auto-start service. For example, 
      *                           "d:\\myshare\\myservice.exe arg1 arg2". These
-     *                           passed to the service entry point (typically
+     *                           passed to the service entry point (typically 
      *                           the main function).</p>
      *
-     *                           <p>If you specify a path on another computer,
-     *                           the share must be accessible by the computer
-     *                           account of the local computer because this is
-     *                           the security context used in the remote call.
+     *                           <p>If you specify a path on another computer, 
+     *                           the share must be accessible by the computer 
+     *                           account of the local computer because this is 
+     *                           the security context used in the remote call. 
      *                           However, this requirement allows any potential
-     *                           vulnerabilities in the remote computer to
+     *                           vulnerabilities in the remote computer to 
      *                           affect the local computer. Therefore, it is
      *                           best to use a local file.</p>
-     *
+     * 
      * @param lpLoadOrderGroup   [in, optional] The names of the load ordering
      *                           group of which this service is a member.
      *                           Specify NULL or an empty string if the service
      *                           does not belong to a group.
      *
-     *                           <p>The startup program uses load ordering
-     *                           groups to load groups of services in a
-     *                           specified order with respect to the other
+     *                           <p>The startup program uses load ordering 
+     *                           groups to load groups of services in a 
+     *                           specified order with respect to the other 
      *                           groups. The list of load ordering groups is
      *                           contained in the following registry value:</p>
      *
@@ -3485,15 +3038,15 @@ public interface Advapi32 extends StdCallLibrary {
      *                           parameter. Specify NULL if you are not changing
      *                           the existing tag.
      *
-     *                           <p>You can use a tag for ordering service
-     *                           startup within a load ordering group by
+     *                           <p>You can use a tag for ordering service 
+     *                           startup within a load ordering group by 
      *                           specifying a tag order vector in the following
      *                           registry value:</p>
      *
      * <p>HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\GroupOrderList</p>
      *
      *                           <p>Tags are only evaluated for driver services
-     *                           that have SERVICE_BOOT_START or
+     *                           that have SERVICE_BOOT_START or 
      *                           SERVICE_SYSTEM_START start types.</p>
      * @param lpDependencies     [in, optional] A pointer to a double
      *                           null-terminated array of null-separated names
@@ -3505,9 +3058,9 @@ public interface Advapi32 extends StdCallLibrary {
      *                           the group is running after an attempt to start
      *                           all members of the group.
      *
-     *                           <p>You must prefix group names with
+     *                           <p>You must prefix group names with 
      *                           SC_GROUP_IDENTIFIER so that they can be
-     *                           distinguished from a service name, because
+     *                           distinguished from a service name, because 
      *                           services and service groups share the same name
      *                           space.</p>
      * @param lpServiceStartName [in, optional] The name of the account under
@@ -3518,8 +3071,8 @@ public interface Advapi32 extends StdCallLibrary {
      *                           user. If the account belongs to the built-in
      *                           domain, you can specify .\UserName.
      *
-     *                           <p>If this parameter is NULL, CreateService
-     *                           uses the LocalSystem account. If the service
+     *                           <p>If this parameter is NULL, CreateService 
+     *                           uses the LocalSystem account. If the service 
      *                           type specifies SERVICE_INTERACTIVE_PROCESS, the
      *                           service must run in the LocalSystem account.</p>
      *
@@ -3544,7 +3097,7 @@ public interface Advapi32 extends StdCallLibrary {
      *                           If the service is configured to use a virtual
      *                           account, specify the name as NT
      *                           SERVICE\ServiceName. For more information about
-     *                           managed service accounts and virtual accounts,
+     *                           managed service accounts and virtual accounts, 
      *                           see the Service Accounts Step-by-Step Guide.
      *
      * <p><strong>Windows Server 2008, Windows Vista, Windows Server 2003 and Windows XP:</strong>
@@ -3558,8 +3111,8 @@ public interface Advapi32 extends StdCallLibrary {
      *                           account. For more information, see Service
      *                           Record List.
      *
-     *                           <p>If the account name specified by the
-     *                           lpServiceStartName parameter is the name of a
+     *                           <p>If the account name specified by the 
+     *                           lpServiceStartName parameter is the name of a 
      *                           managed service account or virtual account
      *                           name, the lpPassword parameter must be NULL.</p>
      *
@@ -3567,7 +3120,7 @@ public interface Advapi32 extends StdCallLibrary {
      *
      * @return SC_HANDLE on success, NULL on error. Call GetLastError to
      * get extended error condition. Possible error codes:
-     *
+     * 
      * <table>
      * <tr><th>Return code</th><th>Description</th></tr>
      * <tr><td>ERROR_ACCESS_DENIED</td><td>The handle to the SCM database does not have the SC_MANAGER_CREATE_SERVICE access right.</td></tr>
@@ -3589,14 +3142,14 @@ public interface Advapi32 extends StdCallLibrary {
 
     /**
      * Marks the specified service for deletion from the service control manager database.
-     *
+     * 
      * @param hService [in] A handle to the service. This handle is returned by
      *                 the OpenService or CreateService function, and it must
      *                 have the DELETE access right.
-     *
+     * 
      * @return true if function succeeds. To get extended error information, call
      * GetLastError. Possible error codes:
-     *
+     * 
      * <table>
      * <tr><th>Return code</th><th>Description</th></tr>
      * <tr><td>ERROR_ACCESS_DENIED</td><td>The handle does not have the DELETE access right.</td></tr>

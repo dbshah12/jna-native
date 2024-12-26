@@ -1,29 +1,27 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna;
-
-import java.lang.reflect.InvocationTargetException;
 
 /** Type representing a type-safe native pointer.
  * Derived classes may override the {@link NativeMapped#fromNative} method,
@@ -80,9 +78,17 @@ public abstract class PointerType implements NativeMapped {
         if (nativeValue == null) {
             return null;
         }
-        PointerType pt = Klass.newInstance(getClass());
-        pt.pointer = (Pointer)nativeValue;
-        return pt;
+        try {
+            PointerType pt = getClass().newInstance();
+            pt.pointer = (Pointer)nativeValue;
+            return pt;
+        }
+        catch (InstantiationException e) {
+            throw new IllegalArgumentException("Can't instantiate " + getClass());
+        }
+        catch (IllegalAccessException e) {
+            throw new IllegalArgumentException("Not allowed to instantiate " + getClass());
+        }
     }
 
     /** The hash code for a <code>PointerType</code> is the same as that for

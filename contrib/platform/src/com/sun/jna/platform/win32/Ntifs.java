@@ -29,7 +29,6 @@ import java.util.List;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.Union;
 import com.sun.jna.win32.W32APITypeMapper;
 
@@ -48,7 +47,6 @@ public interface Ntifs extends WinDef, BaseTSD {
 
     public int SYMLINK_FLAG_RELATIVE = 1;
 
-    @FieldOrder({"SubstituteNameOffset", "SubstituteNameLength", "PrintNameOffset", "PrintNameLength", "Flags", "PathBuffer"})
     public static class SymbolicLinkReparseBuffer extends Structure {
 
         public static class ByReference extends SymbolicLinkReparseBuffer implements Structure.ByReference {
@@ -87,7 +85,7 @@ public interface Ntifs extends WinDef, BaseTSD {
         /**
          * Used to indicate if the given symbolic link is an absolute or relative symbolic link.
          * If Flags contains SYMLINK_FLAG_RELATIVE, the symbolic link contained in the PathBuffer
-         * array (at offset SubstitueNameOffset) is processed as a relative symbolic link; otherwise,
+         * array (at offset SubstitueNameOffset) is processed as a relative symbolic link; otherwise, 
          * it is processed as an absolute symbolic link.
          */
         public int Flags = 0;
@@ -105,6 +103,11 @@ public interface Ntifs extends WinDef, BaseTSD {
 
         public static int sizeOf() {
             return Native.getNativeSize(MountPointReparseBuffer.class, null);
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "SubstituteNameOffset", "SubstituteNameLength", "PrintNameOffset", "PrintNameLength", "Flags", "PathBuffer" });
         }
 
         public SymbolicLinkReparseBuffer() {
@@ -154,7 +157,6 @@ public interface Ntifs extends WinDef, BaseTSD {
         }
     }
 
-    @FieldOrder({"SubstituteNameOffset", "SubstituteNameLength", "PrintNameOffset", "PrintNameLength", "PathBuffer"})
     public static class MountPointReparseBuffer extends Structure {
 
         public static class ByReference extends MountPointReparseBuffer implements Structure.ByReference {
@@ -205,6 +207,11 @@ public interface Ntifs extends WinDef, BaseTSD {
             return Native.getNativeSize(MountPointReparseBuffer.class, null);
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "SubstituteNameOffset", "SubstituteNameLength", "PrintNameOffset", "PrintNameLength", "PathBuffer" });
+        }
+
         public MountPointReparseBuffer() {
             super(W32APITypeMapper.UNICODE);
         }
@@ -236,7 +243,6 @@ public interface Ntifs extends WinDef, BaseTSD {
         }
     }
 
-    @FieldOrder({"DataBuffer"})
     public static class GenericReparseBuffer extends Structure {
 
         public static class ByReference extends GenericReparseBuffer implements Structure.ByReference {
@@ -256,6 +262,11 @@ public interface Ntifs extends WinDef, BaseTSD {
 
         public static int sizeOf() {
             return Native.getNativeSize(GenericReparseBuffer.class, null);
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "DataBuffer" });
         }
 
         public GenericReparseBuffer() {
@@ -278,7 +289,6 @@ public interface Ntifs extends WinDef, BaseTSD {
      * The REPARSE_DATA_BUFFER structure contains reparse point data for a Microsoft reparse point.
      * (Third-party reparse point owners must use the REPARSE_GUID_DATA_BUFFER structure instead.)
      */
-    @FieldOrder({"ReparseTag", "ReparseDataLength", "Reserved", "u"})
     public static class REPARSE_DATA_BUFFER extends Structure {
 
         public static class ByReference extends REPARSE_DATA_BUFFER implements Structure.ByReference {
@@ -337,6 +347,11 @@ public interface Ntifs extends WinDef, BaseTSD {
          */
         public int getSize() {
             return REPARSE_BUFFER_HEADER_SIZE + ReparseDataLength;
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList(new String[] { "ReparseTag", "ReparseDataLength", "Reserved", "u" });
         }
 
         public REPARSE_DATA_BUFFER() {

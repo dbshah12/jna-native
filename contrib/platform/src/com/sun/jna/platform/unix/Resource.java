@@ -1,23 +1,23 @@
 /* Copyright (c) 2015 Goldstein Lyor, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -26,7 +26,6 @@ package com.sun.jna.platform.unix;
 import java.util.List;
 
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 
 /**
  * Definitions related to {@code getrlimit}/{@code setrlimit}
@@ -93,13 +92,19 @@ public interface Resource {
     /** Number of {@code rlimit} values */
     int RLIMIT_NLIMITS = 16;
 
-    @FieldOrder({"rlim_cur", "rlim_max"})
     public static class Rlimit extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("rlim_cur", "rlim_max");
+
         /** The current (soft) limit.  */
         public long rlim_cur;
 
         /** The hard limit.  */
         public long rlim_max;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     // see man(2) rlimit

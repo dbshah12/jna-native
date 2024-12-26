@@ -1,29 +1,17 @@
 /* Copyright (c) 2010 EugineLev, All Rights Reserved
- *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.  
  */
 package com.sun.jna.platform.win32;
 
-import com.sun.jna.platform.win32.Winsvc.ENUM_SERVICE_STATUS;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -46,7 +34,7 @@ public class W32ServiceTest extends TestCase {
     public void tearDown() {
         _serviceManager.close();
     }
-
+    
     public void testCreateServiceDeleteService() {
         // This tests:
         // - com.sun.jna.platform.win32.Advapi32.CreateService
@@ -99,7 +87,7 @@ public class W32ServiceTest extends TestCase {
         W32Service service = _serviceManager.openService(svcId, Winsvc.SC_MANAGER_ALL_ACCESS);
         SERVICE_FAILURE_ACTIONS prevActions = service.getFailureActions();
 
-        List<SC_ACTION> actions = new LinkedList<>();
+        List<SC_ACTION> actions = new LinkedList<SC_ACTION>();
 
         SC_ACTION action = new SC_ACTION();
         action.type = Winsvc.SC_ACTION_RESTART;
@@ -152,16 +140,5 @@ public class W32ServiceTest extends TestCase {
         assertTrue(prevFlag != service.getFailureActionsFlag());
         service.setFailureActionsFlag(prevFlag);
         service.close();
-    }
-
-    public void testEnumDependendServices() {
-        W32Service service = _serviceManager.openService("SystemEventsBroker", Winsvc.SERVICE_ENUMERATE_DEPENDENTS);
-        ENUM_SERVICE_STATUS[] dependants = service.enumDependentServices(Winsvc.SERVICE_STATE_ALL);
-        assertTrue(dependants.length > 0);
-        for(ENUM_SERVICE_STATUS ess: dependants) {
-//            System.out.printf("%-40s%-40s%n", ess.lpServiceName, ess.lpDisplayName);
-            assertNotNull(ess.lpDisplayName);
-            assertNotNull(ess.lpServiceName);
-        }
     }
 }

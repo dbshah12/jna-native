@@ -1,24 +1,25 @@
-/* Copyright (c) 2007-2008 Timothy Wall, All Rights Reserved
- * Copyright (c) 2007 Olivier Chafik
+/*
+ * Copyright (c) 2007-2008 Timothy Wall, All Rights Reserved
+ * Parts Copyright (c) 2007 Olivier Chafik
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -85,12 +86,9 @@ import com.sun.jna.platform.unix.X11.Xext;
 import com.sun.jna.platform.unix.X11.Xrender.XRenderPictFormat;
 import com.sun.jna.platform.win32.GDI32;
 import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.Kernel32Util;
 import com.sun.jna.platform.win32.Psapi;
-import com.sun.jna.platform.win32.PsapiUtil;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.Win32Exception;
-import com.sun.jna.platform.win32.WinBase;
 import com.sun.jna.platform.win32.WinDef.DWORDByReference;
 import com.sun.jna.platform.win32.WinDef.HBITMAP;
 import com.sun.jna.platform.win32.WinDef.HDC;
@@ -102,7 +100,6 @@ import com.sun.jna.platform.win32.WinDef.LRESULT;
 import com.sun.jna.platform.win32.WinDef.POINT;
 import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinDef.WPARAM;
-import com.sun.jna.platform.win32.WinError;
 import com.sun.jna.platform.win32.WinGDI;
 import com.sun.jna.platform.win32.WinGDI.BITMAP;
 import com.sun.jna.platform.win32.WinGDI.BITMAPINFO;
@@ -117,8 +114,6 @@ import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Provides additional features on a Java {@link Window}.
@@ -164,8 +159,6 @@ import java.util.logging.Logger;
 // 50% threshold, some might want zero/non-zero
 public class WindowUtils {
 
-    private static final Logger LOG = Logger.getLogger(WindowUtils.class.getName());
-
     private static final String TRANSPARENT_OLD_BG = "transparent-old-bg";
     private static final String TRANSPARENT_OLD_OPAQUE = "transparent-old-opaque";
     private static final String TRANSPARENT_ALPHA = "transparent-alpha";
@@ -189,7 +182,7 @@ public class WindowUtils {
      * </code></pre>
      */
     private static class HeavyweightForcer extends Window {
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
         private final boolean packed;
 
         public HeavyweightForcer(Window parent) {
@@ -217,7 +210,7 @@ public class WindowUtils {
      * invoked whenever any part of the ancestor window is repainted.
      */
     protected static class RepaintTrigger extends JComponent {
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
         protected class Listener
             extends WindowAdapter
@@ -318,7 +311,7 @@ public class WindowUtils {
     public static abstract class NativeWindowUtils {
         protected abstract class TransparentContentPane
             extends JPanel implements AWTEventListener {
-            private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
             private boolean transparent;
             public TransparentContentPane(Container oldContent) {
                 super(new BorderLayout());
@@ -824,7 +817,7 @@ public class WindowUtils {
                         flags |= WinUser.WS_EX_LAYERED;
                         user.SetWindowLong(hWnd, WinUser.GWL_EXSTYLE, flags);
                         user.SetLayeredWindowAttributes(hWnd, 0, level,
-                                WinUser.LWA_ALPHA);
+                        		WinUser.LWA_ALPHA);
                     }
                     setForceHeavyweightPopups(w, alpha != 1f);
                     storeAlpha(w, level);
@@ -837,7 +830,7 @@ public class WindowUtils {
          * when the window is transparent.
          */
         private class W32TransparentContentPane extends TransparentContentPane {
-            private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
             private HDC memDC;
             private HBITMAP hBitmap;
             private Pointer pbits;
@@ -901,8 +894,8 @@ public class WindowUtils {
                         bmi.bmiHeader.biSizeImage = ww * wh * 4;
                         PointerByReference ppbits = new PointerByReference();
                         hBitmap = gdi.CreateDIBSection(memDC, bmi,
-                                WinGDI.DIB_RGB_COLORS,
-                                ppbits, null, 0);
+                        		WinGDI.DIB_RGB_COLORS,
+                        		ppbits, null, 0);
                         pbits = ppbits.getValue();
                         bitmapSize = new Dimension(ww, wh);
                     }
@@ -1043,9 +1036,9 @@ public class WindowUtils {
             int mode = pi.getWindingRule() == PathIterator.WIND_NON_ZERO
                 ? WinGDI.WINDING: WinGDI.ALTERNATE;
             float[] coords = new float[6];
-            List<POINT> points = new ArrayList<>();
+            List<POINT> points = new ArrayList<POINT>();
             int size = 0;
-            List<Integer> sizes = new ArrayList<>();
+            List<Integer> sizes = new ArrayList<Integer>();
             while (!pi.isDone()) {
                 int type = pi.currentSegment(coords);
                 if (type == PathIterator.SEG_MOVETO) {
@@ -1239,7 +1232,7 @@ public class WindowUtils {
 
         @Override
         public List<DesktopWindow> getAllWindows(final boolean onlyVisibleWindows) {
-            final List<DesktopWindow> result = new LinkedList<>();
+            final List<DesktopWindow> result = new LinkedList<DesktopWindow>();
 
             final WNDENUMPROC lpEnumFunc = new WNDENUMPROC() {
                 @Override
@@ -1282,84 +1275,23 @@ public class WindowUtils {
 
         @Override
         public String getProcessFilePath(final HWND hwnd) {
+            final char[] filePath = new char[2048];
             final IntByReference pid = new IntByReference();
             User32.INSTANCE.GetWindowThreadProcessId(hwnd, pid);
 
-            // GetProcessImageFileName requires PROCESS_QUERY_INFORMATION on
-            // older windows versions so try that first. If we fail to get
-            // access to that information fallback to
-            // PROCESS_QUERY_LIMITED_INFORMATION. This allows reading image
-            // paths from processes running with elevated privileges (at least
-            // worked successfully for a setup program started from a network
-            // share)
-            HANDLE process = Kernel32.INSTANCE.OpenProcess(
-                    WinNT.PROCESS_QUERY_INFORMATION,
-                    false,
-                    pid.getValue());
-
-            if (process == null) {
-                if(Kernel32.INSTANCE.GetLastError() != WinNT.ERROR_ACCESS_DENIED) {
-                    throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
-                } else {
-                    process = Kernel32.INSTANCE.OpenProcess(
-                            WinNT.PROCESS_QUERY_LIMITED_INFORMATION,
-                            false,
-                            pid.getValue());
-
-                    if (process == null) {
-                        if (Kernel32.INSTANCE.GetLastError() != WinNT.ERROR_ACCESS_DENIED) {
-                            throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
-                        } else {
-                            // Ignore windows, that can't be accessed
-                            return "";
-                        }
-                    }
-                }
+            final HANDLE process = Kernel32.INSTANCE.OpenProcess(WinNT.PROCESS_QUERY_INFORMATION | WinNT.PROCESS_VM_READ,
+                                                                 false, pid.getValue());
+            if (process == null
+                && Kernel32.INSTANCE.GetLastError() != WinNT.ERROR_ACCESS_DENIED) {
+                throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
             }
-
-            try {
-                String processImagePath = PsapiUtil.GetProcessImageFileName(process);
-
-                // GetProcessImageFileName returns the file name as a device
-                // filename in the form \Device\Harddisk5\. To make this more
-                // familiar and keep compatibility with QueryModuleName try to
-                // map back to known path (DOS path or UNC path)
-
-                // Map Mup to UNC path
-                if(processImagePath.startsWith("\\Device\\Mup\\")) {
-                    return "\\" + processImagePath.substring(11);
-                }
-
-                // Format of FindFirstVolume is
-                // \\?\Volume{00000000-0000-0000-0000-000000000000}\
-                char[] volumeUUID = new char[50];
-                HANDLE h = Kernel32.INSTANCE.FindFirstVolume(volumeUUID, 50);
-                if (h == null || h.equals(WinBase.INVALID_HANDLE_VALUE)) {
-                    throw new Win32Exception(Native.getLastError());
-                }
-                try {
-                    do {
-                        String volumePath = Native.toString(volumeUUID);
-                        for (String s : Kernel32Util.getVolumePathNamesForVolumeName(volumePath)) {
-                            if (s.matches("[a-zA-Z]:\\\\")) {
-                                for (String path : Kernel32Util.queryDosDevice(s.substring(0, 2), 1024)) {
-                                    if(processImagePath.startsWith(path)) {
-                                        return s + processImagePath.substring(path.length() + 1);
-                                    }
-                                }
-                            }
-                        }
-                    } while (Kernel32.INSTANCE.FindNextVolume(h, volumeUUID, 50));
-                    if (Native.getLastError() != WinError.ERROR_NO_MORE_FILES) {
-                        throw new Win32Exception(Native.getLastError());
-                    }
-                } finally {
-                    Kernel32.INSTANCE.FindVolumeClose(h);
-                }
-                return processImagePath;
-            } finally {
-                Kernel32.INSTANCE.CloseHandle(process);
+            final int length = Psapi.INSTANCE.GetModuleFileNameExW(process,
+                                                                   null, filePath, filePath.length);
+            if (length == 0
+                && Kernel32.INSTANCE.GetLastError() != WinNT.ERROR_INVALID_HANDLE) {
+                throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
             }
+            return Native.toString(filePath).trim();
         }
 
         @Override
@@ -1433,8 +1365,7 @@ public class WindowUtils {
                 if (oldDraggable == null) {
                     p.putClientProperty(WDRAG, Boolean.FALSE);
                     if (w.isDisplayable()) {
-                        LOG.log(Level.WARNING, "{0}(): To avoid content dragging, {1}() must be called before the window is realized, or " + WDRAG + " must be set to Boolean.FALSE before the window is realized.  If you really want content dragging, set " + WDRAG + " on the window''s root pane to Boolean.TRUE before calling {2}() to hide this message.",
-                                new Object[]{context, context, context});
+                        System.err.println(context + "(): To avoid content dragging, " + context + "() must be called before the window is realized, or " + WDRAG + " must be set to Boolean.FALSE before the window is realized.  If you really want content dragging, set " + WDRAG + " on the window's root pane to Boolean.TRUE before calling " + context + "() to hide this message.");
                     }
                 }
             }
@@ -1456,15 +1387,13 @@ public class WindowUtils {
                 fixWindowDragging(w, "setWindowAlpha");
             }
             whenDisplayable(w, new Runnable() {
-                @Override
+				@Override
                 public void run() {
+                    Object peer = w.getPeer();
                     try {
-                        // This will work with old Apple AWT implementations and
-                        // not with openjdk
-                        Method getPeer = w.getClass().getMethod("getPeer");
-                        Object peer = getPeer.invoke(w);
-                        Method setAlpha = peer.getClass().getMethod("setAlpha", new Class[]{ float.class });
-                        setAlpha.invoke(peer, Float.valueOf(alpha));
+                        Class<?> cls = peer.getClass();
+                        Method m = cls.getMethod("setAlpha", new Class[]{ float.class });
+                        m.invoke(peer, Float.valueOf(alpha));
                     }
                     catch (Exception e) {
                     }
@@ -1500,7 +1429,7 @@ public class WindowUtils {
          * @author Olivier Chafik
          */
         private static class OSXMaskingContentPane extends JPanel {
-            private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
             private Shape shape;
 
             public OSXMaskingContentPane(Component oldContent) {
@@ -1576,7 +1505,7 @@ public class WindowUtils {
             }
             x11.XSetForeground(dpy, gc, new NativeLong(0));
             x11.XFillRectangle(dpy, pm, gc, 0, 0, width, height);
-            final List<Rectangle> rlist = new ArrayList<>();
+            final List<Rectangle> rlist = new ArrayList<Rectangle>();
             try {
                 RasterRangesUtils.outputOccupiedRanges(raster, new RasterRangesUtils.RangesOutput() {
                     @Override
@@ -1686,7 +1615,7 @@ public class WindowUtils {
                 IntByReference pcount = new IntByReference();
                 info = x11.XGetVisualInfo(dpy, mask, template, pcount);
                 if (info != null) {
-                    List<X11.VisualID> list = new ArrayList<>();
+                    List<X11.VisualID> list = new ArrayList<X11.VisualID>();
                     XVisualInfo[] infos =
                         (XVisualInfo[])info.toArray(pcount.getValue());
                     for (int i = 0; i < infos.length; i++) {
@@ -1792,7 +1721,7 @@ public class WindowUtils {
         }
 
         private class X11TransparentContentPane extends TransparentContentPane {
-            private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
 
             public X11TransparentContentPane(Container oldContent) {
                 super(oldContent);
@@ -1804,7 +1733,7 @@ public class WindowUtils {
             // Painting directly to the original Graphics
             // fails to properly composite unless the destination
             // is pure black.  Too bad.
-            @Override
+			@Override
             protected void paintDirect(BufferedImage buf, Rectangle bounds) {
                 Window window = SwingUtilities.getWindowAncestor(this);
                 X11 x11 = X11.INSTANCE;
@@ -2008,85 +1937,85 @@ public class WindowUtils {
         getInstance().setWindowTransparent(w, transparent);
     }
 
-    /**
-     * Obtains the set icon for the window associated with the specified
-     * window handle.
-     *
-     * @param hwnd
-     *            The concerning window handle.
-     * @return Either the window's icon or {@code null} if an error
-     *         occurred.
-     */
-    public  static BufferedImage getWindowIcon(final HWND hwnd) {
-        return getInstance().getWindowIcon(hwnd);
-    }
+	/**
+	 * Obtains the set icon for the window associated with the specified
+	 * window handle.
+	 *
+	 * @param hwnd
+	 *            The concerning window handle.
+	 * @return Either the window's icon or {@code null} if an error
+	 *         occurred.
+	 */
+	public  static BufferedImage getWindowIcon(final HWND hwnd) {
+		return getInstance().getWindowIcon(hwnd);
+	}
 
-    /**
-     * Detects the size of an icon.
-     *
-     * @param hIcon
-     *            The icon handle type.
-     * @return Either the requested icon's dimension or an {@link Dimension}
-     *         instance of {@code (0, 0)}.
-     */
-    public static Dimension getIconSize(final HICON hIcon) {
-        return getInstance().getIconSize(hIcon);
-    }
+	/**
+	 * Detects the size of an icon.
+	 *
+	 * @param hIcon
+	 *            The icon handle type.
+	 * @return Either the requested icon's dimension or an {@link Dimension}
+	 *         instance of {@code (0, 0)}.
+	 */
+	public static Dimension getIconSize(final HICON hIcon) {
+		return getInstance().getIconSize(hIcon);
+	}
 
-    /**
-     * Requests a list of all currently available Desktop windows.
-     *
-     * @param onlyVisibleWindows
-     *            Specifies whether only currently visible windows will be
-     *            considered ({@code true}). That are windows which are not
-     *            minimized. The {@code WS_VISIBLE} flag will be checked (see:
-     *            <a href=
-     *            "https://msdn.microsoft.com/de-de/library/windows/desktop/ms633530%28v=vs.85%29.aspx"
-     *            >User32.IsWindowVisible(HWND)</a>).
-     *
-     * @return A list with all windows and some detailed information.
-     */
-    public static List<DesktopWindow> getAllWindows(
-            final boolean onlyVisibleWindows) {
-        return getInstance().getAllWindows(onlyVisibleWindows);
-    }
+	/**
+	 * Requests a list of all currently available Desktop windows.
+	 *
+	 * @param onlyVisibleWindows
+	 *            Specifies whether only currently visible windows will be
+	 *            considered ({@code true}). That are windows which are not
+	 *            minimized. The {@code WS_VISIBLE} flag will be checked (see:
+	 *            <a href=
+	 *            "https://msdn.microsoft.com/de-de/library/windows/desktop/ms633530%28v=vs.85%29.aspx"
+	 *            >User32.IsWindowVisible(HWND)</a>).
+	 *
+	 * @return A list with all windows and some detailed information.
+	 */
+	public static List<DesktopWindow> getAllWindows(
+			final boolean onlyVisibleWindows) {
+		return getInstance().getAllWindows(onlyVisibleWindows);
+	}
 
-    /**
-     * Tries to obtain the Window's title which belongs to the specified window
-     * handle.
-     *
-     * @param hwnd
-     *            The concerning window handle.
-     * @return Either the title or an empty string of no title was found or an
-     *         error occurred.
-     */
-    public static String getWindowTitle(final HWND hwnd) {
-        return getInstance().getWindowTitle(hwnd);
-    }
+	/**
+	 * Tries to obtain the Window's title which belongs to the specified window
+	 * handle.
+	 *
+	 * @param hwnd
+	 *            The concerning window handle.
+	 * @return Either the title or an empty string of no title was found or an
+	 *         error occurred.
+	 */
+	public static String getWindowTitle(final HWND hwnd) {
+		return getInstance().getWindowTitle(hwnd);
+	}
 
-    /**
-     * Detects the full file path of the process associated with the specified
-     * window handle.
-     *
-     * @param hwnd
-     *            The concerning window handle for which the PE file path is
-     *            required.
-     * @return The full file path of the PE file that is associated with the
-     *         specified window handle.
-     */
-    public static String getProcessFilePath(final HWND hwnd) {
-        return getInstance().getProcessFilePath(hwnd);
-    }
+	/**
+	 * Detects the full file path of the process associated with the specified
+	 * window handle.
+	 *
+	 * @param hwnd
+	 *            The concerning window handle for which the PE file path is
+	 *            required.
+	 * @return The full file path of the PE file that is associated with the
+	 *         specified window handle.
+	 */
+	public static String getProcessFilePath(final HWND hwnd) {
+		return getInstance().getProcessFilePath(hwnd);
+	}
 
-    /**
-     * Requests the location and size of the window associated with the
-     * specified window handle.
-     *
-     * @param hwnd
-     *            The concerning window handle.
-     * @return The location and size of the window.
-     */
-    public static Rectangle getWindowLocationAndSize(final HWND hwnd) {
-        return getInstance().getWindowLocationAndSize(hwnd);
-    }
+	/**
+	 * Requests the location and size of the window associated with the
+	 * specified window handle.
+	 *
+	 * @param hwnd
+	 *            The concerning window handle.
+	 * @return The location and size of the window.
+	 */
+	public static Rectangle getWindowLocationAndSize(final HWND hwnd) {
+		return getInstance().getWindowLocationAndSize(hwnd);
+	}
 }

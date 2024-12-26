@@ -1,23 +1,23 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -28,7 +28,6 @@ import java.util.List;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 
 /**
  * Ported from Wdm.h.
@@ -41,8 +40,9 @@ public interface Wdm {
      * The KEY_BASIC_INFORMATION structure defines a subset of
      * the full information that is available for a registry key.
      */
-    @FieldOrder({"LastWriteTime", "TitleIndex", "NameLength", "Name"})
     public static class KEY_BASIC_INFORMATION extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("LastWriteTime", "TitleIndex", "NameLength", "Name");
+
         /**
          * The last time the key or any of its values changed.
          */
@@ -76,6 +76,10 @@ public interface Wdm {
             read();
         }
 
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
         /**
          * Name of the key.
          * @return String.

@@ -1,22 +1,22 @@
-/*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+/**
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -30,8 +30,6 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -58,23 +56,9 @@ public final class StructureFieldOrderInspector {
      */
     public static void batchCheckStructureGetFieldOrder(final Class<?> classDeclaredInSourceTreeToSearch,
                                                    final List<String> ignoreConstructorError) {
-        batchCheckStructureGetFieldOrder(classDeclaredInSourceTreeToSearch, ignoreConstructorError, false);
-    }
+        final Set<Class<? extends Structure>> classes = StructureFieldOrderInspector.findSubTypesOfStructure(classDeclaredInSourceTreeToSearch);
 
-    /**
-     * Search for Structure sub types in the source tree of the given class, and validate the getFieldOrder() method,
-     * and collects all errors into one exception.
-     *
-     * @param classDeclaredInSourceTreeToSearch a class who's source tree will be searched for Structure sub types.
-     * @param ignoreConstructorError list of classname prefixes for which to ignore construction errors.
-     * @param onlyInnerClasses limit scan to inner classes of the supplied class
-     */
-    public static void batchCheckStructureGetFieldOrder(final Class<?> classDeclaredInSourceTreeToSearch,
-                                                   final List<String> ignoreConstructorError,
-                                                   final boolean onlyInnerClasses) {
-        final Set<Class<? extends Structure>> classes = StructureFieldOrderInspector.findSubTypesOfStructure(classDeclaredInSourceTreeToSearch, onlyInnerClasses);
-
-        final List<Throwable> problems = new ArrayList<>();
+        final List<Throwable> problems = new ArrayList<Throwable>();
 
         for (final Class<? extends Structure> structureSubType : classes) {
             try {
@@ -112,7 +96,7 @@ public final class StructureFieldOrderInspector {
     /**
      * Find all classes that extend {@link Structure}.
      */
-    public static Set<Class<? extends Structure>> findSubTypesOfStructure(final Class<?> classDeclaredInSourceTreeToSearch, boolean onlyInnerClasses) {
+    public static Set<Class<? extends Structure>> findSubTypesOfStructure(final Class<?> classDeclaredInSourceTreeToSearch) {
 
         // use: http://code.google.com/p/reflections/
 
@@ -121,24 +105,9 @@ public final class StructureFieldOrderInspector {
                 .setUrls(ClasspathHelper.forClass(classDeclaredInSourceTreeToSearch))
         );
 
-        Set<Class<? extends Structure>> types = new HashSet<>(reflections.getSubTypesOf(Structure.class));
-        if(onlyInnerClasses) {
-            Iterator<Class<? extends Structure>> it = types.iterator();
-            while(it.hasNext()) {
-                if(! (it.next().getEnclosingClass() == classDeclaredInSourceTreeToSearch)) {
-                    it.remove();
-                }
-            }
-        }
-        return types;
+        return reflections.getSubTypesOf(Structure.class);
     }
 
-    /**
-     * Find all classes that extend {@link Structure}.
-     */
-    public static Set<Class<? extends Structure>> findSubTypesOfStructure(final Class<?> classDeclaredInSourceTreeToSearch) {
-        return findSubTypesOfStructure(classDeclaredInSourceTreeToSearch, false);
-    }
 
     public static void checkMethodGetFieldOrder(final Class<? extends Structure> structureSubType,
                                                 final List<String> ignoreConstructorError) {
@@ -149,6 +118,9 @@ public final class StructureFieldOrderInspector {
             // ignore tagging interfaces
             return;
         }
+
+        final Method methodGetFieldOrder = getMethodGetFieldOrder(structureSubType);
+
 
         if (Modifier.isAbstract(structureSubType.getModifiers())) {
             // do not try to construct abstract Structure sub types
@@ -172,7 +144,9 @@ public final class StructureFieldOrderInspector {
         final Structure structure;
         try {
             structure= structConstructor.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException e) {
+            throw new RuntimeException("Could not instantiate Structure sub type: " + structureSubType.getName(), e);
+        } catch (IllegalAccessException e) {
             throw new RuntimeException("Could not instantiate Structure sub type: " + structureSubType.getName(), e);
         } catch (InvocationTargetException e) {
             // this is triggered by checks in Structure.getFields(), and static loadlibrary() failures
@@ -187,27 +161,58 @@ public final class StructureFieldOrderInspector {
             throw new RuntimeException("Could not instantiate Structure sub type: " + structureSubType.getName(), e);
         }
 
-        final List<String> methodCallFieldOrder = structure.getFieldOrder();
+        if (!methodGetFieldOrder.isAccessible()) {
+            methodGetFieldOrder.setAccessible(true);
+        }
+        final List<?> methodCallFieldList;
+        try {
+            methodCallFieldList = (List<?>) methodGetFieldOrder.invoke(structure);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not invoke getFieldOrder() on Structure sub type: " + structureSubType.getName(), e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException("Could not invoke getFieldOrder() on Structure sub type: " + structureSubType.getName(), e);
+        }
 
-        final List<Field> actualFields = structure.getFieldList();
-        final List<String> actualFieldNames = new ArrayList<>(actualFields.size());
+        final Field[] actualFields = structureSubType.getFields(); // include fields from super classes
+        final List<String> actualFieldNames = new ArrayList<String>(actualFields.length);
         for (final Field field : actualFields) {
             // ignore static fields
             if (!Modifier.isStatic(field.getModifiers())) {
                 final String actualFieldName = field.getName();
-                if (!methodCallFieldOrder.contains(actualFieldName)) {
-                    throw new IllegalArgumentException(structureSubType.getName() + ".getFieldOrder() [" + methodCallFieldOrder
+                if (!methodCallFieldList.contains(actualFieldName)) {
+                    throw new IllegalArgumentException(structureSubType.getName() + ".getFieldOrder() [" + methodCallFieldList
                             + "] does not include declared field: " + actualFieldName);
                 }
                 actualFieldNames.add(actualFieldName);
             }
         }
 
-        for (final String methodCallField : methodCallFieldOrder) {
+        for (final Object methodCallField : methodCallFieldList) {
             if (!actualFieldNames.contains(methodCallField)) {
-                throw new IllegalArgumentException(structureSubType.getName() + ".getFieldOrder() [" + methodCallFieldOrder
+                throw new IllegalArgumentException(structureSubType.getName() + ".getFieldOrder() [" + methodCallFieldList
                         + "] includes undeclared field: " + methodCallField);
             }
         }
+    }
+
+    /**
+     * Find the getFieldOrder() method in the given class, or any of it's parents.
+     * @param structureSubType a structure sub type
+     * @return the getFieldOrder() method found in the given class, or any of it's parents.
+     */
+    private static Method getMethodGetFieldOrder(Class<? extends Structure> structureSubType) {
+        final Method methodGetFieldOrder;
+        try {
+            methodGetFieldOrder = structureSubType.getDeclaredMethod("getFieldOrder", new Class[]{});
+        } catch (NoSuchMethodException e) {
+            if (structureSubType.getSuperclass() != null) {
+                // look for method in parent
+                return getMethodGetFieldOrder((Class<? extends Structure>) structureSubType.getSuperclass());
+            }
+            throw new IllegalArgumentException("The Structure sub type: " + structureSubType.getName()
+                    + " must define the method: getFieldOrder()."
+                    + " See the javadoc for Structure.getFieldOrder() for details.", e);
+        }
+        return methodGetFieldOrder;
     }
 }

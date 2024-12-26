@@ -5,11 +5,10 @@
 .dirstamp
 *.la
 Makefile
-!testsuite/libffi.bhaible/Makefile
 Makefile.in
 aclocal.m4
 compile
-!.ci/compile
+config.*
 configure
 depcomp
 doc/libffi.info
@@ -21,6 +20,7 @@ include/ffitarget.h
 install-sh
 libffi.pc
 libtool
+libtool-ldflags
 ltmain.sh
 m4/libtool.m4
 m4/lt*.m4
@@ -33,5 +33,3 @@ libffi.xcodeproj/xcuserdata
 libffi.xcodeproj/project.xcworkspace
 build_*/
 darwin_*/
-src/arm/trampoline.S
-**/texinfo.tex

@@ -1,31 +1,30 @@
-/*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+/* The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
+import java.util.List;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 
 /**
  * Interface for the VerRsrc.h header file.
@@ -35,12 +34,6 @@ public interface VerRsrc {
     /**
      * Contains version information for a file. This information is language and code page independent.
      */
-    @FieldOrder({"dwSignature", "dwStrucVersion",
-                "dwFileVersionMS", "dwFileVersionLS",
-                "dwProductVersionMS", "dwProductVersionLS",
-                "dwFileFlagsMask", "dwFileFlags", "dwFileOS",
-                "dwFileType", "dwFileSubtype",
-                "dwFileDateMS", "dwFileDateLS"})
     public static class VS_FIXEDFILEINFO extends Structure {
 
         public static class ByReference extends VS_FIXEDFILEINFO implements Structure.ByReference {
@@ -51,6 +44,14 @@ public interface VerRsrc {
                 super(memory);
             }
         }
+
+        public static final List<String> FIELDS = createFieldsOrder(
+                "dwSignature", "dwStrucVersion",
+                "dwFileVersionMS", "dwFileVersionLS",
+                "dwProductVersionMS", "dwProductVersionLS",
+                "dwFileFlagsMask", "dwFileFlags", "dwFileOS",
+                "dwFileType", "dwFileSubtype",
+                "dwFileDateMS", "dwFileDateLS");
 
         /**
          * Contains the value 0xFEEF04BD. This is used with the szKey member of the VS_VERSIONINFO structure when
@@ -164,6 +165,11 @@ public interface VerRsrc {
 
         public int getProductVersionBuild() {
             return dwProductVersionLS.intValue() & 0xffff;
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 }

@@ -1,39 +1,37 @@
 /* Copyright (c) 2012 Tobias Wolf, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
+import java.util.List;
+
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.platform.win32.Guid.GUID;
 import com.sun.jna.platform.win32.WinDef.LONG;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinUser.HDEVNOTIFY;
-import com.sun.jna.win32.W32APITypeMapper;
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Logger;
 
 /**
  * Based on dbt.h (various types)
@@ -94,10 +92,11 @@ public interface DBT {
     /**
      * The Class DEV_BROADCAST_HDR.
      */
-    @FieldOrder({"dbch_size", "dbch_devicetype", "dbch_reserved"})
     public class DEV_BROADCAST_HDR extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbch_size", "dbch_devicetype", "dbch_reserved");
+
         /** The dbch_size. */
-        public int dbch_size;
+        public int dbch_size = size();
 
         /** The dbch_devicetype. */
         public int dbch_devicetype;
@@ -132,6 +131,11 @@ public interface DBT {
             super(memory);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /** The dbt devtyp oem. */
@@ -158,10 +162,12 @@ public interface DBT {
     /**
      * The Class DEV_BROADCAST_OEM.
      */
-    @FieldOrder({"dbco_size", "dbco_devicetype", "dbco_reserved", "dbco_identifier", "dbco_suppfunc"})
     public class DEV_BROADCAST_OEM extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbco_size", "dbco_devicetype",
+                "dbco_reserved", "dbco_identifier", "dbco_suppfunc");
+
         /** The dbco_size. */
-        public int dbco_size;
+        public int dbco_size = size();
 
         /** The dbco_devicetype. */
         public int dbco_devicetype;
@@ -192,15 +198,21 @@ public interface DBT {
             super(memory);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The Class DEV_BROADCAST_DEVNODE.
      */
-    @FieldOrder({"dbcd_size", "dbcd_devicetype", "dbcd_reserved", "dbcd_devnode"})
     public class DEV_BROADCAST_DEVNODE extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbcd_size", "dbcd_devicetype",
+                "dbcd_reserved", "dbcd_devnode");
         /** The dbcd_size. */
-        public int dbcd_size;
+        public int dbcd_size = size();
 
         /** The dbcd_devicetype. */
         public int dbcd_devicetype;
@@ -228,15 +240,22 @@ public interface DBT {
             super(memory);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The Class DEV_BROADCAST_VOLUME.
      */
-    @FieldOrder({"dbcv_size", "dbcv_devicetype", "dbcv_reserved", "dbcv_unitmask", "dbcv_flags"})
     public class DEV_BROADCAST_VOLUME extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbcv_size", "dbcv_devicetype",
+                "dbcv_reserved", "dbcv_unitmask", "dbcv_flags");
+
         /** The dbcv_size. */
-        public int dbcv_size;
+        public int dbcv_size = size();
 
         /** The dbcv_devicetype. */
         public int dbcv_devicetype;
@@ -267,6 +286,11 @@ public interface DBT {
             super(memory);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /** The dbt change affects media in drive, not physical device or drive. */
@@ -278,10 +302,11 @@ public interface DBT {
     /**
      * The Class DEV_BROADCAST_PORT.
      */
-    @FieldOrder({"dbcp_size", "dbcp_devicetype", "dbcp_reserved", "dbcp_name"})
     public class DEV_BROADCAST_PORT extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbcp_size", "dbcp_devicetype", "dbcp_reserved", "dbcp_name");
+
         /** The dbcp_size. */
-        public int dbcp_size;
+        public int dbcp_size = size();
 
         /** The dbcp_devicetype. */
         public int dbcp_devicetype;
@@ -290,7 +315,7 @@ public interface DBT {
         public int dbcp_reserved;
 
         /** The dbcp_name. */
-        public byte[] dbcp_name = new byte[1];
+        public char[] dbcp_name = new char[1];
 
         /**
          * Instantiates a new dev broadcast port.
@@ -311,40 +336,20 @@ public interface DBT {
         }
 
         @Override
-        public void read() {
-            int size = getPointer().getInt(0); // Read dbcp_size (first field in structure)
-            this.dbcp_name = new byte[size - this.fieldOffset("dbcp_name")];
-            super.read();
-        }
-
-        /**
-         * Gets the dbcc_name.
-         *
-         * @return the dbcp_name
-         */
-        public String getDbcpName() {
-            if(W32APITypeMapper.DEFAULT == W32APITypeMapper.ASCII) {
-                return Native.toString(this.dbcp_name);
-            } else {
-                try {
-                    return new String(this.dbcp_name, "UTF-16LE");
-                } catch (UnsupportedEncodingException ex) {
-                    // UTF-16LE is documented to be present at least beginning
-                    // with JDK 6
-                    throw new RuntimeException(ex);
-                }
-            }
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 
     /**
      * The Class DEV_BROADCAST_NET.
      */
-    @FieldOrder({"dbcn_size", "dbcn_devicetype",
-                "dbcn_reserved", "dbcn_resource", "dbcn_flags"})
     public class DEV_BROADCAST_NET extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbcn_size", "dbcn_devicetype",
+                "dbcn_reserved", "dbcn_resource", "dbcn_flags");
+
         /** The dbcn_size. */
-        public int dbcn_size;
+        public int dbcn_size = size();
 
         /** The dbcn_devicetype. */
         public int dbcn_devicetype;
@@ -375,14 +380,20 @@ public interface DBT {
             super(memory);
             read();
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The Class DEV_BROADCAST_DEVICEINTERFACE.
      */
-    @FieldOrder({"dbcc_size", "dbcc_devicetype",
-        "dbcc_reserved", "dbcc_classguid", "dbcc_name"})
     public class DEV_BROADCAST_DEVICEINTERFACE extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbcc_size", "dbcc_devicetype",
+                "dbcc_reserved", "dbcc_classguid", "dbcc_name");
+
         /** The dbcc_size. */
         public int dbcc_size;
 
@@ -423,19 +434,11 @@ public interface DBT {
          */
         public DEV_BROADCAST_DEVICEINTERFACE(Pointer memory) {
             super(memory);
-            read();
-        }
-
-        @Override
-        public void read() {
-            if(W32APITypeMapper.DEFAULT == W32APITypeMapper.ASCII) {
-                Logger.getLogger(DBT.class.getName()).warning("DEV_BROADCAST_DEVICEINTERFACE must not be used with w32.ascii = true!");
-            }
-            int size = getPointer().getInt(0); // Read dbcc_size (first field in structure)
+            this.dbcc_size = (Integer) this.readField("dbcc_size");
             // figure out how long dbcc_name should be based on the size
-            int len = (size - this.fieldOffset("dbcc_name")) / Native.WCHAR_SIZE;
+            int len = 1 + this.dbcc_size - size();
             this.dbcc_name = new char[len];
-            super.read();
+            read();
         }
 
         /**
@@ -446,16 +449,23 @@ public interface DBT {
         public String getDbcc_name() {
             return Native.toString(this.dbcc_name);
         }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /**
      * The Class DEV_BROADCAST_HANDLE.
      */
-    @FieldOrder({"dbch_size", "dbch_devicetype", "dbch_reserved", "dbch_handle",
-        "dbch_hdevnotify", "dbch_eventguid", "dbch_nameoffset", "dbch_data"})
     public class DEV_BROADCAST_HANDLE extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("dbch_size", "dbch_devicetype",
+                "dbch_reserved", "dbch_handle", "dbch_hdevnotify",
+                "dbch_eventguid", "dbch_nameoffset", "dbch_data");
+
         /** The dbch_size. */
-        public int dbch_size;
+        public int dbch_size = size();
 
         /** The dbch_devicetype. */
         public int dbch_devicetype;
@@ -476,7 +486,7 @@ public interface DBT {
         public LONG dbch_nameoffset;
 
         /** The dbch_data. */
-        public byte[] dbch_data = new byte[1];
+        public byte[] dbch_data;
 
         /**
          * Instantiates a new dev broadcast handle.
@@ -494,6 +504,11 @@ public interface DBT {
         public DEV_BROADCAST_HANDLE(Pointer memory) {
             super(memory);
             read();
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 }

@@ -1,24 +1,24 @@
 /* Copyright (c) 2007 Olivier Chafik, All Rights Reserved
  * Copyright (c) 2008 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -128,11 +128,11 @@ public class RasterRangesUtils {
      * @return true if the output succeeded, false otherwise
      */
     public static boolean outputOccupiedRangesOfBinaryPixels(byte[] binaryBits, int w, int h, RangesOutput out) {
-        Set<Rectangle> rects = new HashSet<>();
+        Set<Rectangle> rects = new HashSet<Rectangle>();
         Set<Rectangle> prevLine = Collections.<Rectangle>emptySet();
         int scanlineBytes = binaryBits.length / h;
         for (int row = 0; row < h; row++) {
-            Set<Rectangle> curLine = new TreeSet<>(COMPARATOR);
+            Set<Rectangle> curLine = new TreeSet<Rectangle>(COMPARATOR);
             int rowOffsetBytes = row * scanlineBytes;
             int startCol = -1;
             // Look at each batch of 8 columns in this row
@@ -201,10 +201,10 @@ public class RasterRangesUtils {
      * @return true if the output succeeded, false otherwise
      */
     public static boolean outputOccupiedRanges(int[] pixels, int w, int h, int occupationMask, RangesOutput out) {
-        Set<Rectangle> rects = new HashSet<>();
+        Set<Rectangle> rects = new HashSet<Rectangle>();
         Set<Rectangle> prevLine = Collections.<Rectangle>emptySet();
         for (int row = 0; row < h; row++) {
-            Set<Rectangle> curLine = new TreeSet<>(COMPARATOR);
+            Set<Rectangle> curLine = new TreeSet<Rectangle>(COMPARATOR);
             int idxOffset = row * w;
             int startCol = -1;
 
@@ -241,10 +241,10 @@ public class RasterRangesUtils {
     }
 
     private static Set<Rectangle> mergeRects(Set<Rectangle> prev, Set<Rectangle> current) {
-        Set<Rectangle> unmerged = new HashSet<>(prev);
+        Set<Rectangle> unmerged = new HashSet<Rectangle>(prev);
         if (!prev.isEmpty() && !current.isEmpty()) {
-            Rectangle[] pr = prev.toArray(new Rectangle[0]);
-            Rectangle[] cr = current.toArray(new Rectangle[0]);
+            Rectangle[] pr = prev.toArray(new Rectangle[prev.size()]);
+            Rectangle[] cr = current.toArray(new Rectangle[current.size()]);
             int ipr = 0;
             int icr = 0;
             while (ipr < pr.length && icr < cr.length) {

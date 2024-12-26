@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2011 Denis Tulskiy
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -33,7 +33,6 @@ import com.sun.jna.Callback;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.ptr.PointerByReference;
 
 /**
@@ -41,7 +40,7 @@ import com.sun.jna.ptr.PointerByReference;
  * Date: 7/25/11
  */
 public interface Carbon extends Library {
-    Carbon INSTANCE = Native.load("Carbon", Carbon.class);
+    Carbon INSTANCE = Native.loadLibrary("Carbon", Carbon.class);
 
     int cmdKey = 0x0100;
     int shiftKey = 0x0200;
@@ -79,18 +78,30 @@ public interface Carbon extends Library {
      */
     int UnregisterEventHotKey(Pointer inHotKey);
 
-    @FieldOrder({"eventClass", "eventKind"})
     public class EventTypeSpec extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("eventClass", "eventKind");
+
         public int eventClass;
         public int eventKind;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
-    @FieldOrder({"signature", "id"})
     public static class EventHotKeyID extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("signature", "id");
+
         public int signature;
         public int id;
 
         public static class ByValue extends EventHotKeyID implements Structure.ByValue { }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     public static interface EventHandlerProcPtr extends Callback {

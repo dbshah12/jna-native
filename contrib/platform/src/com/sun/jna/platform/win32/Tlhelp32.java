@@ -1,32 +1,32 @@
 /*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
+import java.util.List;
+
 import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HMODULE;
 
@@ -92,9 +92,6 @@ public interface Tlhelp32 {
     /**
      * Describes an entry from a list of the processes residing in the system address space when a snapshot was taken.
      */
-    @FieldOrder({"dwSize", "cntUsage", "th32ProcessID", "th32DefaultHeapID",
-        "th32ModuleID", "cntThreads", "th32ParentProcessID", "pcPriClassBase",
-        "dwFlags", "szExeFile"})
     public static class PROCESSENTRY32 extends Structure {
 
         public static class ByReference extends PROCESSENTRY32 implements Structure.ByReference {
@@ -105,6 +102,10 @@ public interface Tlhelp32 {
                 super(memory);
             }
         }
+
+        public static final List<String> FIELDS = createFieldsOrder(
+                "dwSize", "cntUsage", "th32ProcessID", "th32DefaultHeapID", "th32ModuleID",
+                "cntThreads", "th32ParentProcessID", "pcPriClassBase", "dwFlags", "szExeFile");
 
         /**
          * The size of the structure, in bytes. Before calling the Process32First function, set this member to
@@ -168,71 +169,10 @@ public interface Tlhelp32 {
             super(memory);
             read();
         }
-    }
 
-    /**
-     * Describes an entry from a list of the threads executing in the system when a
-     * snapshot was taken.
-     */
-    @FieldOrder({ "dwSize", "cntUsage", "th32ThreadID", "th32OwnerProcessID", "tpBasePri", "tpDeltaPri", "dwFlags" })
-    public static class THREADENTRY32 extends Structure {
-
-        public static class ByReference extends THREADENTRY32 implements Structure.ByReference {
-            public ByReference() {
-            }
-
-            public ByReference(Pointer memory) {
-                super(memory);
-            }
-        }
-
-        /**
-         * The size of the structure, in bytes. Before calling the Thread32First
-         * function, set this member to sizeof(THREADENTRY32). If you do not initialize
-         * dwSize, Thread32First fails.
-         */
-        public int dwSize;
-
-        /**
-         * This member is no longer used and is always set to zero.
-         */
-        public int cntUsage;
-
-        /**
-         * The thread identifier, compatible with the thread identifier returned by the
-         * CreateProcess function.
-         */
-        public int th32ThreadID;
-
-        /**
-         * The identifier of the process that created the thread.
-         */
-        public int th32OwnerProcessID;
-
-        /**
-         * The kernel base priority level assigned to the thread. The priority is a
-         * number from 0 to 31, with 0 representing the lowest possible thread priority.
-         * For more information, see KeQueryPriorityThread.
-         */
-        public NativeLong tpBasePri;
-
-        /**
-         * This member is no longer used and is always set to zero.
-         */
-        public NativeLong tpDeltaPri;
-
-        /**
-         * This member is no longer used and is always set to zero.
-         */
-        public int dwFlags;
-
-        public THREADENTRY32() {
-            dwSize = size();
-        }
-
-        public THREADENTRY32(Pointer memory) {
-            super(memory);
-            read();
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 
@@ -240,12 +180,8 @@ public interface Tlhelp32 {
      * Describes an entry from a list of the modules belonging to the specified
      * process.
      *
-     * @see <a href=
-     *      "https://msdn.microsoft.com/en-us/library/windows/desktop/ms684225(v=vs.85).aspx">MSDN</a>
+     * @see <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms684225(v=vs.85).aspx">MSDN</a>
      */
-    @FieldOrder({"dwSize", "th32ModuleID", "th32ProcessID", "GlblcntUsage",
-        "ProccntUsage", "modBaseAddr", "modBaseSize", "hModule",
-        "szModule", "szExePath"})
     public class MODULEENTRY32W extends Structure {
 
         /**
@@ -259,6 +195,10 @@ public interface Tlhelp32 {
                 super(memory);
             }
         }
+
+        public static final List<String> FIELDS = createFieldsOrder(
+                "dwSize", "th32ModuleID", "th32ProcessID", "GlblcntUsage",
+                "ProccntUsage", "modBaseAddr", "modBaseSize", "hModule", "szModule", "szExePath");
 
         /**
          * The size of the structure, in bytes. Before calling the Module32First
@@ -335,6 +275,11 @@ public interface Tlhelp32 {
          */
         public String szExePath() {
             return Native.toString(this.szExePath);
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 }

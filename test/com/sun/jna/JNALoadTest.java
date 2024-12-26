@@ -1,23 +1,23 @@
 /* Copyright (c) 2007-2009 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -33,20 +33,19 @@ import java.net.URLClassLoader;
 import java.util.Properties;
 
 import junit.framework.TestCase;
-import org.junit.Assume;
 
 /** Test loading and unloading native support from various locations.  Note
  * that no JNI classes are directly referenced in these tests.
  */
-public class JNALoadTest extends TestCase implements Paths {
+public class JNALoadTest extends TestCase implements Paths, GCWaits {
 
     private class TestLoader extends URLClassLoader {
         public TestLoader(boolean fromJar) throws MalformedURLException {
-            super(new URL[]{
-                Platform.isWindowsCE()
-                ? new File("/Storage Card/" + (fromJar ? "jna.jar" : "test.jar")).toURI().toURL()
-                    : new File(BUILDDIR + (fromJar ? "/jna.jar" : "/classes")).toURI().toURL()},
-                new CloverLoader());
+            super(new URL[] {
+                    Platform.isWindowsCE()
+                    ? new File("/Storage Card/" + (fromJar ? "jna.jar" : "test.jar")).toURI().toURL()
+                    : new File(BUILDDIR + (fromJar ? "/jna.jar" : "/classes")).toURI().toURL(),
+                  }, new CloverLoader());
             if (fromJar) {
                 assertJarExists();
             }
@@ -79,9 +78,6 @@ public class JNALoadTest extends TestCase implements Paths {
     protected void assertLibraryExists() {
         String osPrefix = Platform.getNativeLibraryResourcePrefix();
         String name = System.mapLibraryName("jnidispatch").replace(".dylib", ".jnilib");
-        if(Platform.isAIX()) {
-            name = name.replaceAll(".so$", ".a");
-        }
         File lib = new File(CLASSES + "/com/sun/jna/" + osPrefix + "/" + name);
         if (!lib.exists()) {
             throw new Error("Expected JNA library at " + lib + " is missing");
@@ -119,11 +115,6 @@ public class JNALoadTest extends TestCase implements Paths {
     }
 
     public void testLoadAndUnloadFromJar() throws Exception {
-        if (Platform.isIntel() && (! Platform.is64Bit())) {
-            System.out.println("Skip " + getName() + " - it is known to be flaky and produces false positives on x86-32bit");
-            return;
-        }
-
         ClassLoader loader = new TestLoader(true);
         Class<?> cls = Class.forName("com.sun.jna.Native", true, loader);
         assertEquals("Wrong class loader", loader, cls.getClassLoader());
@@ -134,24 +125,27 @@ public class JNALoadTest extends TestCase implements Paths {
         String path = (String)field.get(null);
         assertNotNull("Native library path unavailable", path);
         assertTrue("Native library not unpacked from jar: " + path,
-                path.startsWith(Native.getTempDir().getAbsolutePath()));
+                   path.startsWith(System.getProperty("java.io.tmpdir")));
 
-        Reference<Class<?>> ref = new WeakReference<>(cls);
-        Reference<ClassLoader> clref = new WeakReference<>(loader);
+        Reference<Class<?>> ref = new WeakReference<Class<?>>(cls);
+        Reference<ClassLoader> clref = new WeakReference<ClassLoader>(loader);
         loader = null;
         cls = null;
         field = null;
         System.gc();
-        for (int i=0;i < GCWaits.GC_WAITS && (ref.get() != null || clref.get() != null);i++) {
-            GCWaits.gcRun();
+        for (int i=0;i < GC_WAITS && (ref.get() != null || clref.get() != null);i++) {
+            Thread.sleep(GC_WAIT_INTERVAL);
+            System.gc();
         }
         assertNull("Class not GC'd: " + ref.get(), ref.get());
         assertNull("ClassLoader not GC'd: " + clref.get(), clref.get());
 
         // Check for temporary file deletion
         File f = new File(path);
-        for (int i=0;i < GCWaits.GC_WAITS && (f.exists() || Boolean.getBoolean("jna.loaded"));i++) {
-            GCWaits.gcRun();
+        for (int i=0;i < GC_WAITS && (f.exists() || Boolean.getBoolean("jna.loaded"));i++) {
+            System.gc(); // attempt to fix intermittent test failures
+            Thread.sleep(4 * GC_WAIT_INTERVAL);  // '4 *' is attempt to fix intermittent test failures
+            System.gc();
         }
 
         if (f.exists()) {
@@ -176,11 +170,6 @@ public class JNALoadTest extends TestCase implements Paths {
 
     // GC Fails under OpenJDK(linux/ppc)
     public void testLoadAndUnloadFromResourcePath() throws Exception {
-        if (Platform.isIntel() && (! Platform.is64Bit())) {
-            System.out.println("Skip " + getName() + " - it is known to be flaky and produces false positives on x86-32bit");
-            return;
-        }
-
         ClassLoader loader = new TestLoader(false);
         Class<?> cls = Class.forName("com.sun.jna.Native", true, loader);
         assertEquals("Wrong class loader", loader, cls.getClassLoader());
@@ -191,14 +180,15 @@ public class JNALoadTest extends TestCase implements Paths {
         String path = (String)field.get(null);
         assertNotNull("Native library not found", path);
 
-        Reference<Class<?>> ref = new WeakReference<>(cls);
-        Reference<ClassLoader> clref = new WeakReference<>(loader);
+        Reference<Class<?>> ref = new WeakReference<Class<?>>(cls);
+        Reference<ClassLoader> clref = new WeakReference<ClassLoader>(loader);
         loader = null;
         cls = null;
         field = null;
         System.gc();
-        for (int i=0;i < GCWaits.GC_WAITS && (ref.get() != null || clref.get() != null || Boolean.getBoolean("jna.loaded"));i++) {
-            GCWaits.gcRun();
+        for (int i=0;i < GC_WAITS && (ref.get() != null || clref.get() != null || Boolean.getBoolean("jna.loaded"));i++) {
+            Thread.sleep(2 * GC_WAIT_INTERVAL);  // '2 *' is attempt to fix intermittent test failures 
+            System.gc();
         }
         assertNull("Class not GC'd: " + ref.get(), ref.get());
         assertNull("ClassLoader not GC'd: " + clref.get(), clref.get());
@@ -207,8 +197,9 @@ public class JNALoadTest extends TestCase implements Paths {
         Throwable throwable = null;
         // NOTE: IBM J9 needs some extra time to unload the native library,
         // so try a few times before failing
-        for (int i=0;i < GCWaits.GC_WAITS;i++) {
-            GCWaits.gcRun();
+        for (int i=0;i < GC_WAITS;i++) {
+            System.gc();
+            Thread.sleep(GC_WAIT_INTERVAL);
             try {
                 loader = new TestLoader(false);
                 cls = Class.forName("com.sun.jna.Native", true, loader);

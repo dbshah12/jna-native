@@ -1,30 +1,20 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.win32;
 
 import junit.framework.TestCase;
 
+import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Guid.CLSID;
 import com.sun.jna.platform.win32.WTypes.BSTR;
 import com.sun.jna.platform.win32.WinDef.LCID;
@@ -60,8 +50,8 @@ public class OleAutoTest extends TestCase {
     public void testLoadRegTypeLib() {
         CLSID.ByReference clsid = new CLSID.ByReference();
         // get CLSID from string, Microsoft Scripting Engine
-        HRESULT hr = Ole32.INSTANCE.CLSIDFromString(
-                "{420B2830-E718-11CF-893D-00A0C9054228}", clsid);
+        HRESULT hr = Ole32.INSTANCE.CLSIDFromString(new WString(
+                "{420B2830-E718-11CF-893D-00A0C9054228}"), clsid);
         COMUtils.checkRC(hr);
         assertEquals(0, hr.intValue());
 
@@ -88,7 +78,7 @@ public class OleAutoTest extends TestCase {
         assertEquals("Variant-Value", "True", variant2.stringValue());
         OleAuto.INSTANCE.VariantClear(variant2);
     }
-
+    
     public void testVariantConvertBSTR() {
         VARIANT variant = new Variant.VARIANT("42");
         OleAuto.INSTANCE.VariantChangeType(variant, variant, (short) 0, new VARTYPE(Variant.VT_INT));

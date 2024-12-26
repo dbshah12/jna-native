@@ -1,23 +1,23 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -36,12 +36,8 @@ import com.sun.jna.platform.win32.WinNT.FILE_NOTIFY_INFORMATION;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class W32FileMonitor extends FileMonitor {
-
-    private static final Logger LOG = Logger.getLogger(W32FileMonitor.class.getName());
 
     private static final int BUFFER_SIZE = 4096;
 
@@ -62,8 +58,8 @@ public class W32FileMonitor extends FileMonitor {
     }
     private Thread watcher;
     private HANDLE port;
-    private final Map<File, FileInfo> fileMap = new HashMap<>();
-    private final Map<HANDLE, FileInfo> handleMap = new HashMap<>();
+    private final Map<File, FileInfo> fileMap = new HashMap<File, FileInfo>();
+    private final Map<HANDLE, FileInfo> handleMap = new HashMap<HANDLE, FileInfo>();
     private boolean disposing = false;
 
     private void handleChanges(FileInfo finfo) throws IOException {
@@ -75,26 +71,26 @@ public class W32FileMonitor extends FileMonitor {
             FileEvent event = null;
             File file = new File(finfo.file, fni.getFilename());
             switch(fni.Action) {
-                case 0:
-                    break;
-                case WinNT.FILE_ACTION_MODIFIED:
-                    event = new FileEvent(file, FILE_MODIFIED);
-                    break;
-                case WinNT.FILE_ACTION_ADDED:
-                    event = new FileEvent(file, FILE_CREATED);
-                    break;
-                case WinNT.FILE_ACTION_REMOVED:
-                    event = new FileEvent(file, FILE_DELETED);
-                    break;
-                case WinNT.FILE_ACTION_RENAMED_OLD_NAME:
-                    event = new FileEvent(file, FILE_NAME_CHANGED_OLD);
-                    break;
-                case WinNT.FILE_ACTION_RENAMED_NEW_NAME:
-                    event = new FileEvent(file, FILE_NAME_CHANGED_NEW);
-                    break;
-                default:
-                    // TODO: other actions...
-                    LOG.log(Level.WARNING, "Unrecognized file action ''{0}''", fni.Action);
+            case 0:
+            	break;
+            case WinNT.FILE_ACTION_MODIFIED:
+                event = new FileEvent(file, FILE_MODIFIED);
+                break;
+            case WinNT.FILE_ACTION_ADDED:
+                event = new FileEvent(file, FILE_CREATED);
+                break;
+            case WinNT.FILE_ACTION_REMOVED:
+                event = new FileEvent(file, FILE_DELETED);
+                break;
+            case WinNT.FILE_ACTION_RENAMED_OLD_NAME:
+                event = new FileEvent(file, FILE_NAME_CHANGED_OLD);
+                break;
+            case WinNT.FILE_ACTION_RENAMED_NEW_NAME:
+                event = new FileEvent(file, FILE_NAME_CHANGED_NEW);
+                break;
+            default:
+                // TODO: other actions...
+                System.err.println("Unrecognized file action '" + fni.Action + "'");
             }
 
             if (event != null) {
@@ -111,15 +107,15 @@ public class W32FileMonitor extends FileMonitor {
         }
 
         if (!klib.ReadDirectoryChangesW(finfo.handle, finfo.info,
-                finfo.info.size(), finfo.recursive, finfo.notifyMask,
-                finfo.infoLength, finfo.overlapped, null)) {
-            if (!disposing) {
-                int err = klib.GetLastError();
-                throw new IOException("ReadDirectoryChangesW failed on "
-                        + finfo.file + ": '"
-                        + Kernel32Util.formatMessageFromLastErrorCode(err)
-                        + "' (" + err + ")");
-            }
+        		finfo.info.size(), finfo.recursive, finfo.notifyMask,
+        		finfo.infoLength, finfo.overlapped, null)) {
+        	if (! disposing) {
+        		int err = klib.GetLastError();
+        		throw new IOException("ReadDirectoryChangesW failed on "
+                                  + finfo.file + ": '"
+                                  + Kernel32Util.formatMessageFromLastErrorCode(err)
+                                  + "' (" + err + ")");
+        	}
         }
     }
 
@@ -186,8 +182,8 @@ public class W32FileMonitor extends FileMonitor {
         int flags = WinNT.FILE_FLAG_BACKUP_SEMANTICS
             | WinNT.FILE_FLAG_OVERLAPPED;
         HANDLE handle = klib.CreateFile(file.getAbsolutePath(),
-                WinNT.FILE_LIST_DIRECTORY,
-                mask, null, WinNT.OPEN_EXISTING,
+        		WinNT.FILE_LIST_DIRECTORY,
+        		mask, null, WinNT.OPEN_EXISTING,
                 flags, null);
         if (WinBase.INVALID_HANDLE_VALUE.equals(handle)) {
             throw new IOException("Unable to open " + file + " ("
@@ -221,20 +217,21 @@ public class W32FileMonitor extends FileMonitor {
                 public void run() {
                     FileInfo finfo;
                     while (true) {
-                        finfo = waitForChange();
-                        if (finfo == null) {
-                            synchronized (W32FileMonitor.this) {
-                                if (fileMap.isEmpty()) {
-                                    watcher = null;
-                                    break;
-                                }
-                            }
-                            continue;
+                       finfo = waitForChange();
+                       if (finfo == null) {
+                          synchronized(W32FileMonitor.this) {
+                             if (fileMap.isEmpty()) {
+                                watcher = null;
+                                break;
+                             }
+                          }
+                          continue;
                         }
 
                         try {
                             handleChanges(finfo);
-                        } catch (IOException e) {
+                        }
+                        catch(IOException e) {
                             // TODO: how is this best handled?
                             e.printStackTrace();
                         }
@@ -259,7 +256,7 @@ public class W32FileMonitor extends FileMonitor {
 
     @Override
     public synchronized void dispose() {
-        disposing = true;
+    	disposing = true;
 
         // unwatch any remaining files in map, allows watcher thread to exit
         int i = 0;

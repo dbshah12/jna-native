@@ -1,44 +1,42 @@
 /* Copyright (c) 2009 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna;
 
-import java.io.File;
+import junit.framework.*;
 import java.lang.reflect.Method;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 //@SuppressWarnings("unused")
-public class DirectTest extends TestCase implements Paths {
+public class DirectTest extends TestCase implements Paths, GCWaits {
 
     public static void main(java.lang.String[] argList) {
         junit.textui.TestRunner.run(DirectTest.class);
@@ -139,11 +137,6 @@ public class DirectTest extends TestCase implements Paths {
     }
 
     public void testRegisterMethods() throws Exception {
-        if (Platform.isAIX()) {
-            // https://stackoverflow.com/questions/8961441/java-system-loadlibrarym-fails-on-aix-6-1
-            System.out.println("Skip " + getName() + " - libm can't be dynamically linked on AIX");
-            return;
-        }
         assertEquals("Math library call failed", 1., MathLibrary.cos(0), .01);
         assertTrue("Library not registered",
                    Native.registered(MathLibrary.class));
@@ -204,8 +197,8 @@ public class DirectTest extends TestCase implements Paths {
         };
         final TypeMapper mapper = new DefaultTypeMapper();
         final int alignment = Structure.ALIGN_NONE;
-        final String encoding = Charset.defaultCharset().name();
-        Map<String, Object> options = new HashMap<>();
+        final String encoding = System.getProperty("file.encoding");
+        Map<String, Object> options = new HashMap<String, Object>();
         options.put(Library.OPTION_TYPE_MAPPER, mapper);
         options.put(Library.OPTION_STRUCTURE_ALIGNMENT, alignment);
         options.put(Library.OPTION_STRING_ENCODING, encoding);
@@ -225,7 +218,7 @@ public class DirectTest extends TestCase implements Paths {
     public static class DirectMappingStatic {
         final static TypeMapper TEST_MAPPER = new DefaultTypeMapper();
         final static int TEST_ALIGNMENT = Structure.ALIGN_DEFAULT;
-        final static String TEST_ENCODING = Charset.defaultCharset().name();
+        final static String TEST_ENCODING = System.getProperty("file.encoding");
         final static Map<String, Object> TEST_OPTIONS = new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L;    // we're not serializing it
 

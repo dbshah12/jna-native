@@ -1,36 +1,22 @@
 /* Copyright (c) 2010, 2013 Daniel Doubrovkine, Markus Karg, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.win32;
-
-import static org.junit.Assert.assertArrayEquals;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 import com.sun.jna.Native;
-import com.sun.jna.Pointer;
 import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Guid.GUID;
 import com.sun.jna.platform.win32.ShellAPI.APPBARDATA;
@@ -39,10 +25,10 @@ import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.UINT_PTR;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinNT.HRESULT;
-import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 
 import junit.framework.TestCase;
+
 
 /**
  * @author dblock[at]dblock[dot]org
@@ -59,10 +45,10 @@ public class Shell32Test extends TestCase {
     }
 
     public void testSHGetFolderPath() {
-        char[] pszPath = new char[WinDef.MAX_PATH];
-        assertEquals("Failed to retrieve path", W32Errors.S_OK,
-                Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_PROGRAM_FILES, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath));
-        assertTrue("Empty path", Native.toString(pszPath).length() > 0);
+    	char[] pszPath = new char[WinDef.MAX_PATH];
+    	assertEquals("Failed to retrieve path", W32Errors.S_OK,
+    	        Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_PROGRAM_FILES, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath));
+    	assertTrue("Empty path", Native.toString(pszPath).length() > 0);
     }
 
     public void testSHGetDesktopFolder() {
@@ -228,11 +214,14 @@ public class Shell32Test extends TestCase {
      */
     private void fillTempFile(File file) throws IOException {
         file.createNewFile();
-        try (FileWriter fileWriter = new FileWriter(file)) {
+        FileWriter fileWriter = new FileWriter(file);
+        try {
             for (int i = 0; i < 10; i++) {
                 fileWriter.write("Sample line of text");
-                fileWriter.write(System.lineSeparator());
+                fileWriter.write(System.getProperty("line.separator"));
             }
+        } finally {
+            fileWriter.close();
         }
     }
 
@@ -260,16 +249,4 @@ public class Shell32Test extends TestCase {
         Ole32.INSTANCE.CoTaskMemFree(ppszAppID.getValue());
     }
 
-    public void testCommandLineToArgvW() {
-        WString cl = new WString("\"foo bar\" baz");
-        String[] argv = { "foo bar", "baz" };
-        IntByReference nargs = new IntByReference();
-        Pointer strArr = Shell32.INSTANCE.CommandLineToArgvW(cl, nargs);
-        assertNotNull(strArr);
-        try {
-            assertArrayEquals(argv, strArr.getWideStringArray(0, nargs.getValue()));
-        } finally {
-            Kernel32.INSTANCE.LocalFree(strArr);
-        }
-    }
 }

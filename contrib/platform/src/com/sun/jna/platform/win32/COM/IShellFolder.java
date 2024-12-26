@@ -1,22 +1,22 @@
 /*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -27,11 +27,9 @@ package com.sun.jna.platform.win32.COM;
  */
 
 import com.sun.jna.Function;
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Guid.IID;
 import com.sun.jna.platform.win32.Guid.REFIID;
-import com.sun.jna.platform.win32.ShTypes.STRRET;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.platform.win32.WinNT.HRESULT;
@@ -296,13 +294,13 @@ public interface IShellFolder {
      *            If this method is successful, the CODE field of the HRESULT contains one of the following values. For information regarding the extraction of
      *            the CODE field from the returned HRESULT, see Remarks. If this method is unsuccessful, it returns a COM error code.
      *            Negative
-     *            A negative return value indicates that the first item should precede the second (pidl1 &lt; pidl2).
+     *            A negative return value indicates that the first item should precede the second (pidl1 < pidl2).
      *            Positive
-     *            A positive return value indicates that the first item should follow the second (pidl1 &gt; pidl2).
+     *            A positive return value indicates that the first item should follow the second (pidl1 > pidl2).
      *            Zero
      *            A return value of zero indicates that the two items are the same (pidl1 = pidl2).
      *            Use the HRESULT_CODE macro to extract the CODE field from the HRESULT, then cast the result as a short.
-     *            #define HRESULT_CODE(hr)    ((hr) &amp; 0xFFFF)
+     *            #define HRESULT_CODE(hr)    ((hr) & 0xFFFF)
      *
      */
     HRESULT CompareIDs(
@@ -410,7 +408,7 @@ public interface IShellFolder {
     HRESULT GetDisplayNameOf(
             Pointer pidl,
             int flags,
-            STRRET pName);
+            PointerByReference pName);
 
     /**
      * Sets the display name of a file object or subfolder, changing the item identifier in the process.
@@ -481,11 +479,7 @@ public interface IShellFolder {
                 @Override
                 public WinNT.HRESULT ParseDisplayName(WinDef.HWND hwnd, Pointer pbc, String pszDisplayName, IntByReference pchEaten, PointerByReference ppidl, IntByReference pdwAttributes) {
                     Function f = Function.getFunction(vTable[3], Function.ALT_CONVENTION);
-                    // pszDisplayName is mapped as String but Windows needs
-                    // Wide String. Convert and pass here.
-                    char[] pszDisplayNameNative = Native.toCharArray(pszDisplayName);
-                    return new WinNT.HRESULT(f.invokeInt(new Object[] { interfacePointer, hwnd, pbc,
-                        pszDisplayNameNative, pchEaten, ppidl, pdwAttributes }));
+                    return new WinNT.HRESULT(f.invokeInt(new Object[]{interfacePointer, hwnd, pbc, pszDisplayName, pchEaten, ppidl, pdwAttributes}));
                 }
 
                 @Override
@@ -529,7 +523,7 @@ public interface IShellFolder {
                     return new WinNT.HRESULT( f.invokeInt(new Object[]{interfacePointer, hwndOwner, cidl, apidl, riid, rgfReserved, ppv}));
                 }
 
-                public WinNT.HRESULT GetDisplayNameOf(Pointer pidl, int flags, STRRET pName){
+                public WinNT.HRESULT GetDisplayNameOf(Pointer pidl, int flags, PointerByReference pName){
                     Function f = Function.getFunction(vTable[11], Function.ALT_CONVENTION);
                     return new WinNT.HRESULT( f.invokeInt(new Object[]{interfacePointer, pidl, flags, pName}));
                 }

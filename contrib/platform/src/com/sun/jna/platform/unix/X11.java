@@ -1,27 +1,30 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.unix;
+
+import java.util.Arrays;
+import java.util.List;
 
 import com.sun.jna.Callback;
 import com.sun.jna.FromNativeContext;
@@ -31,7 +34,6 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.Union;
 import com.sun.jna.ptr.ByReference;
 import com.sun.jna.ptr.IntByReference;
@@ -91,76 +93,76 @@ public interface X11 extends Library {
             long value = ((Number)nativeValue).longValue();
             if (value <= Integer.MAX_VALUE) {
                 switch((int)value) {
-                    case 0: return None;
-                    case 1: return XA_PRIMARY;
-                    case 2: return XA_SECONDARY;
-                    case 3: return XA_ARC;
-                    case 4: return XA_ATOM;
-                    case 5: return XA_BITMAP;
-                    case 6: return XA_CARDINAL;
-                    case 7: return XA_COLORMAP;
-                    case 8: return XA_CURSOR;
-                    case 9: return XA_CUT_BUFFER0;
-                    case 10: return XA_CUT_BUFFER1;
-                    case 11: return XA_CUT_BUFFER2;
-                    case 12: return XA_CUT_BUFFER3;
-                    case 13: return XA_CUT_BUFFER4;
-                    case 14: return XA_CUT_BUFFER5;
-                    case 15: return XA_CUT_BUFFER6;
-                    case 16: return XA_CUT_BUFFER7;
-                    case 17: return XA_DRAWABLE;
-                    case 18: return XA_FONT;
-                    case 19: return XA_INTEGER;
-                    case 20: return XA_PIXMAP;
-                    case 21: return XA_POINT;
-                    case 22: return XA_RECTANGLE;
-                    case 23: return XA_RESOURCE_MANAGER;
-                    case 24: return XA_RGB_COLOR_MAP;
-                    case 25: return XA_RGB_BEST_MAP;
-                    case 26: return XA_RGB_BLUE_MAP;
-                    case 27: return XA_RGB_DEFAULT_MAP;
-                    case 28: return XA_RGB_GRAY_MAP;
-                    case 29: return XA_RGB_GREEN_MAP;
-                    case 30: return XA_RGB_RED_MAP;
-                    case 31: return XA_STRING;
-                    case 32: return XA_VISUALID;
-                    case 33: return XA_WINDOW;
-                    case 34: return XA_WM_COMMAND;
-                    case 35: return XA_WM_HINTS;
-                    case 36: return XA_WM_CLIENT_MACHINE;
-                    case 37: return XA_WM_ICON_NAME;
-                    case 38: return XA_WM_ICON_SIZE;
-                    case 39: return XA_WM_NAME;
-                    case 40: return XA_WM_NORMAL_HINTS;
-                    case 41: return XA_WM_SIZE_HINTS;
-                    case 42: return XA_WM_ZOOM_HINTS;
-                    case 43: return XA_MIN_SPACE;
-                    case 44: return XA_NORM_SPACE;
-                    case 45: return XA_MAX_SPACE;
-                    case 46: return XA_END_SPACE;
-                    case 47: return XA_SUPERSCRIPT_X;
-                    case 48: return XA_SUPERSCRIPT_Y;
-                    case 49: return XA_SUBSCRIPT_X;
-                    case 50: return XA_SUBSCRIPT_Y;
-                    case 51: return XA_UNDERLINE_POSITION;
-                    case 52: return XA_UNDERLINE_THICKNESS;
-                    case 53: return XA_STRIKEOUT_ASCENT;
-                    case 54: return XA_STRIKEOUT_DESCENT;
-                    case 55: return XA_ITALIC_ANGLE;
-                    case 56: return XA_X_HEIGHT;
-                    case 57: return XA_QUAD_WIDTH;
-                    case 58: return XA_WEIGHT;
-                    case 59: return XA_POINT_SIZE;
-                    case 60: return XA_RESOLUTION;
-                    case 61: return XA_COPYRIGHT;
-                    case 62: return XA_NOTICE;
-                    case 63: return XA_FONT_NAME;
-                    case 64: return XA_FAMILY_NAME;
-                    case 65: return XA_FULL_NAME;
-                    case 66: return XA_CAP_HEIGHT;
-                    case 67: return XA_WM_CLASS;
-                    case 68: return XA_WM_TRANSIENT_FOR;
-                    default:
+                case 0: return None;
+                case 1: return XA_PRIMARY;
+                case 2: return XA_SECONDARY;
+                case 3: return XA_ARC;
+                case 4: return XA_ATOM;
+                case 5: return XA_BITMAP;
+                case 6: return XA_CARDINAL;
+                case 7: return XA_COLORMAP;
+                case 8: return XA_CURSOR;
+                case 9: return XA_CUT_BUFFER0;
+                case 10: return XA_CUT_BUFFER1;
+                case 11: return XA_CUT_BUFFER2;
+                case 12: return XA_CUT_BUFFER3;
+                case 13: return XA_CUT_BUFFER4;
+                case 14: return XA_CUT_BUFFER5;
+                case 15: return XA_CUT_BUFFER6;
+                case 16: return XA_CUT_BUFFER7;
+                case 17: return XA_DRAWABLE;
+                case 18: return XA_FONT;
+                case 19: return XA_INTEGER;
+                case 20: return XA_PIXMAP;
+                case 21: return XA_POINT;
+                case 22: return XA_RECTANGLE;
+                case 23: return XA_RESOURCE_MANAGER;
+                case 24: return XA_RGB_COLOR_MAP;
+                case 25: return XA_RGB_BEST_MAP;
+                case 26: return XA_RGB_BLUE_MAP;
+                case 27: return XA_RGB_DEFAULT_MAP;
+                case 28: return XA_RGB_GRAY_MAP;
+                case 29: return XA_RGB_GREEN_MAP;
+                case 30: return XA_RGB_RED_MAP;
+                case 31: return XA_STRING;
+                case 32: return XA_VISUALID;
+                case 33: return XA_WINDOW;
+                case 34: return XA_WM_COMMAND;
+                case 35: return XA_WM_HINTS;
+                case 36: return XA_WM_CLIENT_MACHINE;
+                case 37: return XA_WM_ICON_NAME;
+                case 38: return XA_WM_ICON_SIZE;
+                case 39: return XA_WM_NAME;
+                case 40: return XA_WM_NORMAL_HINTS;
+                case 41: return XA_WM_SIZE_HINTS;
+                case 42: return XA_WM_ZOOM_HINTS;
+                case 43: return XA_MIN_SPACE;
+                case 44: return XA_NORM_SPACE;
+                case 45: return XA_MAX_SPACE;
+                case 46: return XA_END_SPACE;
+                case 47: return XA_SUPERSCRIPT_X;
+                case 48: return XA_SUPERSCRIPT_Y;
+                case 49: return XA_SUBSCRIPT_X;
+                case 50: return XA_SUBSCRIPT_Y;
+                case 51: return XA_UNDERLINE_POSITION;
+                case 52: return XA_UNDERLINE_THICKNESS;
+                case 53: return XA_STRIKEOUT_ASCENT;
+                case 54: return XA_STRIKEOUT_DESCENT;
+                case 55: return XA_ITALIC_ANGLE;
+                case 56: return XA_X_HEIGHT;
+                case 57: return XA_QUAD_WIDTH;
+                case 58: return XA_WEIGHT;
+                case 59: return XA_POINT_SIZE;
+                case 60: return XA_RESOLUTION;
+                case 61: return XA_COPYRIGHT;
+                case 62: return XA_NOTICE;
+                case 63: return XA_FONT_NAME;
+                case 64: return XA_FAMILY_NAME;
+                case 65: return XA_FULL_NAME;
+                case 66: return XA_CAP_HEIGHT;
+                case 67: return XA_WM_CLASS;
+                case 68: return XA_WM_TRANSIENT_FOR;
+                default:
                 }
             }
             return new Atom(value);
@@ -174,7 +176,7 @@ public interface X11 extends Library {
         }
     }
     class Colormap extends XID {
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
         public static final Colormap None = null;
         public Colormap() { }
         public Colormap(long id) { super(id); }
@@ -186,7 +188,7 @@ public interface X11 extends Library {
         }
     }
     class Font extends XID {
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
         public static final Font None = null;
         public Font() { }
         public Font(long id) { super(id); }
@@ -198,7 +200,7 @@ public interface X11 extends Library {
         }
     }
     class Cursor extends XID {
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
         public static final Cursor None = null;
         public Cursor() { }
         public Cursor(long id) { super(id); }
@@ -210,7 +212,7 @@ public interface X11 extends Library {
         }
     }
     class KeySym extends XID {
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
         public static final KeySym None = null;
         public KeySym() { }
         public KeySym(long id) { super(id); }
@@ -285,20 +287,9 @@ public interface X11 extends Library {
     // TODO: define structure
     class XImage extends PointerType { }
 
-    /**
-     * The XQueryExtension function determines if the named extension is present.
-     * @param display Specifies the connection to the X server.
-     * @param name Specifies the extension name.
-     * @param major_opcode_return Returns the major opcode.
-     * @param first_event_return Returns the first event code, if any.
-     * @param first_error_return Returns the first error code, if any.
-     * @return if present
-     */
-    boolean XQueryExtension(Display display, String name, IntByReference major_opcode_return, IntByReference first_event_return, IntByReference first_error_return);
-
     /** Definition (incomplete) of the Xext library. */
     interface Xext extends Library {
-        Xext INSTANCE = Native.load("Xext", Xext.class);
+        Xext INSTANCE = Native.loadLibrary("Xext", Xext.class);
         // Shape Kinds
         int ShapeBounding = 0;
         int ShapeClip = 1;
@@ -316,14 +307,19 @@ public interface X11 extends Library {
 
     /** Definition (incomplete) of the Xrender library. */
     interface Xrender extends Library {
-        Xrender INSTANCE = Native.load("Xrender", Xrender.class);
+        Xrender INSTANCE = Native.loadLibrary("Xrender", Xrender.class);
 
-        @FieldOrder({"red", "redMask", "green", "greenMask", "blue", "blueMask", "alpha", "alphaMask"})
         class XRenderDirectFormat extends Structure {
+            public static final List<String> FIELDS = createFieldsOrder("red", "redMask", "green", "greenMask", "blue", "blueMask", "alpha", "alphaMask");
             public short red, redMask;
             public short green, greenMask;
             public short blue, blueMask;
             public short alpha, alphaMask;
+
+            @Override
+            protected List<String> getFieldOrder() {
+                return FIELDS;
+            }
         }
 
         class PictFormat extends XID {
@@ -338,14 +334,18 @@ public interface X11 extends Library {
                 return new PictFormat(((Number)nativeValue).longValue());
             }
         }
-
-        @FieldOrder({"id", "type", "depth", "direct", "colormap"})
         class XRenderPictFormat extends Structure {
+            public static final List<String> FIELDS = createFieldsOrder("id", "type", "depth", "direct", "colormap");
             public PictFormat id;
             public int type;
             public int depth;
             public XRenderDirectFormat direct;
             public Colormap colormap;
+
+            @Override
+            protected List<String> getFieldOrder() {
+                return FIELDS;
+            }
         }
         int PictTypeIndexed = 0x0;
         int PictTypeDirect = 0x1;
@@ -355,7 +355,7 @@ public interface X11 extends Library {
     /** Definition of the Xevie library. */
     interface Xevie extends Library {
         /** Instance of Xevie. Note: This extension has been removed from xorg/xserver on Oct 22, 2008 because it is broken and maintainerless. */
-        Xevie INSTANCE = Native.load("Xevie", Xevie.class);
+        Xevie INSTANCE = Native.loadLibrary("Xevie", Xevie.class);
         int XEVIE_UNMODIFIED = 0;
         int XEVIE_MODIFIED   = 1;
         // Bool XevieQueryVersion (Display* display, int* major_version, int* minor_version);
@@ -372,7 +372,7 @@ public interface X11 extends Library {
 
     /** Definition of the XTest library. */
     interface XTest extends Library {
-        XTest INSTANCE = Native.load("Xtst", XTest.class);///usr/lib/libxcb-xtest.so.0
+        XTest INSTANCE = Native.loadLibrary("Xtst", XTest.class);///usr/lib/libxcb-xtest.so.0
         boolean XTestQueryExtension(Display display, IntByReference event_basep, IntByReference error_basep, IntByReference majorp, IntByReference minorp);
         boolean XTestCompareCursorWithWindow(Display display, Window window, Cursor cursor);
         boolean XTestCompareCurrentCursorWithWindow(Display display, Window window);
@@ -391,20 +391,30 @@ public interface X11 extends Library {
         int XTestDiscard(Display display);
     }
 
-    @FieldOrder({"input_class", "event_type_base"})
     class XInputClassInfoByReference extends Structure implements Structure.ByReference {
+        public static final List<String> FIELDS = createFieldsOrder("input_class", "event_type_base");
         public byte input_class;
         public byte event_type_base;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
-    @FieldOrder({"device_id", "num_classes", "classes"})
     class XDeviceByReference extends Structure implements Structure.ByReference {
+        public static final List<String> FIELDS = createFieldsOrder("device_id", "num_classes", "classes");
         public XID device_id;
         public int num_classes;
         public XInputClassInfoByReference classes;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
-    X11 INSTANCE = Native.load("X11", X11.class);
+    X11 INSTANCE = Native.loadLibrary("X11", X11.class);
 
     /*
       typedef struct {
@@ -420,8 +430,10 @@ public interface X11 extends Library {
         // this structure may be extended in the future
       } XWMHints;
     */
-    @FieldOrder({"flags", "input", "initial_state", "icon_pixmap", "icon_window", "icon_x", "icon_y", "icon_mask", "window_group"})
     class XWMHints extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "flags", "input", "initial_state", "icon_pixmap", "icon_window", "icon_x", "icon_y", "icon_mask", "window_group");
+
         public NativeLong flags;
         public boolean input;
         public int initial_state;
@@ -430,6 +442,10 @@ public interface X11 extends Library {
         public int icon_x, icon_y;
         public Pixmap icon_mask;
         public XID window_group;
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /*
@@ -440,12 +456,17 @@ public interface X11 extends Library {
         unsigned long nitems;   // number of data items in value
       } XTextProperty;
     */
-    @FieldOrder({"value", "encoding", "format", "nitems"})
     class XTextProperty extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("value", "encoding", "format", "nitems");
         public String value;
         public Atom encoding;
         public int format;
         public NativeLong nitems;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /*
@@ -464,7 +485,19 @@ public interface X11 extends Library {
         int win_gravity;                        // added by ICCCM version 1
       } XSizeHints;
      */
-    @FieldOrder({"flags",
+    class XSizeHints extends Structure {
+        public static class Aspect extends Structure {
+            public static final List<String> FIELDS = createFieldsOrder("x", "y");
+            public int x; // numerator
+            public int y; // denominator
+            @Override
+            protected List<String> getFieldOrder() {
+                return FIELDS;
+            }
+        }
+
+        public static final List<String> FIELDS = createFieldsOrder(
+                "flags",
                 "x", "y",
                 "width", "height",
                 "min_width", "min_height",
@@ -472,13 +505,7 @@ public interface X11 extends Library {
                 "width_inc", "height_inc",
                 "min_aspect", "max_aspect",
                 "base_width", "base_height",
-                "win_gravity"})
-    class XSizeHints extends Structure {
-        @FieldOrder({"x", "y"})
-        public static class Aspect extends Structure {
-            public int x; // numerator
-            public int y; // denominator
-        }
+                "win_gravity");
 
         public NativeLong flags;
         public int x, y;
@@ -490,6 +517,10 @@ public interface X11 extends Library {
         public Aspect min_aspect, max_aspect;
         public int base_width, base_height;
         public int win_gravity;
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /*
@@ -521,7 +552,9 @@ public interface X11 extends Library {
         Screen *screen;         // back pointer to correct screen
       } XWindowAttributes;
      */
-    @FieldOrder({"x", "y",
+    class XWindowAttributes extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "x", "y",
                 "width", "height",
                 "border_width",
                 "depth", "visual", "root", "c_class",
@@ -530,8 +563,8 @@ public interface X11 extends Library {
                 "save_under", "colormap",
                 "map_installed", "map_state",
                 "all_event_masks", "your_event_mask", "do_not_propagate_mask",
-                "override_redirect", "screen"})
-    class XWindowAttributes extends Structure {
+                "override_redirect", "screen");
+
         public int x, y;
         public int width, height;
         public int border_width;
@@ -553,6 +586,10 @@ public interface X11 extends Library {
         public NativeLong do_not_propagate_mask;
         public boolean override_redirect;
         public Screen screen;
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     /*
@@ -574,14 +611,16 @@ public interface X11 extends Library {
         Cursor cursor;          // cursor to be displayed (or None)
       } XSetWindowAttributes;
      */
-    @FieldOrder({"background_pixmap", "background_pixel",
+    class XSetWindowAttributes extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "background_pixmap", "background_pixel",
                 "border_pixmap", "border_pixel",
                 "bit_gravity", "win_gravity",
                 "backing_store", "backing_planes", "backing_pixel",
                 "save_under",
                 "event_mask", "do_not_propagate_mask",
-                "override_redirect", "colormap", "cursor"})
-    class XSetWindowAttributes extends Structure {
+                "override_redirect", "colormap", "cursor");
+
         public Pixmap background_pixmap;
         public NativeLong background_pixel;
         public Pixmap border_pixmap;
@@ -597,6 +636,10 @@ public interface X11 extends Library {
         public boolean override_redirect;
         public Colormap colormap;
         public Cursor cursor;
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
     int XK_0 = 0x30;
@@ -606,7 +649,7 @@ public interface X11 extends Library {
     int XK_a = 0x61;
     int XK_z = 0x7a;
     int XK_Shift_L = 0xffe1;
-    int XK_Shift_R = 0xffe2;
+    int XK_Shift_R = 0xffe1;
     int XK_Control_L = 0xffe3;
     int XK_Control_R = 0xffe4;
     int XK_CapsLock = 0xffe5;
@@ -628,8 +671,10 @@ public interface X11 extends Library {
     int VisualBitsPerRGBMask = 0x100;
     int VisualAllMask = 0x1FF;
 
-    @FieldOrder({"visual", "visualid", "screen", "depth", "c_class", "red_mask", "green_mask", "blue_mask", "colormap_size", "bits_per_rgb"})
     class XVisualInfo extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "visual", "visualid", "screen", "depth", "c_class", "red_mask", "green_mask", "blue_mask", "colormap_size", "bits_per_rgb");
+
         public Visual visual;
         public VisualID visualid;
         public int screen;
@@ -640,24 +685,33 @@ public interface X11 extends Library {
         public NativeLong blue_mask;
         public int colormap_size;
         public int bits_per_rgb;
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
-
-    @FieldOrder({"x", "y"})
     class XPoint extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("x", "y");
         public short x, y;
-
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
         public XPoint() { this((short)0, (short)0); }
         public XPoint(short x, short y) {
             this.x = x;
             this.y = y;
         }
     }
-
-    @FieldOrder({"x", "y", "width", "height"})
     class XRectangle extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("x", "y", "width", "height");
+
         public short x, y;
         public short width, height;
-
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
         public XRectangle() { this((short)0, (short)0, (short)0, (short)0); }
         public XRectangle(short x, short y, short width, short height) {
             this.x = x; this.y = y;
@@ -826,8 +880,9 @@ public interface X11 extends Library {
     int XClearArea(Display display, Window window, int x, int y, int w, int h, int exposures);
     Pixmap XCreatePixmap(Display display, Drawable drawable, int width, int height, int depth);
     int XFreePixmap(Display display, Pixmap pixmap);
-
-    @FieldOrder({"function", "plane_mask",
+    class XGCValues extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder(
+                "function", "plane_mask",
                 "foreground", "background",
                 "line_width", "line_style",
                 "cap_style", "join_style",
@@ -836,8 +891,8 @@ public interface X11 extends Library {
                 "ts_x_origin", "ts_y_origin",
                 "font", "subwindow_mode", "graphics_exposures",
                 "clip_x_origin", "clip_y_origin", "clip_mask",
-                "dash_offset", "dashes"})
-    class XGCValues extends Structure {
+                "dash_offset", "dashes");
+
         public int function;            /* logical operation */
         public NativeLong plane_mask;/* plane mask */
         public NativeLong foreground;/* foreground pixel */
@@ -861,6 +916,10 @@ public interface X11 extends Library {
         public Pixmap clip_mask;        /* bitmap clipping; other calls for rects */
         public int dash_offset;         /* patterned/dashed line information */
         public byte dashes;
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
     GC XCreateGC(Display display, Drawable drawable, NativeLong mask, XGCValues values);
     int XSetFillRule(Display display, GC gc, int fill_rule);
@@ -899,12 +958,6 @@ public interface X11 extends Library {
     //                            int *dest_x_return, int *dest_y_return, Window *child_return);
     boolean XTranslateCoordinates(Display display, Window src_w, Window dest_w, int src_x, int src_y,
                                   IntByReference dest_x_return, IntByReference dest_y_return, WindowByReference child_return);
-
-    int XMoveWindow(Display display, Window w, int x, int y);
-    int XResizeWindow(Display display, Window w, int width, int height);
-    int XMoveResizeWindow(Display display, Window w, int x, int y, int width, int height);
-    int XRaiseWindow(Display display, Window w);
-    int XLowerWindow(Display display, Window w);
 
     /*****************************************************************
      * RESERVED RESOURCE AND CONSTANT DEFINITIONS
@@ -995,8 +1048,7 @@ public interface X11 extends Library {
     int ColormapNotify = 32;
     int ClientMessage = 33;
     int MappingNotify = 34;
-    int GenericEvent = 35;
-    int LASTEvent = 36;   // must be bigger than any event #
+    int LASTEvent = 35;   // must be bigger than any event #
 
     /* Key masks. Used as modifiers to GrabButton and GrabKey, results of QueryPointer,
        state in various key-, mouse-, and button-related events. */
@@ -1484,21 +1536,22 @@ public interface X11 extends Library {
         public XMappingEvent xmapping;
         public XErrorEvent xerror;
         public XKeymapEvent xkeymap;
-        public XGenericEvent xgeneric;
-        public XGenericEventCookie xcookie;
         public NativeLong[] pad = new NativeLong[24];
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window"})
     public static class XAnyEvent extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("type", "serial", "send_event", "display", "window");
         public int type;
         public NativeLong serial;   // # of last request processed by server
         public int send_event;      // true if this came from a SendEvent request
         public Display display;     // Display the event was read from
         public Window window;       // window on which event was requested in event mask
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "state", "keycode", "same_screen"})
     class XKeyEvent extends Structure {
         public int type;            // of event
         public NativeLong serial;   // # of last request processed by server
@@ -1513,9 +1566,12 @@ public interface X11 extends Library {
         public int state;           // key or button mask
         public int keycode;         // detail
         public int same_screen;     // same screen flag
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "state", "keycode", "same_screen" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "state", "button", "same_screen"})
     class XButtonEvent extends Structure {
         public int type;            // of event
         public NativeLong serial;   // # of last request processed by server
@@ -1530,6 +1586,10 @@ public interface X11 extends Library {
         public int state;           // key or button mask
         public int button;          // detail
         public int same_screen;     // same screen flag
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "state", "button", "same_screen" });
+        }
     }
 
     class XButtonPressedEvent extends XButtonEvent {
@@ -1538,7 +1598,6 @@ public interface X11 extends Library {
     class XButtonReleasedEvent extends XButtonEvent {
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "message_type", "format", "data"})
     public static class XClientMessageEvent extends Structure {
         public int type;                // ClientMessage
         public NativeLong serial;       // # of last request processed by server
@@ -1548,6 +1607,10 @@ public interface X11 extends Library {
         public Atom message_type;
         public int format;
         public Data data;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "message_type", "format", "data" });
+        }
 
         public static class Data extends Union {
             public byte b[] = new byte[20];
@@ -1556,7 +1619,6 @@ public interface X11 extends Library {
         }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "state", "is_hint", "same_screen"})
     class XMotionEvent extends Structure {
         public int type;            // of event
         public NativeLong serial;   // # of last request processed by server
@@ -1571,12 +1633,15 @@ public interface X11 extends Library {
         public int state;           // key or button mask
         public byte is_hint;        // detail
         public int same_screen;     // same screen flag
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "state", "is_hint", "same_screen" });
+        }
     }
 
     class XPointerMovedEvent extends XMotionEvent {
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "mode", "detail", "same_screen", "focus", "state"})
     class XCrossingEvent extends Structure {
         public int type;            // of event
         public NativeLong serial;   // # of last request processed by server
@@ -1597,6 +1662,10 @@ public interface X11 extends Library {
         public int same_screen;     // same screen flag
         public int focus;           // boolean focus
         public int state;           // key or button mask
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "root", "subwindow", "time", "x", "y", "x_root", "y_root", "mode", "detail", "same_screen", "focus", "state" });
+        }
     }
 
     class XEnterWindowEvent extends XCrossingEvent {
@@ -1605,7 +1674,6 @@ public interface X11 extends Library {
     class XLeaveWindowEvent extends XCrossingEvent {
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "mode", "detail"})
     class XFocusChangeEvent extends Structure {
         public int type;            // FocusIn or FocusOut
         public NativeLong serial;   // # of last request processed by server
@@ -1619,6 +1687,10 @@ public interface X11 extends Library {
         * NotifyNonlinear,NotifyNonlinearVirtual, NotifyPointer,
         * NotifyPointerRoot, NotifyDetailNone
         */
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "mode", "detail" });
+        }
     }
 
     class XFocusInEvent extends XFocusChangeEvent {
@@ -1627,7 +1699,6 @@ public interface X11 extends Library {
     class XFocusOutEvent extends XFocusChangeEvent {
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "x", "y", "width", "height", "count"})
     class XExposeEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1637,9 +1708,12 @@ public interface X11 extends Library {
         public int x, y;
         public int width, height;
         public int count;           // if non-zero, at least this many more
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "x", "y", "width", "height", "count" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "drawable", "x", "y", "width", "height", "count", "major_code", "minor_code"})
     class XGraphicsExposeEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1651,9 +1725,12 @@ public interface X11 extends Library {
         public int count;           // if non-zero, at least this many more
         public int major_code;      // core is CopyArea or CopyPlane
         public int minor_code;      // not defined in the core
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "drawable", "x", "y", "width", "height", "count", "major_code", "minor_code" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "drawable", "major_code", "minor_code"})
     class XNoExposeEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1662,9 +1739,12 @@ public interface X11 extends Library {
         public Drawable drawable;
         public int major_code;      // core is CopyArea or CopyPlane
         public int minor_code;      // not defined in the core
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "drawable", "major_code", "minor_code" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "state"})
     class XVisibilityEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1672,9 +1752,12 @@ public interface X11 extends Library {
         public Display display;     // Display the event was read from
         public Window window;
         public int state;           // Visibility state
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "state" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "parent", "window", "x", "y", "width", "height", "border_width", "override_redirect"})
     class XCreateWindowEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1686,9 +1769,12 @@ public interface X11 extends Library {
         public int width, height;   // size of window
         public int border_width;    // border width
         public int override_redirect; // creation should be overridden
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "parent", "window", "x", "y", "width", "height", "border_width", "override_redirect" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window"})
     class XDestroyWindowEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1696,9 +1782,11 @@ public interface X11 extends Library {
         public Display display;     // Display the event was read from
         public Window event;
         public Window window;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window" }); }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window", "from_configure"})
     class XUnmapEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1707,9 +1795,12 @@ public interface X11 extends Library {
         public Window event;
         public Window window;
         public int from_configure;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window", "from_configure" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window", "override_redirect"})
     class XMapEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1718,9 +1809,12 @@ public interface X11 extends Library {
         public Window event;
         public Window window;
         public int override_redirect; // boolean, is override set...
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window", "override_redirect" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "parent", "window"})
     class XMapRequestEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1728,9 +1822,12 @@ public interface X11 extends Library {
         public Display display;     // Display the event was read from
         public Window parent;
         public Window window;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "parent", "window" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window", "parent", "x", "y", "override_redirect"})
     class XReparentEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1741,9 +1838,12 @@ public interface X11 extends Library {
         public Window parent;
         public int x, y;
         public int override_redirect;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window", "parent", "x", "y", "override_redirect" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window", "x", "y", "width", "height", "border_width", "above", "override_redirect"})
     class XConfigureEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1756,9 +1856,12 @@ public interface X11 extends Library {
         public int border_width;
         public Window above;
         public int override_redirect;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window", "x", "y", "width", "height", "border_width", "above", "override_redirect" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window", "x", "y"})
     class XGravityEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1767,9 +1870,12 @@ public interface X11 extends Library {
         public Window event;
         public Window window;
         public int x, y;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window", "x", "y" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "width", "height"})
     class XResizeRequestEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1777,9 +1883,12 @@ public interface X11 extends Library {
         public Display display;     // Display the event was read from
         public Window window;
         public int width, height;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "width", "height" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "parent", "window", "x", "y", "width", "height", "border_width", "above", "detail", "value_mask"})
     class XConfigureRequestEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1793,9 +1902,12 @@ public interface X11 extends Library {
         public Window above;
         public int detail;          // Above, Below, TopIf, BottomIf, Opposite
         public NativeLong value_mask;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "parent", "window", "x", "y", "width", "height", "border_width", "above", "detail", "value_mask" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "event", "window", "place"})
     class XCirculateEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1804,9 +1916,12 @@ public interface X11 extends Library {
         public Window event;
         public Window window;
         public int place;           // PlaceOnTop, PlaceOnBottom
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "event", "window", "place" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "parent", "window", "place"})
     class XCirculateRequestEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1815,9 +1930,12 @@ public interface X11 extends Library {
         public Window parent;
         public Window window;
         public int place;           // PlaceOnTop, PlaceOnBottom
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "parent", "window", "place" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "atom", "time", "state"})
     class XPropertyEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1827,9 +1945,12 @@ public interface X11 extends Library {
         public Atom atom;
         public NativeLong time;
         public int state;           // NewValue, Deleted
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "atom", "time", "state" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "selection", "time"})
     class XSelectionClearEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1838,9 +1959,12 @@ public interface X11 extends Library {
         public Window window;
         public Atom selection;
         public NativeLong time;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "selection", "time" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "owner", "requestor", "selection", "target", "property", "time"})
     class XSelectionRequestEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1852,9 +1976,12 @@ public interface X11 extends Library {
         public Atom target;
         public Atom property;
         public NativeLong time;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "owner", "requestor", "selection", "target", "property", "time" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "requestor", "selection", "target", "property", "time"})
     class XSelectionEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1865,9 +1992,12 @@ public interface X11 extends Library {
         public Atom target;
         public Atom property;       // ATOM or None
         public NativeLong time;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "requestor", "selection", "target", "property", "time" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "colormap", "c_new", "state" })
     class XColormapEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1877,9 +2007,12 @@ public interface X11 extends Library {
         public Colormap colormap;   // COLORMAP or None
         public int c_new;           // C++
         public int state;           // ColormapInstalled, ColormapUninstalled
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "colormap", "c_new", "state" });
+        }
     }
 
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "request", "first_keycode", "count"})
     class XMappingEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1889,9 +2022,12 @@ public interface X11 extends Library {
         public int request;         // one of MappingModifier, MappingKeyboard, MappingPointer
         public int first_keycode;   // first keycode
         public int count;           // defines range of change w. first_keycode*/
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "request", "first_keycode", "count" });
+        }
     }
 
-    @FieldOrder({"type", "display", "serial", "error_code", "request_code", "minor_code", "resourceid"})
     class XErrorEvent extends Structure {
         public int type;
         public Display display;     // Display the event was read from
@@ -1900,10 +2036,13 @@ public interface X11 extends Library {
         public byte request_code;   // Major op-code of failed request
         public byte minor_code;     // Minor op-code of failed request
         public XID resourceid;      // resource id
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "display", "serial", "error_code", "request_code", "minor_code", "resourceid" });
+        }
     }
 
     // generated on EnterWindow and FocusIn  when KeyMapState selected
-    @FieldOrder({"type", "serial", "send_event", "display", "window", "key_vector"})
     class XKeymapEvent extends Structure {
         public int type;
         public NativeLong serial;   // # of last request processed by server
@@ -1911,31 +2050,10 @@ public interface X11 extends Library {
         public Display display;     // Display the event was read from
         public Window window;
         public byte key_vector[] = new byte[32];
-    }
-
-    /**
-     * This event is the standard event for all newer extensions.
-     */
-    @FieldOrder({"type", "serial", "send_event", "display", "extension", "evtype"})
-    class XGenericEvent extends Structure {
-        public int type;            // of event. Always GenericEvent
-        public NativeLong serial;   // # of last request processed by server
-        public int send_event;      // true if this came from a SendEvent request
-        public Display display;     // Display the event was read from
-        public int extension;       // major opcode of extension that caused the event
-        public int evtype;          // actual event type
-    }
-
-    @FieldOrder({"type", "serial", "send_event", "display", "extension", "evtype", "cookie", "data"})
-    class XGenericEventCookie extends Structure {
-        public int type;            // of event. Always GenericEvent
-        public NativeLong serial;   // # of last request processed by server
-        public int send_event;      // true if this came from a SendEvent request
-        public Display display;     // Display the event was read from
-        public int extension;       // major opcode of extension that caused the event
-        public int evtype;          // actual event type
-        public int cookie;
-        public Pointer data;
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "type", "serial", "send_event", "display", "window", "key_vector" });
+        }
     }
 
     int XSelectInput(Display display, Window window, NativeLong eventMask);
@@ -1950,9 +2068,6 @@ public interface X11 extends Library {
     boolean XCheckMaskEvent(Display display, NativeLong event_mask, XEvent event_return);
     boolean XCheckTypedEvent(Display display, int event_type, XEvent event_return);
     boolean XCheckTypedWindowEvent(Display display, Window w, int event_type, XEvent event_return);
-
-    boolean XGetEventData(Display display, XGenericEventCookie cookie);
-    void XFreeEventData(Display display, XGenericEventCookie cookie);
 
     /** Returns an {@link XWMHints} which must be freed by {@link #XFree}.
      * @param display target Display
@@ -2242,13 +2357,15 @@ public interface X11 extends Library {
      * min_keycode and max_keycode in the Display structure, or a BadValue
      * error results.
      */
-    @FieldOrder({"max_keypermod", "modifiermap"})
     class XModifierKeymapRef extends Structure implements Structure.ByReference{
         public int max_keypermod;   /* The server's max # of keys per modifier */
         public Pointer modifiermap;   /* An 8 by max_keypermod array of modifiers */
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "max_keypermod", "modifiermap" });
+        }
     }
 
-    @FieldOrder({"key_click_percent", "bell_percent", "bell_pitch", "bell_duration", "led", "led_mode", "key", "auto_repeat_mode"})
     class XKeyboardControlRef extends Structure implements Structure.ByReference {
         /** Volume for key clicks between 0 (off) and 100 (loud) inclusive, if possible. A setting of -1 restores the default. */
         public int key_click_percent;
@@ -2268,6 +2385,11 @@ public interface X11 extends Library {
         public int auto_repeat_mode;
 
         @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "key_click_percent", "bell_percent", "bell_pitch", "bell_duration", "led", "led_mode", "key", "auto_repeat_mode" });
+        }
+
+        @Override
         public String toString() {
             return "XKeyboardControlByReference{" +
                     "key_click_percent=" + key_click_percent +
@@ -2282,7 +2404,6 @@ public interface X11 extends Library {
         }
     }
 
-    @FieldOrder({"key_click_percent", "bell_percent", "bell_pitch", "bell_duration", "led_mask", "global_auto_repeat", "auto_repeats"})
     class XKeyboardStateRef extends Structure implements Structure.ByReference {
         /** Volume for key clicks between 0 (off) and 100 (loud) inclusive, if possible. */
         public int key_click_percent;
@@ -2298,6 +2419,11 @@ public interface X11 extends Library {
         public int global_auto_repeat;
         /** Bit vector. Each bit set to 1 indicates that auto-repeat is enabled for the corresponding key. The vector is represented as 32 bytes. Byte N (from 0) contains the bits for keys 8N to 8N + 7 with the least significant bit in the byte representing key 8N. */
         public byte auto_repeats[] = new byte[32];
+
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList(new String[] { "key_click_percent", "bell_percent", "bell_pitch", "bell_duration", "led_mask", "global_auto_repeat", "auto_repeats" });
+        }
 
         @Override
         public String toString() {

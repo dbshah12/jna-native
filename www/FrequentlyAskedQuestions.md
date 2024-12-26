@@ -3,22 +3,22 @@ Frequently Asked Questions
 
 I'm having trouble generating correct library mappings
 ------------------------------------------------------
-Make sure you've read [this page](https://github.com/java-native-access/jna/blob/master/www/Mappings.md) and [this one](http://java-native-access.github.io/jna/4.2.1/overview-summary.html#overview.description).  Try [JNAerator](https://github.com/nativelibs4java/JNAerator).  If you find its output too verbose, delete the mappings you don't need, or copy out the ones you do need.
+Make sure you've read [this page](https://github.com/java-native-access/jna/blob/master/www/Mappings.md) and [this one](http://java-native-access.github.io/jna/4.2.1/overview-summary.html#overview.description).  Try [JNAerator](http://code.google.com/p/jnaerator/).  If you find its output too verbose, delete the mappings you don't need, or copy out the ones you do need.
 
 JNA is missing function XXX in its platform library mappings
 ------------------------------------------------------------
 No, it's not, it's just waiting for you to add it :)
-```java
-public interface MyUser32 extends User32 {
-    // DEFAULT_OPTIONS is critical for W32 API functions to simplify ASCII/UNICODE details
-    MyUser32 INSTANCE = (MyUser32)Native.load("user32", W32APIOptions.DEFAULT_OPTIONS);
-    void ThatFunctionYouReallyNeed();
-}
-```
-That's all it takes. If you'd like to submit the change back to JNA, make sure you provide a change log entry and corresponding test that invokes the function to prove that the mapping works.  We don't really care what the API actually does, the call can be a very minimal invocation, but should ensure all the parameters are correctly passed and that you get a reasonable return value.
 
-Calling `Native.load()` causes an UnsatisfiedLinkError
-------------------------------------------------------
+    public interface MyUser32 extends User32 {
+        // DEFAULT_OPTIONS is critical for W32 API functions to simplify ASCII/UNICODE details
+        MyUser32 INSTANCE = (MyUser32)Native.loadLibrary("user32", W32APIOptions.DEFAULT_OPTIONS);
+        void ThatFunctionYouReallyNeed();
+    }
+    
+That's all it takes.  If you'd like to submit the change back to JNA, make sure you provide a change log entry and corresponding test that invokes the function to prove that the mapping works.  We don't really care what the API actually does, the call can be a very minimal invocation, but should ensure all the parameters are correctly passed and that you get a reasonable return value.
+
+Calling `Native.loadLibrary()` causes an UnsatisfiedLinkError
+-------------------------------------------------------------
 
 Set the system property `jna.debug_load=true`, and JNA will print its library 
 search steps to the console. `jna.debug_load.jna` will trace the search for 
@@ -48,96 +48,93 @@ When should I use `Structure.ByReference`? `Structure.ByValue`? `Structure[]`?
 ------------------------------------------------------------------------------
 
 Find your corresponding native declaration below:
-```c
-typedef struct _simplestruct {
-  int myfield;
-} simplestruct;
 
-typedef struct _outerstruct {
-  simplestruct nested; // use Structure
-} outerstruct;
+    typedef struct _simplestruct {
+      int myfield;
+    } simplestruct;
 
-typedef struct _outerstruct2 {
-  simplestruct *byref; // use Structure.ByReference
-} outerstruct2;
+    typedef struct _outerstruct {
+      simplestruct nested; // use Structure
+    } outerstruct;
 
-typedef struct _outerstruct3 {
-  simplestruct array[4]; // use Structure[]
-} outerstruct3;
+    typedef struct _outerstruct2 {
+      simplestruct *byref; // use Structure.ByReference
+    } outerstruct2;
 
-typedef struct _outerstruct4 {
-  simplestruct* ptr_array[4]; // use Structure.ByReference[]
-} outerstruct4;
+    typedef struct _outerstruct3 {
+      simplestruct array[4]; // use Structure[]
+    } outerstruct3;
 
-// Field is a pointer to an array of struct
-typedef struct _outerstruct5 {
-  simplestruct* ptr_to_array; // use Structure.ByReference, and use
-                              // Structure.toArray() to allocate the array, 
-                              // then assign the first array element to the field
-} outerstruct5;
+    typedef struct _outerstruct4 {
+      simplestruct* ptr_array[4]; // use Structure.ByReference[]
+    } outerstruct4;
 
-// struct pointers as return value or argument
-simplestruct *myfunc(); // use Structure
-void myfunc(simplestruct* data); // use Structure
-void myfunc(simplestruct* data_array, int count); // use Structure[], and use Structure.toArray() to generate the array
-void myfunc(simplestruct** data_array, int count); // use Structure.ByReference[]
+    // Field is a pointer to an array of struct
+    typedef struct _outerstruct5 {
+      simplestruct* ptr_to_array; // use Structure.ByReference, and use
+                                  // Structure.toArray() to allocate the array, 
+                                  // then assign the first array element to the field
+    } outerstruct5;
 
-// struct (by value) as return value or argument
-// use Structure.ByValue
-simplestruct myfunc();
-void myfunc(simplestruct);
-```
+    // struct pointers as return value or argument
+    simplestruct *myfunc(); // use Structure
+    void myfunc(simplestruct* data); // use Structure
+    void myfunc(simplestruct* data_array, int count); // use Structure[], and use Structure.toArray() to generate the array
+    void myfunc(simplestruct** data_array, int count); // use Structure.ByReference[]
+
+    // struct (by value) as return value or argument
+    // use Structure.ByValue
+    simplestruct myfunc();
+    void myfunc(simplestruct);
 
 If you need a `ByValue` or `ByReference` class, define them within your main `Structure` definition like this:
-```java
-public class MyStructure extends Structure {
-  public static class ByValue extends MyStructure implements Structure.ByValue { }
-  public static class ByReference extends MyStructure implements Structure.ByReference { }
-}
-```
+
+    public class MyStructure extends Structure {
+      public static class ByValue extends MyStructure implements Structure.ByValue { }
+      public static class ByReference extends MyStructure implements Structure.ByReference { }
+    }
+
 How do I read back a function's string result?
 ----------------------------------------------
 
 Suppose you have a function:
-```c
-// Example A: Returns the number of characters written to the buffer
-int getString(char* buffer, int bufsize);
-// Example B: Returns the number of characters written to the buffer
-int getUnicodeString(wchar_t* buffer, int bufsize);
-```
-```java
-// Mapping A:
-int getString(byte[] buf, int bufsize);
-// Mapping B:
-int getUnicodeString(char[] buf, int bufsize);
 
-byte[] buf = new byte[256];
-int len = getString(buf, buf.length);
-String normalCString = Native.toString(buf);
-String embeddedNULs = new String(buf, 0, len);
-```
+    // Example A: Returns the number of characters written to the buffer
+    int getString(char* buffer, int bufsize);
+    // Example B: Returns the number of characters written to the buffer
+    int getUnicodeString(wchar_t* buffer, int bufsize);
+    
+    // Mapping A:
+    int getString(byte[] buf, int bufsize);
+    // Mapping B:
+    int getUnicodeString(char[] buf, int bufsize);
+    
+    byte[] buf = new byte[256];
+    int len = getString(buf, buf.length);
+    String normalCString = Native.toString(buf);
+    String embeddedNULs = new String(buf, 0, len);
+
 The native code is expecting a fixed-size buffer, which it will fill in with the requested data. A Java `String` is not appropriate here, since Strings are immutable. Nor is a Java `StringBuffer`, since the native code only fills the buffer and does not change its size. The appropriate argument type would be either `byte[]`, `Memory`, or an NIO Buffer, with the size of the object passed as the second argument. The method `Native.toString(byte[])` may then be used to convert the array of byte into a Java String.
-```c
-// Example A: Returns a C string directly
-const char* getString();
-// Example B: Returns a wide character C string directly
-const wchar_t* getString();
-```
-     
+
+    // Example A: Returns a C string directly
+    const char* getString();
+    // Example B: Returns a wide character C string directly
+    const wchar_t* getString();
+
 If the string is returned directly, your Java mapping can use the `String` or `WString` type as a return value (as appropriate).
 Note that if the native code allocates memory for the string, you should return `Pointer` instead so that you can free the memory
 at some later point.
-```java
-// Mapping A
-String getString();
-// Mapping B
-WString getString();
-// Mapping C, if native code allocates memory
-// Use Pointer.getString(0) to extract the String data,
-// then call the recommended native method with the Pointer
-// value to free the memory
-Pointer getString();
-```
+
+    // Mapping A
+    String getString();
+    // Mapping B
+    WString getString();
+    // Mapping C, if native code allocates memory
+    // Use Pointer.getString(0) to extract the String data,
+    // then call the recommended native method with the Pointer
+    // value to free the memory
+    Pointer getString();
+
 My library sometimes causes a VM crash
 --------------------------------------
 
@@ -240,52 +237,3 @@ a combination of TypeMapper and FunctionMapper (see
 `com.sun.jna.win32.W32APIOptions.DEFAULT_OPTIONS`) so that you can leave off the 
 “-A” or “-W” suffix (you never need to use both simultaneously) and use 
 “String” rather than explicit “WString”.
-
-Does JNA publish a module descriptor (module-info.java) to support the Java Module System (JPMS)?
--------------------------------------------------------------------------------------------------
-
-Since version 5.8.0, JNA publishes an additional JAR with a `module-info` class alongside
-the main project JAR, using an artifact with `-jpms` appended, e.g., `jna-jpms-5.8.0.jar`
-and `jna-platform-jpms-5.8.0.jar`.  For a Maven build, use the following dependency statement:
-```
-<dependency>
-  <groupId>net.java.dev.jna</groupId>
-  <artifactId>jna-jpms</artifactId>
-  <version>5.8.0</version>
-</dependency>
-```
-and include `requires com.sun.jna;` in your module descriptor in your `module-info.java` file.
-
-If you use the `jna-platform` user-contributed mappings:
-```
-<dependency>
-  <groupId>net.java.dev.jna</groupId>
-  <artifactId>jna-platform-jpms</artifactId>
-  <version>5.8.0</version>
-</dependency>
-```
-and include `requires com.sun.jna.platform;` in your module descriptor.
-
-If you have a library that may be consumed by downstream users, consider making these managed dependencies.
-
-In addition to adding the `requires` directive, note that some JNA classes designed
-for inheritance make use of reflection to access constructors and/or fields of the subclass.
-Reflection is disabled by the module system's strong encapsulation.  It may be necessary to
-make packages which include subclasses of JNA's classes (such as `Structure` and
-`PointerType` among others) accessible via reflection to the `com.sun.jna` module
-using either an `open` module, `opens`, or `opens ... to` directive, or an `exports` 
-or `exports ... to` directive, depending on the particular application and level of 
-access required. If migrating an existing project, `opens` replicates the full
-non-modular (classpath) reflective access.
-
-How can I run code coverage check over JNA?
--------------------------------------------
-
-Run:
-
-```
-ant -lib lib/clover.jar clover
-```
-
-The result is placed in `$JNA_BASE/build/reports/clover` and can be opened with
-a webbrowser.

@@ -1,23 +1,23 @@
 /* Copyright (c) 2009 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -66,10 +66,10 @@ public class LastErrorTest extends TestCase {
     }
 
     public void testLastErrorPerThreadStorage() throws Exception {
-        final TestLibrary lib = Native.load("testlib", TestLibrary.class);
+        final TestLibrary lib = Native.loadLibrary("testlib", TestLibrary.class);
         final int NTHREADS = 100;
         final int[] errors = new int[NTHREADS];
-        List<Thread> threads = new ArrayList<>(NTHREADS);
+        List<Thread> threads = new ArrayList<Thread>(NTHREADS);
         for (int i=0;i < NTHREADS;i++) {
             final int idx = i;
             Thread t = new Thread("tLastErrorSetter-" + i) {
@@ -101,7 +101,7 @@ public class LastErrorTest extends TestCase {
 
     private final int ERROR = Platform.isWindows() ? 1 : -1;
     public void testThrowLastError() {
-        TestLibrary lib = Native.load("testlib", TestLibrary.class, OPTIONS);
+        TestLibrary lib = Native.loadLibrary("testlib", TestLibrary.class, OPTIONS);
 
         lib.noThrowLastError(ERROR);
         assertEquals("Last error not preserved", ERROR, Native.getLastError());

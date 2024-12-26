@@ -1,25 +1,15 @@
 /* Copyright (c) 2015 Adam Marcionek, All Rights Reserved
+ * 
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.  
  */
 
 package com.sun.jna.platform.win32;
@@ -27,7 +17,6 @@ package com.sun.jna.platform.win32;
 import java.io.File;
 
 import com.sun.jna.Memory;
-import com.sun.jna.Native;
 import com.sun.jna.platform.win32.LMShare.SHARE_INFO_2;
 import com.sun.jna.platform.win32.WinNT.HANDLEByReference;
 import com.sun.jna.platform.win32.Winnetwk.ConnectFlag;
@@ -38,8 +27,6 @@ import com.sun.jna.platform.win32.Winnetwk.RESOURCETYPE;
 import com.sun.jna.platform.win32.Winnetwk.RESOURCEUSAGE;
 import com.sun.jna.platform.win32.Winnetwk.UNIVERSAL_NAME_INFO;
 import com.sun.jna.ptr.IntByReference;
-import static com.sun.jna.win32.W32APIOptions.DEFAULT_OPTIONS;
-import static com.sun.jna.win32.W32APIOptions.UNICODE_OPTIONS;
 
 import junit.framework.TestCase;
 
@@ -57,7 +44,7 @@ public class MprTest extends TestCase {
         String share = createLocalShare(fileShareFolder);
         Netapi32.INSTANCE.NetShareDel(null, share, 0);
     }
-
+    
     public void testWNetUseConnection() throws Exception {
         // First create a share on the local machine
         File fileShareFolder = createTempFolder();
@@ -74,24 +61,7 @@ public class MprTest extends TestCase {
             // Cancel any existing connections of the same name
             Mpr.INSTANCE.WNetCancelConnection2(resource.lpRemoteName, 0, true);
             // Establish a new one
-            Memory lpAccessName;
-            if(DEFAULT_OPTIONS==UNICODE_OPTIONS) {
-                lpAccessName = new Memory((WinDef.MAX_PATH + 1) * Native.WCHAR_SIZE);
-            } else {
-                lpAccessName = new Memory(WinDef.MAX_PATH + 1);
-            }
-            IntByReference lpAccessNameSize = new IntByReference(WinDef.MAX_PATH);
-            assertEquals(WinError.ERROR_SUCCESS, Mpr.INSTANCE.WNetUseConnection(null, resource, null, null, 0, lpAccessName, lpAccessNameSize, null));
-            String accessName;
-            if(DEFAULT_OPTIONS==UNICODE_OPTIONS) {
-                accessName = lpAccessName.getWideString(0);
-            } else {
-                accessName = lpAccessName.getString(0);
-            }
-            // System.out.println("Size: " + lpAccessNameSize.getValue());
-            // System.out.println("lpAccessName: " + accessName);
-            assertNotNull(accessName);
-            assertFalse(accessName.isEmpty());
+            assertEquals(WinError.ERROR_SUCCESS, Mpr.INSTANCE.WNetUseConnection(null, resource, null, null, 0, null, null, null));
         } finally {
             // Clean up resources
             Mpr.INSTANCE.WNetCancelConnection2(resource.lpRemoteName, 0, true);
@@ -252,7 +222,7 @@ public class MprTest extends TestCase {
 
     /**
      * Get local NETBIOS machine name
-     *
+     * 
      * @return String with machine name
      * @throws Exception
      */
@@ -309,7 +279,7 @@ public class MprTest extends TestCase {
 
     /**
      * Delete a local share
-     *
+     * 
      * @param share
      */
     private void deleteLocalShare(String share) {

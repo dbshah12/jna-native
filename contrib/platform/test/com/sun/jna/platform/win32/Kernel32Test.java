@@ -1,32 +1,17 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.win32;
 
-import static com.sun.jna.platform.win32.WinBase.WAIT_OBJECT_0;
-import static com.sun.jna.platform.win32.WinNT.MEM_COMMIT;
-import static com.sun.jna.platform.win32.WinNT.MEM_RESERVE;
-import static com.sun.jna.platform.win32.WinNT.PAGE_EXECUTE_READWRITE;
 import static com.sun.jna.platform.win32.WinioctlUtil.FSCTL_GET_COMPRESSION;
 import static com.sun.jna.platform.win32.WinioctlUtil.FSCTL_GET_REPARSE_POINT;
 import static com.sun.jna.platform.win32.WinioctlUtil.FSCTL_SET_COMPRESSION;
@@ -35,11 +20,9 @@ import static com.sun.jna.platform.win32.WinioctlUtil.FSCTL_SET_REPARSE_POINT;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -53,20 +36,15 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-
+import com.sun.jna.Function;
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
 import com.sun.jna.NativeMappedConverter;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.BaseTSD.SIZE_T;
-import com.sun.jna.platform.win32.BaseTSD.ULONG_PTR;
-import com.sun.jna.platform.win32.BaseTSD.ULONG_PTRByReference;
-import com.sun.jna.platform.win32.COM.COMUtils;
 import com.sun.jna.platform.win32.Ntifs.REPARSE_DATA_BUFFER;
 import com.sun.jna.platform.win32.Ntifs.SymbolicLinkReparseBuffer;
 import com.sun.jna.platform.win32.WinBase.FILETIME;
@@ -81,22 +59,18 @@ import com.sun.jna.platform.win32.WinBase.SYSTEMTIME;
 import com.sun.jna.platform.win32.WinBase.SYSTEM_INFO;
 import com.sun.jna.platform.win32.WinBase.WIN32_FIND_DATA;
 import com.sun.jna.platform.win32.WinDef.DWORD;
-import com.sun.jna.platform.win32.WinDef.DWORDByReference;
 import com.sun.jna.platform.win32.WinDef.HMODULE;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinDef.USHORT;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinNT.HANDLEByReference;
-import com.sun.jna.platform.win32.WinNT.HRESULT;
 import com.sun.jna.platform.win32.WinNT.MEMORY_BASIC_INFORMATION;
 import com.sun.jna.platform.win32.WinNT.OSVERSIONINFO;
 import com.sun.jna.platform.win32.WinNT.OSVERSIONINFOEX;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.ShortByReference;
 
-
 import junit.framework.TestCase;
-import org.junit.Assume;
 
 public class Kernel32Test extends TestCase {
 
@@ -119,13 +93,11 @@ public class Kernel32Test extends TestCase {
     // see https://github.com/twall/jna/issues/482
     public void testNoDuplicateMethodsNames() {
         Collection<String> dupSet = AbstractWin32TestSupport.detectDuplicateMethods(Kernel32.class);
-        if (!dupSet.isEmpty()) {
-            for (String name : new String[]{
-                // has 2 overloads by design since the API accepts both OSVERSIONINFO and OSVERSIONINFOEX
-                "GetVersionEx",
-                // one version is kind-of broken and retained for compatiblity (deprecated)
-                "CreateRemoteThread"
-            }) {
+        if (dupSet.size() > 0) {
+            for (String name : new String[] {
+                    // has 2 overloads by design since the API accepts both OSVERSIONINFO and OSVERSIONINFOEX
+                    "GetVersionEx"
+                }) {
                 dupSet.remove(name);
             }
         }
@@ -302,25 +274,6 @@ public class Kernel32Test extends TestCase {
         }
     }
 
-    public void testOpenEvent() {
-        HANDLE handle = null, handle2 = null;
-
-        try {
-            handle = Kernel32.INSTANCE.CreateEvent(null, false, false, "jna-kernel32test");
-            assertNotNull("Failed to create event: " + Kernel32.INSTANCE.GetLastError(), handle);
-
-            handle2 = Kernel32.INSTANCE.OpenEvent(WinNT.EVENT_MODIFY_STATE, false, "jna-kernel32test");
-            assertNotNull("Failed to open event: " + Kernel32.INSTANCE.GetLastError(), handle2);
-
-            Kernel32.INSTANCE.SetEvent(handle2);
-
-            assertEquals(WinBase.WAIT_OBJECT_0, Kernel32.INSTANCE.WaitForSingleObject(handle, 1000));
-        } finally {
-            Kernel32Util.closeHandle(handle);
-            Kernel32Util.closeHandle(handle2);
-        }
-    }
-
     public void testResetEvent() {
         HANDLE handle = Kernel32.INSTANCE.CreateEvent(null, true, false, null);
         assertNotNull("Failed to create event: " + Kernel32.INSTANCE.GetLastError(), handle);
@@ -381,14 +334,16 @@ public class Kernel32Test extends TestCase {
     public void testGetCurrentThread() {
         HANDLE h = Kernel32.INSTANCE.GetCurrentThread();
         assertNotNull("No current thread handle", h);
-        assertNotNull("Null current thread handle", h.getPointer());
+        assertFalse("Null current thread handle", h.equals(0));
+        // Calling the CloseHandle function with this handle has no effect
+        Kernel32Util.closeHandle(h);
     }
 
     public void testOpenThread() {
         HANDLE h = Kernel32.INSTANCE.OpenThread(WinNT.THREAD_ALL_ACCESS, false,
                 Kernel32.INSTANCE.GetCurrentThreadId());
         assertNotNull(h);
-        assertNotNull(h.getPointer());
+        assertFalse(h.equals(0));
         Kernel32Util.closeHandle(h);
     }
 
@@ -399,7 +354,9 @@ public class Kernel32Test extends TestCase {
     public void testGetCurrentProcess() {
         HANDLE h = Kernel32.INSTANCE.GetCurrentProcess();
         assertNotNull("No current process handle", h);
-        assertNotNull("Null current process handle", h.getPointer());
+        assertFalse("Null current process handle", h.equals(0));
+        // Calling the CloseHandle function with a pseudo handle has no effect
+        Kernel32Util.closeHandle(h);
     }
 
     public void testOpenProcess() {
@@ -423,105 +380,6 @@ public class Kernel32Test extends TestCase {
             assertTrue("Failed to query process image name, empty path returned", lpdwSize.getValue() > 0);
         } finally {
             Kernel32Util.closeHandle(h);
-        }
-    }
-
-    public void testGetProcessTimes() {
-        int pid = Kernel32.INSTANCE.GetCurrentProcessId();
-        HANDLE h = Kernel32.INSTANCE.OpenProcess(WinNT.PROCESS_QUERY_INFORMATION, false, pid);
-        assertNotNull("Failed (" + Kernel32.INSTANCE.GetLastError() + ") to get process ID=" + pid + " handle", h);
-
-        try {
-            FILETIME lpCreationTime = new FILETIME();
-            FILETIME lpExitTime = new FILETIME();
-            FILETIME lpKernelTime = new FILETIME();
-            FILETIME lpUserTime = new FILETIME();
-            boolean b = Kernel32.INSTANCE.GetProcessTimes(h, lpCreationTime, lpExitTime, lpKernelTime, lpUserTime);
-            assertTrue("Failed (" + Kernel32.INSTANCE.GetLastError() + ") to get process times", b);
-            // Process must have started before now.
-            long upTimeMillis = System.currentTimeMillis() - lpCreationTime.toTime();
-            assertTrue(upTimeMillis >= 0);
-            // lpExitTime is undefined for a running process, do not test
-            // Kernel and User time must be < up time (in 100ns ticks)
-            assertTrue(lpKernelTime.toDWordLong().longValue()
-                    + lpUserTime.toDWordLong().longValue() < (upTimeMillis + 1L) * 10000L);
-        } finally {
-            Kernel32Util.closeHandle(h);
-        }
-    }
-
-    public void testGetProcessIoCounters() {
-        int pid = Kernel32.INSTANCE.GetCurrentProcessId();
-        HANDLE h = Kernel32.INSTANCE.OpenProcess(WinNT.PROCESS_QUERY_INFORMATION, false, pid);
-        assertNotNull("Failed (" + Kernel32.INSTANCE.GetLastError() + ") to get process ID=" + pid + " handle", h);
-
-        try {
-            WinNT.IO_COUNTERS lpIoCounters = new WinNT.IO_COUNTERS();
-            boolean b = Kernel32.INSTANCE.GetProcessIoCounters(h, lpIoCounters);
-            assertTrue("Failed (" + Kernel32.INSTANCE.GetLastError() + ") to get process IO counters", b);
-            // IO must be nonzero
-            assertTrue(lpIoCounters.ReadOperationCount >= 0);
-            assertTrue(lpIoCounters.WriteOperationCount >= 0);
-            assertTrue(lpIoCounters.OtherOperationCount >= 0);
-            assertTrue(lpIoCounters.ReadTransferCount >= 0);
-            assertTrue(lpIoCounters.WriteTransferCount >= 0);
-            assertTrue(lpIoCounters.OtherTransferCount >= 0);
-        } finally {
-            Kernel32Util.closeHandle(h);
-        }
-    }
-
-    public void testGetAndSetProcessAffinityMask() {
-        // Pseudo handle, no need to close. Has PROCESS_ALL_ACCESS right.
-        HANDLE pHandle = Kernel32.INSTANCE.GetCurrentProcess();
-        assertNotNull(pHandle);
-
-        ULONG_PTRByReference pProcessAffinity = new ULONG_PTRByReference();
-        ULONG_PTRByReference pSystemAffinity = new ULONG_PTRByReference();
-        assertTrue("Failed to get affinity masks.",
-                Kernel32.INSTANCE.GetProcessAffinityMask(pHandle, pProcessAffinity, pSystemAffinity));
-
-        long processAffinity = pProcessAffinity.getValue().longValue();
-        long systemAffinity = pSystemAffinity.getValue().longValue();
-
-        if (systemAffinity == 0) {
-            // Rare case for process to be running in multiple processor groups, where both
-            // systemAffinity and processAffinity are 0 and we can't do anything else.
-            assertEquals(
-                    "Both process and system affinity must be zero if this process is running in multiple processor groups",
-                    processAffinity, systemAffinity);
-        } else {
-            // Test current affinity
-            assertEquals("Process affinity must be a subset of system affinity", processAffinity,
-                    processAffinity & systemAffinity);
-            assertEquals("System affinity must be a superset of process affinity", systemAffinity,
-                    processAffinity | systemAffinity);
-
-            // Set affinity to a single processor in the current system
-            long lowestOneBit = Long.lowestOneBit(systemAffinity);
-            ULONG_PTR dwProcessAffinityMask = new ULONG_PTR(lowestOneBit);
-            assertTrue("Failed to set affinity",
-                    Kernel32.INSTANCE.SetProcessAffinityMask(pHandle, dwProcessAffinityMask));
-            assertTrue("Failed to get affinity masks.",
-                    Kernel32.INSTANCE.GetProcessAffinityMask(pHandle, pProcessAffinity, pSystemAffinity));
-            assertEquals("Process affinity doesn't match what was just set", lowestOneBit,
-                    pProcessAffinity.getValue().longValue());
-
-            // Now try to set affinity to an invalid processor
-            lowestOneBit = Long.lowestOneBit(~systemAffinity);
-            // In case we have exactly 64 processors we can't do this, otherwise...
-            if (lowestOneBit != 0) {
-                dwProcessAffinityMask = new ULONG_PTR(lowestOneBit);
-                assertFalse("Successfully set affinity when it should have failed",
-                        Kernel32.INSTANCE.SetProcessAffinityMask(pHandle, dwProcessAffinityMask));
-                assertEquals("Last error should be ERROR_INVALID_PARAMETER", WinError.ERROR_INVALID_PARAMETER,
-                        Kernel32.INSTANCE.GetLastError());
-            }
-
-            // Cleanup. Be nice and put affinity back where it started!
-            dwProcessAffinityMask = new ULONG_PTR(processAffinity);
-            assertTrue("Failed to restore affinity to original setting",
-                    Kernel32.INSTANCE.SetProcessAffinityMask(pHandle, dwProcessAffinityMask));
         }
     }
 
@@ -586,26 +444,22 @@ public class Kernel32Test extends TestCase {
         SYSTEM_INFO lpSystemInfo = new SYSTEM_INFO();
         Kernel32.INSTANCE.GetSystemInfo(lpSystemInfo);
         assertTrue(lpSystemInfo.dwNumberOfProcessors.intValue() > 0);
-        // the dwOemID member is obsolete, but gets a value.
-        // the pi member is a structure and isn't read by default
-        assertEquals(lpSystemInfo.processorArchitecture.dwOemID.getLow(),
-                lpSystemInfo.processorArchitecture.pi.wProcessorArchitecture);
     }
 
     public void testGetSystemTimes() {
-        Kernel32 kernel = Kernel32.INSTANCE;
-        FILETIME lpIdleTime = new FILETIME();
-        FILETIME lpKernelTime = new FILETIME();
-        FILETIME lpUserTime = new FILETIME();
-        boolean succ = kernel.GetSystemTimes(lpIdleTime, lpKernelTime, lpUserTime);
-        assertTrue(succ);
-        long idleTime = lpIdleTime.toDWordLong().longValue();
-        long kernelTime = lpKernelTime.toDWordLong().longValue();
-        long userTime = lpUserTime.toDWordLong().longValue();
-        // All should be >= 0.  kernel includes idle.
-        assertTrue(idleTime >= 0);
-        assertTrue(kernelTime >= idleTime);
-        assertTrue(userTime >= 0);
+      Kernel32 kernel = Kernel32.INSTANCE;
+      FILETIME lpIdleTime = new FILETIME();
+      FILETIME lpKernelTime = new FILETIME();
+      FILETIME lpUserTime = new FILETIME();
+      boolean succ = kernel.GetSystemTimes(lpIdleTime, lpKernelTime, lpUserTime);
+      assertTrue(succ);
+      long idleTime = lpIdleTime.toDWordLong().longValue();
+      long kernelTime = lpKernelTime.toDWordLong().longValue();
+      long userTime = lpUserTime.toDWordLong().longValue();
+      // All should be >= 0.  kernel includes idle.
+      assertTrue(idleTime >= 0);
+      assertTrue(kernelTime >= idleTime);
+      assertTrue(userTime >= 0);
     }
 
     public void testIsWow64Process() {
@@ -648,8 +502,11 @@ public class Kernel32Test extends TestCase {
         File tmp = File.createTempFile("testReadFile", "jna");
         tmp.deleteOnExit();
 
-        try (FileWriter fw = new FileWriter(tmp)) {
+        FileWriter fw = new FileWriter(tmp);
+        try {
             fw.append(expected);
+        } finally {
+            fw.close();
         }
 
         HANDLE hFile = Kernel32.INSTANCE.CreateFile(tmp.getAbsolutePath(), WinNT.GENERIC_READ, WinNT.FILE_SHARE_READ,
@@ -730,39 +587,42 @@ public class Kernel32Test extends TestCase {
             ShortByReference lpBuffer = new ShortByReference();
             IntByReference lpBytes = new IntByReference();
 
-            AbstractWin32TestSupport.assertCallSucceeded("DeviceIoControl",
-                    Kernel32.INSTANCE.DeviceIoControl(hFile,
+            if (false == Kernel32.INSTANCE.DeviceIoControl(hFile,
                     FSCTL_GET_COMPRESSION,
                     null,
                     0,
                     lpBuffer.getPointer(),
                     USHORT.SIZE,
                     lpBytes,
-                    null));
+                    null)) {
+                fail("DeviceIoControl failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             assertEquals(WinNT.COMPRESSION_FORMAT_NONE, lpBuffer.getValue());
             assertEquals(USHORT.SIZE, lpBytes.getValue());
 
             lpBuffer = new ShortByReference((short)WinNT.COMPRESSION_FORMAT_LZNT1);
 
-            AbstractWin32TestSupport.assertCallSucceeded("DeviceIoControl",
-                    Kernel32.INSTANCE.DeviceIoControl(hFile,
+            if (false == Kernel32.INSTANCE.DeviceIoControl(hFile,
                     FSCTL_SET_COMPRESSION,
                     lpBuffer.getPointer(),
                     USHORT.SIZE,
                     null,
                     0,
                     lpBytes,
-                    null));
+                    null)) {
+                fail("DeviceIoControl failed with " + Kernel32.INSTANCE.GetLastError());
+            }
 
-            AbstractWin32TestSupport.assertCallSucceeded("DeviceIoControl",
-                    Kernel32.INSTANCE.DeviceIoControl(hFile,
+            if (false == Kernel32.INSTANCE.DeviceIoControl(hFile,
                     FSCTL_GET_COMPRESSION,
                     null,
                     0,
                     lpBuffer.getPointer(),
                     USHORT.SIZE,
                     lpBytes,
-                    null));
+                    null)) {
+                fail("DeviceIoControl failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             assertEquals(WinNT.COMPRESSION_FORMAT_LZNT1, lpBuffer.getValue());
             assertEquals(USHORT.SIZE, lpBytes.getValue());
 
@@ -783,7 +643,9 @@ public class Kernel32Test extends TestCase {
         File delLink = link.toFile();
         delLink.deleteOnExit();
 
-        try (Advapi32Util.Privilege restore = new Advapi32Util.Privilege(WinNT.SE_RESTORE_NAME)) { // Required for FSCTL_SET_REPARSE_POINT
+        // Required for FSCTL_SET_REPARSE_POINT
+        Advapi32Util.Privilege restore = new Advapi32Util.Privilege(WinNT.SE_RESTORE_NAME);
+        try {
             restore.enable();
             HANDLE hFile = Kernel32.INSTANCE.CreateFile(link.toAbsolutePath().toString(),
                     WinNT.GENERIC_READ | WinNT.FILE_WRITE_ATTRIBUTES | WinNT.FILE_WRITE_EA,
@@ -793,8 +655,9 @@ public class Kernel32Test extends TestCase {
                     WinNT.FILE_ATTRIBUTE_DIRECTORY | WinNT.FILE_FLAG_BACKUP_SEMANTICS | WinNT.FILE_FLAG_OPEN_REPARSE_POINT,
                     null);
 
-            AbstractWin32TestSupport.assertCallSucceeded("CreateFile",
-                    !WinBase.INVALID_HANDLE_VALUE.equals(hFile));
+            if (WinBase.INVALID_HANDLE_VALUE.equals(hFile)) {
+                fail("CreateFile failed with " + Kernel32.INSTANCE.GetLastError());
+            }
 
             try {
                 SymbolicLinkReparseBuffer symLinkReparseBuffer = new SymbolicLinkReparseBuffer(folder.getFileName().toString(),
@@ -803,8 +666,7 @@ public class Kernel32Test extends TestCase {
 
                 REPARSE_DATA_BUFFER lpBuffer = new REPARSE_DATA_BUFFER(WinNT.IO_REPARSE_TAG_SYMLINK, (short) 0, symLinkReparseBuffer);
 
-                AbstractWin32TestSupport.assertCallSucceeded("DeviceIoControl",
-                        Kernel32.INSTANCE.DeviceIoControl(hFile,
+                assertTrue(Kernel32.INSTANCE.DeviceIoControl(hFile,
                         FSCTL_SET_REPARSE_POINT,
                         lpBuffer.getPointer(),
                         lpBuffer.getSize(),
@@ -815,8 +677,7 @@ public class Kernel32Test extends TestCase {
 
                 Memory p = new Memory(REPARSE_DATA_BUFFER.sizeOf());
                 IntByReference lpBytes = new IntByReference();
-                AbstractWin32TestSupport.assertCallSucceeded("DeviceIoControl",
-                        Kernel32.INSTANCE.DeviceIoControl(hFile,
+                assertTrue(Kernel32.INSTANCE.DeviceIoControl(hFile,
                         FSCTL_GET_REPARSE_POINT,
                         null,
                         0,
@@ -827,12 +688,15 @@ public class Kernel32Test extends TestCase {
                 // Is a reparse point
                 lpBuffer = new REPARSE_DATA_BUFFER(p);
                 assertTrue(lpBytes.getValue() > 0);
-                assertEquals(WinNT.IO_REPARSE_TAG_SYMLINK, lpBuffer.ReparseTag);
+                assertTrue(lpBuffer.ReparseTag == WinNT.IO_REPARSE_TAG_SYMLINK);
                 assertEquals(folder.getFileName().toString(), lpBuffer.u.symLinkReparseBuffer.getPrintName());
                 assertEquals(folder.getFileName().toString(), lpBuffer.u.symLinkReparseBuffer.getSubstituteName());
             } finally {
                 Kernel32Util.closeHandle(hFile);
             }
+        }
+        finally {
+            restore.close();
         }
     }
 
@@ -900,19 +764,19 @@ public class Kernel32Test extends TestCase {
 
             // Get data and confirm the 1st name is . for the directory itself.
             WIN32_FIND_DATA fd = new WIN32_FIND_DATA(p);
-            String actualFileName = fd.getFileName();
+            String actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals("."));
 
             // Get data and confirm the 2nd name is .. for the directory's parent
             assertTrue(Kernel32.INSTANCE.FindNextFile(hFile, p));
             fd = new WIN32_FIND_DATA(p);
-            actualFileName = fd.getFileName();
+            actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals(".."));
 
             // Get data and confirm the 3rd name is the tmp file name
             assertTrue(Kernel32.INSTANCE.FindNextFile(hFile, p));
             fd = new WIN32_FIND_DATA(p);
-            actualFileName = fd.getFileName();
+            actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals(tmpFile.getName()));
 
             // No more files in directory
@@ -943,19 +807,19 @@ public class Kernel32Test extends TestCase {
 
             // Get data and confirm the 1st name is . for the directory itself.
             WIN32_FIND_DATA fd = new WIN32_FIND_DATA(p);
-            String actualFileName = fd.getFileName();
+            String actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals("."));
 
             // Get data and confirm the 2nd name is .. for the directory's parent
             assertTrue(Kernel32.INSTANCE.FindNextFile(hFile, p));
             fd = new WIN32_FIND_DATA(p);
-            actualFileName = fd.getFileName();
+            actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals(".."));
 
             // Get data and confirm the 3rd name is the tmp file name
             assertTrue(Kernel32.INSTANCE.FindNextFile(hFile, p));
             fd = new WIN32_FIND_DATA(p);
-            actualFileName = fd.getFileName();
+            actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals(tmpFile.getName()));
 
             // No more files in directory
@@ -986,7 +850,8 @@ public class Kernel32Test extends TestCase {
         try {
             // Get data and confirm the 1st name is for the file itself
             WIN32_FIND_DATA fd = new WIN32_FIND_DATA(p);
-            String actualFileName = fd.getFileName();
+            String actualFileName = new String(fd.getFileName());
+            actualFileName = new String(fd.getFileName());
             assertTrue(actualFileName.contentEquals(tmpFile.getName()));
 
             // FindExInfoBasic does not return the short name, so confirm that its empty
@@ -1015,41 +880,44 @@ public class Kernel32Test extends TestCase {
         try {
 
             Memory p = new Memory(FILE_BASIC_INFO.sizeOf());
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileBasicInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size()))) {
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             FILE_BASIC_INFO fbi = new FILE_BASIC_INFO(p);
             // New file has non-zero creation time
             assertTrue(0 != fbi.CreationTime.getValue());
 
             p = new Memory(FILE_STANDARD_INFO.sizeOf());
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileStandardInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileStandardInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileStandardInfo, p, new DWORD(p.size()))) {
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             FILE_STANDARD_INFO fsi = new FILE_STANDARD_INFO(p);
             // New file has 1 link
             assertEquals(1, fsi.NumberOfLinks);
 
             p = new Memory(FILE_COMPRESSION_INFO.sizeOf());
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileCompressionInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileCompressionInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileCompressionInfo, p, new DWORD(p.size()))) {
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             FILE_COMPRESSION_INFO fci = new FILE_COMPRESSION_INFO(p);
             // Uncompressed file should be zero
             assertEquals(0, fci.CompressionFormat);
 
             p = new Memory(FILE_ATTRIBUTE_TAG_INFO.sizeOf());
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileAttributeTagInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileAttributeTagInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileAttributeTagInfo, p, new DWORD(p.size()))) {
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             FILE_ATTRIBUTE_TAG_INFO fati = new FILE_ATTRIBUTE_TAG_INFO(p);
             // New files have the archive bit
-            assertEquals(WinNT.FILE_ATTRIBUTE_ARCHIVE, fati.FileAttributes & WinNT.FILE_ATTRIBUTE_ARCHIVE);
+            assertEquals(WinNT.FILE_ATTRIBUTE_ARCHIVE, fati.FileAttributes);
 
-            if (VersionHelpers.IsWindowsServer() && VersionHelpers.IsWindows8OrGreater()) {
-                p = new Memory(FILE_ID_INFO.sizeOf());
-                AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileIdInfo (" + p.size() + " bytes)",
-                        Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileIdInfo, p, new DWORD(p.size())));
-                FILE_ID_INFO fii = new FILE_ID_INFO(p);
-                // Volume serial number should be non-zero
-                assertFalse(fii.VolumeSerialNumber == 0);
+            p = new Memory(FILE_ID_INFO.sizeOf());
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileIdInfo, p, new DWORD(p.size()))) {
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
             }
+            FILE_ID_INFO fii = new FILE_ID_INFO(p);
+            // Volume serial number should be non-zero
+            assertFalse(fii.VolumeSerialNumber == 0);
         } finally {
             Kernel32.INSTANCE.CloseHandle(hFile);
         }
@@ -1071,8 +939,8 @@ public class Kernel32Test extends TestCase {
 
         try {
             Memory p = new Memory(FILE_BASIC_INFO.sizeOf());
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileBasicInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size())))
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
 
             FILE_BASIC_INFO fbi = new FILE_BASIC_INFO(p);
             // Add TEMP attribute
@@ -1083,11 +951,11 @@ public class Kernel32Test extends TestCase {
             fbi.LastWriteTime = new WinNT.LARGE_INTEGER(0);
             fbi.write();
 
-            AbstractWin32TestSupport.assertCallSucceeded("SetFileInformationByHandle for FileBasicInfo (" + FILE_BASIC_INFO.sizeOf() + " bytes)",
-                    Kernel32.INSTANCE.SetFileInformationByHandle(hFile, WinBase.FileBasicInfo, fbi.getPointer(), new DWORD(FILE_BASIC_INFO.sizeOf())));
+            if (false == Kernel32.INSTANCE.SetFileInformationByHandle(hFile, WinBase.FileBasicInfo, fbi.getPointer(), new DWORD(FILE_BASIC_INFO.sizeOf())))
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
 
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileBasicInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size())))
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
 
             fbi = new FILE_BASIC_INFO(p);
             assertTrue((fbi.FileAttributes & WinNT.FILE_ATTRIBUTE_TEMPORARY) != 0);
@@ -1107,8 +975,8 @@ public class Kernel32Test extends TestCase {
 
         try {
             FILE_DISPOSITION_INFO fdi = new FILE_DISPOSITION_INFO(true);
-            AbstractWin32TestSupport.assertCallSucceeded("SetFileInformationByHandle for FileDispositionInfo (" + FILE_DISPOSITION_INFO.sizeOf() + " bytes)",
-                    Kernel32.INSTANCE.SetFileInformationByHandle(hFile, WinBase.FileDispositionInfo, fdi.getPointer(), new DWORD(FILE_DISPOSITION_INFO.sizeOf())));
+            if (false == Kernel32.INSTANCE.SetFileInformationByHandle(hFile, WinBase.FileDispositionInfo, fdi.getPointer(), new DWORD(FILE_DISPOSITION_INFO.sizeOf())))
+                fail("SetFileInformationByHandle failed with " + Kernel32.INSTANCE.GetLastError());
 
         } finally {
             Kernel32.INSTANCE.CloseHandle(hFile);
@@ -1117,7 +985,6 @@ public class Kernel32Test extends TestCase {
         assertFalse(Files.exists(Paths.get(tmp.getAbsolutePath())));
     }
 
-    @SuppressWarnings("deprecation")
     public void testGetSetFileTime() throws IOException {
         File tmp = File.createTempFile("testGetSetFileTime", "jna");
         tmp.deleteOnExit();
@@ -1160,7 +1027,7 @@ public class Kernel32Test extends TestCase {
 
             assertTrue(Kernel32.INSTANCE.Process32First(processEnumHandle, processEntry));
 
-            List<Long> processIdList = new ArrayList<>();
+            List<Long> processIdList = new ArrayList<Long>();
             processIdList.add(processEntry.th32ProcessID.longValue());
 
             while (Kernel32.INSTANCE.Process32Next(processEnumHandle, processEntry)) {
@@ -1173,35 +1040,13 @@ public class Kernel32Test extends TestCase {
         }
     }
 
-    public void testGetThreadList() throws IOException {
-        HANDLE threadEnumHandle = Kernel32.INSTANCE.CreateToolhelp32Snapshot(Tlhelp32.TH32CS_SNAPTHREAD,
-                new WinDef.DWORD(0));
-        assertFalse(WinBase.INVALID_HANDLE_VALUE.equals(threadEnumHandle));
-        try {
-            Tlhelp32.THREADENTRY32.ByReference threadEntry = new Tlhelp32.THREADENTRY32.ByReference();
-
-            assertTrue(Kernel32.INSTANCE.Thread32First(threadEnumHandle, threadEntry));
-
-            List<Integer> threadIdList = new ArrayList<>();
-            threadIdList.add(threadEntry.th32ThreadID);
-
-            while (Kernel32.INSTANCE.Thread32Next(threadEnumHandle, threadEntry)) {
-                threadIdList.add(threadEntry.th32ThreadID);
-            }
-
-            assertTrue(threadIdList.size() > 4);
-        } finally {
-            Kernel32Util.closeHandle(threadEnumHandle);
-        }
-    }
-
     public final void testGetPrivateProfileInt() throws IOException {
         final File tmp = File.createTempFile("testGetPrivateProfileInt", "ini");
         tmp.deleteOnExit();
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer.println("[Section]");
-            writer.println("existingKey = 123");
-        }
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        writer.println("[Section]");
+        writer.println("existingKey = 123");
+        writer.close();
 
         assertEquals(123, Kernel32.INSTANCE.GetPrivateProfileInt("Section", "existingKey", 456, tmp.getCanonicalPath()));
         assertEquals(456, Kernel32.INSTANCE.GetPrivateProfileInt("Section", "missingKey", 456, tmp.getCanonicalPath()));
@@ -1210,10 +1055,10 @@ public class Kernel32Test extends TestCase {
     public final void testGetPrivateProfileString() throws IOException {
         final File tmp = File.createTempFile("testGetPrivateProfileString", ".ini");
         tmp.deleteOnExit();
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer.println("[Section]");
-            writer.println("existingKey = ABC");
-        }
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        writer.println("[Section]");
+        writer.println("existingKey = ABC");
+        writer.close();
 
         final char[] buffer = new char[8];
 
@@ -1229,11 +1074,11 @@ public class Kernel32Test extends TestCase {
     public final void testWritePrivateProfileString() throws IOException {
         final File tmp = File.createTempFile("testWritePrivateProfileString", ".ini");
         tmp.deleteOnExit();
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
-            writer.println("[Section]");
-            writer.println("existingKey = ABC");
-            writer.println("removedKey = JKL");
-        }
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        writer.println("[Section]");
+        writer.println("existingKey = ABC");
+        writer.println("removedKey = JKL");
+        writer.close();
 
         assertTrue(Kernel32.INSTANCE.WritePrivateProfileString("Section", "existingKey", "DEF", tmp.getCanonicalPath()));
         assertTrue(Kernel32.INSTANCE.WritePrivateProfileString("Section", "addedKey", "GHI", tmp.getCanonicalPath()));
@@ -1251,10 +1096,13 @@ public class Kernel32Test extends TestCase {
         final File tmp = File.createTempFile("testGetPrivateProfileSection", ".ini");
         tmp.deleteOnExit();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        try {
             writer.println("[X]");
             writer.println("A=1");
             writer.println("B=X");
+        } finally {
+            writer.close();
         }
 
         final char[] buffer = new char[9];
@@ -1268,9 +1116,12 @@ public class Kernel32Test extends TestCase {
         final File tmp = File.createTempFile("testGetPrivateProfileSectionNames", ".ini");
         tmp.deleteOnExit();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        try {
             writer.println("[S1]");
             writer.println("[S2]");
+        } finally {
+            writer.close();
         }
 
         final char[] buffer = new char[7];
@@ -1283,20 +1134,23 @@ public class Kernel32Test extends TestCase {
         final File tmp = File.createTempFile("testWritePrivateProfileSection", ".ini");
         tmp.deleteOnExit();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)))) {
+        final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tmp)));
+        try {
             writer.println("[S1]");
             writer.println("A=1");
             writer.println("B=X");
+        } finally {
+            writer.close();
         }
 
         final boolean result = Kernel32.INSTANCE.WritePrivateProfileSection("S1", "A=3\0E=Z\0\0", tmp.getCanonicalPath());
         assertTrue(result);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(tmp))) {
-            assertEquals(reader.readLine(), "[S1]");
-            assertTrue(reader.readLine().matches("A\\s*=\\s*3"));
-            assertTrue(reader.readLine().matches("E\\s*=\\s*Z"));
-        }
+        final BufferedReader reader = new BufferedReader(new FileReader(tmp));
+        assertEquals(reader.readLine(), "[S1]");
+        assertTrue(reader.readLine().matches("A\\s*=\\s*3"));
+        assertTrue(reader.readLine().matches("E\\s*=\\s*Z"));
+        reader.close();
     }
 
     /**
@@ -1309,12 +1163,14 @@ public class Kernel32Test extends TestCase {
         Kernel32.INSTANCE.GetSystemTime(systemTime);
         WinBase.FILETIME fileTime = new WinBase.FILETIME();
 
-        AbstractWin32TestSupport.assertCallSucceeded("SystemTimeToFileTime",
-                Kernel32.INSTANCE.SystemTimeToFileTime(systemTime, fileTime));
+        if (false == Kernel32.INSTANCE.SystemTimeToFileTime(systemTime, fileTime)) {
+            fail("SystemTimeToFileTime failed with " + Kernel32.INSTANCE.GetLastError());
+        }
 
         WinBase.SYSTEMTIME newSystemTime = new WinBase.SYSTEMTIME();
-        AbstractWin32TestSupport.assertCallSucceeded("FileTimeToSystemTime",
-                Kernel32.INSTANCE.FileTimeToSystemTime(fileTime, newSystemTime));
+        if (false == Kernel32.INSTANCE.FileTimeToSystemTime(fileTime, newSystemTime)) {
+            fail("FileTimeToSystemTime failed with " + Kernel32.INSTANCE.GetLastError());
+        }
 
         assertEquals(systemTime.wYear, newSystemTime.wYear);
         assertEquals(systemTime.wDay, newSystemTime.wDay);
@@ -1341,8 +1197,9 @@ public class Kernel32Test extends TestCase {
         try {
 
             Memory p = new Memory(FILE_BASIC_INFO.sizeOf());
-            AbstractWin32TestSupport.assertCallSucceeded("GetFileInformationByHandleEx for FileBasicInfo (" + p.size() + " bytes)",
-                    Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size())));
+            if (false == Kernel32.INSTANCE.GetFileInformationByHandleEx(hFile, WinBase.FileBasicInfo, p, new DWORD(p.size()))) {
+                fail("GetFileInformationByHandleEx failed with " + Kernel32.INSTANCE.GetLastError());
+            }
             FILE_BASIC_INFO fbi = new FILE_BASIC_INFO(p);
             FILETIME ft = new FILETIME(fbi.LastWriteTime);
             SYSTEMTIME stUTC = new SYSTEMTIME();
@@ -1362,61 +1219,10 @@ public class Kernel32Test extends TestCase {
         }
     }
 
-    public final void testCreateRemoteThreadInvalid() throws IOException {
-        HANDLE hThrd = Kernel32.INSTANCE.CreateRemoteThread(null, null, 0, (Pointer) null, null, 0, null);
+    public final void testCreateRemoteThread() throws IOException {
+        HANDLE hThrd = Kernel32.INSTANCE.CreateRemoteThread(null, null, 0, null, null, null, null);
         assertNull(hThrd);
         assertEquals(Kernel32.INSTANCE.GetLastError(), WinError.ERROR_INVALID_HANDLE);
-    }
-
-    @Test
-    public void testCreateRemoteThread() {
-        Assume.assumeTrue("testCreateRemoteThread is only implemented for x86 + x86-64", Platform.isIntel());
-
-        Pointer addr = Kernel32.INSTANCE.VirtualAllocEx(
-            Kernel32.INSTANCE.GetCurrentProcess(), null, new SIZE_T(4096),
-            MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-
-        Memory localBuffer = new Memory(4096);
-        localBuffer.clear();
-
-        if (Platform.is64Bit()) {
-            // mov eax, ecx; ret; int3
-            localBuffer.setByte(0, (byte) 0x8b); // MOV
-            localBuffer.setByte(1, (byte) 0xc1); // ECX -> EAX
-            localBuffer.setByte(2, (byte) 0xc3); // RET
-            localBuffer.setByte(3, (byte) 0xcc); // INT3
-        } else {
-            // mov eax, esp + 4; ret; int3
-            localBuffer.setByte(0, (byte) 0x8b); // MOV
-            localBuffer.setByte(1, (byte) 0x44); // ESP + 4bytes-> EAX
-            localBuffer.setByte(2, (byte) 0x24); //
-            localBuffer.setByte(3, (byte) 0x04); //
-            localBuffer.setByte(4, (byte) 0xc3); // RET
-            localBuffer.setByte(5, (byte) 0xcc); // INT3
-        }
-
-        IntByReference bytesWritten = new IntByReference();
-        Kernel32.INSTANCE.WriteProcessMemory(Kernel32.INSTANCE.GetCurrentProcess(),
-            addr, localBuffer, 4096, bytesWritten);
-        assertEquals(4096, bytesWritten.getValue());
-
-        DWORDByReference threadId = new DWORDByReference();
-        HANDLE hThread = Kernel32.INSTANCE.CreateRemoteThread(
-            Kernel32.INSTANCE.GetCurrentProcess(),
-            null, 0, addr, new Pointer(12345), 0, threadId);
-        assertNotNull(hThread);
-        assertTrue(threadId.getValue().longValue() > 0);
-
-        int waitResult = Kernel32.INSTANCE.WaitForSingleObject(hThread, 10000);
-        assertEquals(WAIT_OBJECT_0, waitResult);
-
-        IntByReference exitCode = new IntByReference();
-        boolean exitResult = Kernel32.INSTANCE.GetExitCodeThread(hThread, exitCode);
-        assertTrue(exitResult);
-        assertEquals(12345, exitCode.getValue());
-
-        assertTrue(Kernel32.INSTANCE.VirtualFreeEx(Kernel32.INSTANCE.GetCurrentProcess(),
-            addr, new SIZE_T(0), WinNT.MEM_RELEASE));
     }
 
     public void testWriteProcessMemory() {
@@ -1508,7 +1314,7 @@ public class Kernel32Test extends TestCase {
                     case WinBase.CBR_56000:
                     case WinBase.CBR_600:
                     case WinBase.CBR_9600:
-                        break;
+                    break;
                     default:
                         fail("Received value of WinBase.DCB.BaudRate is not valid");
                 }
@@ -1693,7 +1499,7 @@ public class Kernel32Test extends TestCase {
 
 
     public void testEnumResourceTypes() {
-        final List<String> types = new ArrayList<>();
+        final List<String> types = new ArrayList<String>();
         WinBase.EnumResTypeProc ertp = new WinBase.EnumResTypeProc() {
 
             @Override
@@ -1715,7 +1521,7 @@ public class Kernel32Test extends TestCase {
         boolean result = Kernel32.INSTANCE.EnumResourceTypes(null, ertp, null);
         assertTrue("EnumResourceTypes should not have failed.", result);
         assertEquals("GetLastError should be set to 0", WinError.ERROR_SUCCESS, Kernel32.INSTANCE.GetLastError());
-        assertTrue("EnumResourceTypes should return some resource type names", !types.isEmpty());
+        assertTrue("EnumResourceTypes should return some resource type names", types.size() > 0);
     }
 
     public void testModule32FirstW() {
@@ -1792,13 +1598,12 @@ public class Kernel32Test extends TestCase {
             }
         }
     }
-
+    
     public void testSetErrorMode() {
         // Set bit flags to 0x0001
         int previousMode = Kernel32.INSTANCE.SetErrorMode(0x0001);
         // Restore to previous state; 0x0001 is now "previous"
-        // Since 0x0004 bit is sticky previous may be 0x0005
-        assertEquals(0x0001, Kernel32.INSTANCE.SetErrorMode(previousMode) & ~0x0004);
+        assertEquals(Kernel32.INSTANCE.SetErrorMode(previousMode), 0x0001);
     }
 
 // Testcase is disabled, as kernel32 ordinal values are not stable.
@@ -1807,305 +1612,45 @@ public class Kernel32Test extends TestCase {
 //    /**
 //     * Test that a named function on win32 can be equally resolved by its ordinal
 //     * value.
-//     *
+//     * 
 //     * From link.exe /dump /exports c:\\Windows\\System32\\kernel32.dll
-//     *
+//     * 
 //     *  746  2E9 0004FA20 GetTapeStatus
 //     *  747  2EA 0002DB20 GetTempFileNameA
 //     *  748  2EB 0002DB30 GetTempFileNameW
 //     *  749  2EC 0002DB40 GetTempPathA
 //     *  750  2ED 0002DB50 GetTempPathW
 //     *  751  2EE 00026780 GetThreadContext
-//     *
+//     * 
 //     * The tested function is GetTempPathW which is mapped to the ordinal 750.
 //     */
 //    public void testGetProcAddress() {
 //        NativeLibrary kernel32Library = NativeLibrary.getInstance("kernel32");
 //        // get module handle needed to resolve function pointer via GetProcAddress
 //        HMODULE kernel32Module = Kernel32.INSTANCE.GetModuleHandle("kernel32");
-//
+//        
 //        Function namedFunction = kernel32Library.getFunction("GetTempPathW");
 //        long namedFunctionPointerValue = Pointer.nativeValue(namedFunction);
-//
+//        
 //        Pointer ordinalFunction = Kernel32.INSTANCE.GetProcAddress(kernel32Module, 750);
 //        long ordinalFunctionPointerValue = Pointer.nativeValue(ordinalFunction);
-//
+//        
 //        assertEquals(namedFunctionPointerValue, ordinalFunctionPointerValue);
 //    }
-
+    
     public void testSetThreadExecutionState() {
         int originalExecutionState = Kernel32.INSTANCE.SetThreadExecutionState(
                 WinBase.ES_CONTINUOUS | WinBase.ES_SYSTEM_REQUIRED | WinBase.ES_AWAYMODE_REQUIRED
         );
-
+        
         assert originalExecutionState > 0;
-
+        
         int intermediateExecutionState = Kernel32.INSTANCE.SetThreadExecutionState(
                 WinBase.ES_CONTINUOUS
         );
-
+        
         assertEquals(WinBase.ES_CONTINUOUS | WinBase.ES_SYSTEM_REQUIRED | WinBase.ES_AWAYMODE_REQUIRED, intermediateExecutionState);
-
+        
         Kernel32.INSTANCE.SetThreadExecutionState(originalExecutionState);
-    }
-
-    public void testMutex() throws InterruptedException {
-        HANDLE mutexHandle = Kernel32.INSTANCE.CreateMutex(null, true, "JNA-Test-Mutex");
-
-        assertNotNull(mutexHandle);
-
-        final CountDownLatch preWait = new CountDownLatch(1);
-        final CountDownLatch postWait = new CountDownLatch(1);
-        final CountDownLatch postRelease = new CountDownLatch(1);
-
-        final Exception[] exceptions = new Exception[1];
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    HANDLE mutexHandle2 = Kernel32.INSTANCE.OpenMutex(WinNT.SYNCHRONIZE, false, "JNA-Test-Mutex");
-                    try {
-                        assertNotNull(mutexHandle2);
-                        preWait.countDown();
-                        int result = Kernel32.INSTANCE.WaitForSingleObject(mutexHandle2, WinBase.INFINITE);
-                        assertEquals(result, WinBase.WAIT_OBJECT_0);
-                        postWait.countDown();
-                    } finally {
-                        Kernel32.INSTANCE.ReleaseMutex(mutexHandle2);
-                        Kernel32.INSTANCE.CloseHandle(mutexHandle2);
-                        postRelease.countDown();
-                    }
-                } catch (Exception ex) {
-                    exceptions[0] = ex;
-                }
-            }
-        };
-
-        t.start();
-
-        assertTrue(preWait.await(2, TimeUnit.SECONDS));
-
-        Kernel32.INSTANCE.ReleaseMutex(mutexHandle);
-
-        assertTrue(postWait.await(2, TimeUnit.SECONDS));
-
-        Kernel32.INSTANCE.CloseHandle(mutexHandle);
-
-        assertTrue(postRelease.await(2, TimeUnit.SECONDS));
-
-        assertNull(exceptions[0]);
-
-        mutexHandle = Kernel32.INSTANCE.OpenMutex(WinNT.SYNCHRONIZE, false, "JNA-Test-Mutex");
-
-        assertNull(mutexHandle);
-    }
-
-    public void testApplicationRestart() {
-        try {
-            HRESULT insufficientBuffer = W32Errors.HRESULT_FROM_WIN32(WinError.ERROR_INSUFFICIENT_BUFFER);
-            HRESULT result;
-            String dummyCommandline = "/restart -f .\\filename.ext";
-            char[] dummyCommandlineArray = Native.toCharArray(dummyCommandline);
-            int dummyFlags = 2;
-            result = Kernel32.INSTANCE.RegisterApplicationRestart(dummyCommandlineArray, dummyFlags);
-            assertTrue(COMUtils.SUCCEEDED(result));
-
-            char[] queriedCommandlineArray = null;
-            IntByReference queriedSize = new IntByReference();
-            IntByReference queriedFlags = new IntByReference();
-
-            // Query without target buffer to determine required buffer size
-            result = Kernel32.INSTANCE.GetApplicationRestartSettings(Kernel32.INSTANCE.GetCurrentProcess(), queriedCommandlineArray, queriedSize, queriedFlags);
-
-            assertTrue(COMUtils.SUCCEEDED(result));
-            assertEquals(dummyCommandline.length() + 1, queriedSize.getValue());
-
-            // Check error reporting, use insufficient buffer size
-            queriedCommandlineArray = new char[1];
-            queriedSize.setValue(queriedCommandlineArray.length);
-            queriedFlags.setValue(-1);
-            result = Kernel32.INSTANCE.GetApplicationRestartSettings(Kernel32.INSTANCE.GetCurrentProcess(), queriedCommandlineArray, queriedSize, queriedFlags);
-
-            assertTrue(COMUtils.FAILED(result));
-            assertEquals(insufficientBuffer, result);
-            assertEquals(dummyCommandline.length() + 1, queriedSize.getValue());
-
-            // Now query with the right buffer size
-            queriedCommandlineArray = new char[queriedSize.getValue()];
-            queriedSize.setValue(queriedCommandlineArray.length);
-            queriedFlags.setValue(-1);
-            result = Kernel32.INSTANCE.GetApplicationRestartSettings(Kernel32.INSTANCE.GetCurrentProcess(), queriedCommandlineArray, queriedSize, queriedFlags);
-
-            assertTrue(COMUtils.SUCCEEDED(result));
-            assertEquals(dummyCommandline.length() + 1, queriedSize.getValue());
-            assertEquals(dummyFlags, queriedFlags.getValue());
-            assertEquals(dummyCommandline, Native.toString(queriedCommandlineArray));
-
-            result = Kernel32.INSTANCE.UnregisterApplicationRestart();
-            assertTrue(COMUtils.SUCCEEDED(result));
-        } finally {
-            // Last resort if test succeeds partially
-            Kernel32.INSTANCE.UnregisterApplicationRestart();
-        }
-    }
-
-    public void testCreateFileMapping() throws IOException {
-        // Test creating an unnamed file mapping. The test creates a file, that
-        // containes "Hello World" followed by a NULL byte. The file is mapped
-        // into memory and read with the normal pointer getString funtion to
-        // read it as a NULL terminated string.
-
-        String testString = "Hello World";
-        File testFile = File.createTempFile("jna-test", ".txt");
-
-        try {
-            try (OutputStream os = new FileOutputStream(testFile)) {
-                os.write(testString.getBytes("UTF-8"));
-                os.write(0);
-            }
-
-            SYSTEM_INFO lpSystemInfo = new SYSTEM_INFO();
-            Kernel32.INSTANCE.GetSystemInfo(lpSystemInfo);
-
-            HANDLE fileHandle = Kernel32.INSTANCE.CreateFile(
-                    testFile.getAbsolutePath(),
-                    WinNT.GENERIC_READ | WinNT.GENERIC_WRITE,
-                    0,
-                    null,
-                    WinNT.OPEN_EXISTING,
-                    WinNT.FILE_ATTRIBUTE_NORMAL,
-                    null);
-
-            assertNotNull(fileHandle);
-
-            HANDLE fileMappingHandle = Kernel32.INSTANCE.CreateFileMapping(
-                    fileHandle,
-                    null,
-                    WinNT.PAGE_READWRITE,
-                    0,
-                    lpSystemInfo.dwAllocationGranularity.intValue(),
-                    null);
-
-            assertNotNull(fileMappingHandle);
-
-            Pointer mappingAddress = Kernel32.INSTANCE.MapViewOfFile(
-                    fileMappingHandle,
-                    WinNT.FILE_MAP_ALL_ACCESS,
-                    0,
-                    0,
-                    lpSystemInfo.dwAllocationGranularity.intValue());
-
-            assertNotNull(mappingAddress);
-
-            assertEquals(testString, mappingAddress.getString(0, "UTF-8"));
-
-            assertTrue(Kernel32.INSTANCE.UnmapViewOfFile(mappingAddress));
-
-            assertTrue(Kernel32.INSTANCE.CloseHandle(fileMappingHandle));
-
-            assertTrue(Kernel32.INSTANCE.CloseHandle(fileHandle));
-        } finally {
-            testFile.delete();
-        }
-    }
-
-    public void testOpenFileMapping() throws IOException {
-        // Test creating an named file mapping. The test creates a file mapping
-        // backed by the paging paging file. A second Mapping is opened from
-        // that. The first mapping is used to write a test string and the
-        // second is used to read it.
-
-        int mappingSize = 256;
-        String nameOfMapping = "JNATestMapping";
-        String testString = "Hello World";
-
-        HANDLE fileMappingHandle1 = Kernel32.INSTANCE.CreateFileMapping(
-                WinNT.INVALID_HANDLE_VALUE,
-                null,
-                WinNT.PAGE_READWRITE,
-                0,
-                mappingSize,
-                nameOfMapping);
-
-        assertNotNull("Error: " + Kernel32.INSTANCE.GetLastError(), fileMappingHandle1);
-
-        HANDLE fileMappingHandle2 = Kernel32.INSTANCE.OpenFileMapping(
-                WinNT.FILE_MAP_ALL_ACCESS,
-                false,
-                nameOfMapping);
-
-        assertNotNull(fileMappingHandle1);
-
-        Pointer mappingAddress1 = Kernel32.INSTANCE.MapViewOfFile(
-                fileMappingHandle1,
-                WinNT.FILE_MAP_ALL_ACCESS,
-                0,
-                0,
-                mappingSize);
-
-        assertNotNull(mappingAddress1);
-
-        Pointer mappingAddress2 = Kernel32.INSTANCE.MapViewOfFile(
-                fileMappingHandle2,
-                WinNT.FILE_MAP_ALL_ACCESS,
-                0,
-                0,
-                mappingSize);
-
-        assertNotNull(mappingAddress2);
-
-        mappingAddress1.setString(0, testString, "UTF-8");
-
-        assertEquals(testString, mappingAddress2.getString(0, "UTF-8"));
-
-        assertTrue(Kernel32.INSTANCE.UnmapViewOfFile(mappingAddress1));
-
-        assertTrue(Kernel32.INSTANCE.UnmapViewOfFile(mappingAddress2));
-
-        assertTrue(Kernel32.INSTANCE.CloseHandle(fileMappingHandle1));
-
-        assertTrue(Kernel32.INSTANCE.CloseHandle(fileMappingHandle2));
-
-    }
-
-    public void testVirtualLockUnlock() {
-        Memory mem = new Memory(4096);
-        // Test that locking works
-        assertTrue(Kernel32.INSTANCE.VirtualLock(mem, new SIZE_T(4096)));
-        // Test that unlocked region can be unlocked
-        assertTrue(Kernel32.INSTANCE.VirtualUnlock(mem, new SIZE_T(4096)));
-        // Locking a region we don't have access to should fail
-        assertFalse(Kernel32.INSTANCE.VirtualLock(null, new SIZE_T(4096)));
-        // Unlocking an unlocked region should fail
-        assertFalse(Kernel32.INSTANCE.VirtualUnlock(mem, new SIZE_T(4096)));
-    }
-
-    public void testGetPriorityClass() {
-        final HANDLE selfHandle = Kernel32.INSTANCE.GetCurrentProcess();
-        assertTrue(Kernel32Util.isValidPriorityClass(Kernel32.INSTANCE.GetPriorityClass(selfHandle)));
-    }
-
-    public void testSetPriorityClass() {
-        final HANDLE selfHandle = Kernel32.INSTANCE.GetCurrentProcess();
-        assertTrue(Kernel32.INSTANCE.SetPriorityClass(selfHandle, Kernel32.HIGH_PRIORITY_CLASS));
-    }
-
-    public void testGetThreadPriority() {
-        final HANDLE selfHandle = Kernel32.INSTANCE.GetCurrentThread();
-        assertTrue(Kernel32Util.isValidThreadPriority(Kernel32.INSTANCE.GetThreadPriority(selfHandle)));
-    }
-
-    public void testSetThreadPriority() {
-        final HANDLE selfHandle = Kernel32.INSTANCE.GetCurrentThread();
-        assertTrue(Kernel32.INSTANCE.SetThreadPriority(selfHandle, Kernel32.THREAD_PRIORITY_ABOVE_NORMAL));
-    }
-
-    public void testIsProcessorFeaturePresent() {
-        // Always returns false for Windows 7 or later
-        assertFalse(Kernel32.INSTANCE.IsProcessorFeaturePresent(Kernel32.PF_FLOATING_POINT_PRECISION_ERRATA));
-        // Always true in 64 bit, requirement to run Windows
-        assertTrue(Kernel32.INSTANCE.IsProcessorFeaturePresent(Kernel32.PF_MMX_INSTRUCTIONS_AVAILABLE));
-        // Invalid values always return false
-        assertFalse(Kernel32.INSTANCE.IsProcessorFeaturePresent(-1));
     }
 }

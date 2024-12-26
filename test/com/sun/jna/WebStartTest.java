@@ -1,23 +1,23 @@
 /* Copyright (c) 2009-2012 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -68,7 +68,7 @@ public class WebStartTest extends TestCase implements Paths {
         + "  <information>\n"
         + "    <title>JNLP Web Start Test</title>\n"
         + "    <vendor>JNA</vendor>\n"
-        + "    <homepage href='https://github.com/java-native-access/jna'/>\n"
+        + "    <homepage href='http://github.com/twall/jna'/>\n"
         + "    <description>Local JNLP launch test.</description>\n"
         + "    <description kind='short'>Launch Test</description>\n"
         + "  </information>\n"
@@ -121,19 +121,19 @@ public class WebStartTest extends TestCase implements Paths {
     public void testJNLPFindCustomLibrary() {
         assertNotNull("Custom library path not found by JNLP class loader",
                       Native.getWebStartLibraryPath("jnidispatch"));
-        Native.load("jnidispatch", Dummy.class);
+        Native.loadLibrary("jnidispatch", Dummy.class);
     }
 
     public void testJNLPFindProcessLibrary() {
         String libname = Platform.C_LIBRARY_NAME;
         assertNull("Process library path not expected to be found by JNLP class loader",
                    Native.getWebStartLibraryPath(libname));
-        Native.load(libname, Dummy.class);
+        Native.loadLibrary(libname, Dummy.class);
     }
 
     public void testJNLPFindLibraryFailure() {
         try {
-            Native.load("xyzzy", Dummy.class);
+            Native.loadLibrary("xyzzy", Dummy.class);
             fail("Missing native libraries should throw UnsatisfiedLinkError");
         }
         catch(UnsatisfiedLinkError e) {
@@ -145,7 +145,8 @@ public class WebStartTest extends TestCase implements Paths {
         String dir = System.getProperty("jna.builddir", BUILDDIR);
         String codebase = new File(dir, "jws").toURI().toURL().toString();
 
-        try (ServerSocket s = new ServerSocket(0)) {
+        ServerSocket s = new ServerSocket(0);
+        try {
             s.setSoTimeout(SOCKET_TIMEOUT);
             int port = s.getLocalPort();
 
@@ -232,6 +233,8 @@ public class WebStartTest extends TestCase implements Paths {
             finally {
                 jnlp.delete();
             }
+        } finally {
+            s.close();
         }
     }
 
@@ -288,7 +291,7 @@ public class WebStartTest extends TestCase implements Paths {
         String JAVA_HOME = System.getProperty("java.home");
         String BIN = new File(JAVA_HOME, "/bin").getAbsolutePath();
         File javaws = new File(BIN, "javaws" + (Platform.isWindows()?".exe":""));
-        List<File> tried = new ArrayList<>();
+        List<File> tried = new ArrayList<File>();
         tried.add(javaws);
         if (!javaws.exists()) {
             // NOTE: OSX puts javaws somewhere else entirely
@@ -302,10 +305,10 @@ public class WebStartTest extends TestCase implements Paths {
             }
             // NOTE: win64 only includes javaws in the system path
             if (Platform.isWindows()) {
-                FolderInfo info = Native.load("shell32", FolderInfo.class);
+                FolderInfo info = Native.loadLibrary("shell32", FolderInfo.class);
                 char[] buf = new char[FolderInfo.MAX_PATH];
                 //int result =
-                info.SHGetFolderPathW(null, FolderInfo.CSIDL_WINDOWS, null, 0, buf);
+                        info.SHGetFolderPathW(null, FolderInfo.CSIDL_WINDOWS, null, 0, buf);
                 String path = Native.toString(buf);
                 if (Platform.is64Bit()) {
                     javaws = new File(path, "SysWOW64/javaws.exe");
@@ -332,7 +335,7 @@ public class WebStartTest extends TestCase implements Paths {
             vendor = vendor.substring(0, vendor.indexOf(" "));
         }
         if (Platform.isWindows()) {
-            FolderInfo info = Native.load("shell32", FolderInfo.class);
+            FolderInfo info = Native.loadLibrary("shell32", FolderInfo.class);
             char[] buf = new char[FolderInfo.MAX_PATH];
             info.SHGetFolderPathW(null, FolderInfo.CSIDL_APPDATA,
                                   null, 0, buf);
@@ -414,7 +417,7 @@ public class WebStartTest extends TestCase implements Paths {
     }
 
     private static Throwable runTestCaseTest(String testClass, String method, int port) throws Exception {
-        TestCase test = (TestCase)Class.forName(testClass).getConstructor().newInstance();
+        TestCase test = (TestCase)Class.forName(testClass).newInstance();
         test.setName(method);
         TestResult result = new TestResult();
         test.run(result);

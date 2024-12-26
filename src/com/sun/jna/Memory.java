@@ -1,37 +1,34 @@
-/*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+/* The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna;
 
-import java.io.Closeable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.sun.jna.internal.Cleaner;
+import java.util.WeakHashMap;
 
 /**
  * A <code>Pointer</code> to memory obtained from the native heap via a
@@ -41,20 +38,23 @@ import com.sun.jna.internal.Cleaner;
  * <code>malloc</code>.  For example, <code>Memory</code> helps
  * accomplish the following idiom:
  * <pre>
- *        void *buf = malloc(BUF_LEN * sizeof(char));
- *        call_some_function(buf);
- *        free(buf);
+ * 		void *buf = malloc(BUF_LEN * sizeof(char));
+ *		call_some_function(buf);
+ *		free(buf);
  * </pre>
+ *
+ * <p>The {@link #finalize} method will free allocated memory when
+ * this object is no longer referenced.
  *
  * @author Sheng Liang, originator
  * @author Todd Fast, suitability modifications
  * @author Timothy Wall
  * @see Pointer
  */
-public class Memory extends Pointer implements Closeable {
+public class Memory extends Pointer {
     /** Keep track of all allocated memory so we can dispose of it before unloading. */
-    private static final Map<Long, Reference<Memory>> allocatedMemory =
-            new ConcurrentHashMap<>();
+    private static final Map<Memory, Reference<Memory>> allocatedMemory =
+            Collections.synchronizedMap(new WeakHashMap<Memory, Reference<Memory>>());
 
     private static final WeakMemoryHolder buffers = new WeakMemoryHolder();
 
@@ -68,16 +68,12 @@ public class Memory extends Pointer implements Closeable {
     /** Dispose of all allocated memory. */
     public static void disposeAll() {
         // use a copy since dispose() modifies the map
-        Collection<Reference<Memory>> refs = new ArrayList<>(allocatedMemory.values());
-        for (Reference<Memory> r : refs) {
-            Memory m = r.get();
-            if(m != null) {
-                m.close();
-            }
+        Collection<Memory> refs = new LinkedList<Memory>(allocatedMemory.keySet());
+        for (Memory r : refs) {
+            r.dispose();
         }
     }
 
-    private final Cleaner.Cleanable cleanable;
     protected long size; // Size of the malloc'ed space
 
     /** Provide a view into the original memory.  Keeps an implicit reference
@@ -90,7 +86,7 @@ public class Memory extends Pointer implements Closeable {
         }
         /** No need to free memory. */
         @Override
-        protected synchronized void dispose() {
+        protected void dispose() {
             this.peer = 0;
         }
         /** Pass bounds check to parent. */
@@ -118,13 +114,11 @@ public class Memory extends Pointer implements Closeable {
         if (peer == 0)
             throw new OutOfMemoryError("Cannot allocate " + size + " bytes");
 
-        allocatedMemory.put(peer, new WeakReference<>(this));
-        cleanable = Cleaner.getCleaner().register(this, new MemoryDisposer(peer));
+        allocatedMemory.put(this, new WeakReference<Memory>(this));
     }
 
     protected Memory() {
         super();
-        cleanable = null;
     }
 
     /** Provide a view of this memory using the given offset as the base address.  The
@@ -181,18 +175,20 @@ public class Memory extends Pointer implements Closeable {
         throw new IllegalArgumentException("Byte boundary must be a power of two");
     }
 
-    /** Free the native memory and set peer to zero */
+    /** Properly dispose of native memory when this object is GC'd. */
     @Override
-    public void close() {
-        peer = 0;
-        if (cleanable != null) {
-            cleanable.clean();
-        }
+    protected void finalize() {
+        dispose();
     }
 
-    @Deprecated
-    protected void dispose() {
-        close();
+    /** Free the native memory and set peer to zero */
+    protected synchronized void dispose() {
+        try {
+            free(peer);
+        } finally {
+            allocatedMemory.remove(this);
+            peer = 0;
+        }
     }
 
     /** Zero the full extent of this memory region. */
@@ -267,7 +263,7 @@ public class Memory extends Pointer implements Closeable {
      */
     @Override
     public void read(long bOff, char[] buf, int index, int length) {
-        boundsCheck(bOff, length * Native.WCHAR_SIZE);
+        boundsCheck(bOff, length * 2L);
         super.read(bOff, buf, index, length);
     }
 
@@ -327,20 +323,6 @@ public class Memory extends Pointer implements Closeable {
         super.read(bOff, buf, index, length);
     }
 
-    /**
-     * Indirect the native pointer to <code>malloc</code> space, a la
-     * <code>Pointer.read</code>.  But this method performs a bounds checks to
-     * ensure that the indirection does not cause memory outside the
-     * <code>malloc</code>ed space to be accessed.
-     *
-     * @see Pointer#read(long,Pointer[],int,int)
-     */
-    @Override
-    public void read(long bOff, Pointer[] buf, int index, int length) {
-        boundsCheck(bOff, length * Native.POINTER_SIZE);
-        super.read(bOff, buf, index, length);
-    }
-
     //////////////////////////////////////////////////////////////////////////
     // Raw write methods
     //////////////////////////////////////////////////////////////////////////
@@ -383,7 +365,7 @@ public class Memory extends Pointer implements Closeable {
      */
     @Override
     public void write(long bOff, char[] buf, int index, int length) {
-        boundsCheck(bOff, length * Native.WCHAR_SIZE);
+        boundsCheck(bOff, length * 2L);
         super.write(bOff, buf, index, length);
     }
 
@@ -443,20 +425,6 @@ public class Memory extends Pointer implements Closeable {
         super.write(bOff, buf, index, length);
     }
 
-    /**
-     * Indirect the native pointer to <code>malloc</code> space, a la
-     * <code>Pointer.write</code>.  But this method performs a bounds
-     * checks to ensure that the indirection does not cause memory outside the
-     * <code>malloc</code>ed space to be accessed.
-     *
-     * @see Pointer#write(long,Pointer[],int,int)
-     */
-    @Override
-    public void write(long bOff, Pointer[] buf, int index, int length) {
-        boundsCheck(bOff, length * Native.POINTER_SIZE);
-        super.write(bOff, buf, index, length);
-    }
-
     //////////////////////////////////////////////////////////////////////////
     // Java type read methods
     //////////////////////////////////////////////////////////////////////////
@@ -485,7 +453,7 @@ public class Memory extends Pointer implements Closeable {
      */
     @Override
     public char getChar(long offset) {
-        boundsCheck(offset, Native.WCHAR_SIZE);
+        boundsCheck(offset, 1);
         return super.getChar(offset);
     }
 
@@ -569,8 +537,8 @@ public class Memory extends Pointer implements Closeable {
      */
     @Override
     public Pointer getPointer(long offset) {
-        boundsCheck(offset, Native.POINTER_SIZE);
-        return shareReferenceIfInBounds(super.getPointer(offset));
+        boundsCheck(offset, Pointer.SIZE);
+        return super.getPointer(offset);
     }
 
     /**
@@ -721,7 +689,7 @@ public class Memory extends Pointer implements Closeable {
      */
     @Override
     public void setPointer(long offset, Pointer value) {
-        boundsCheck(offset, Native.POINTER_SIZE);
+        boundsCheck(offset, Pointer.SIZE);
         super.setPointer(offset, value);
     }
 
@@ -756,47 +724,5 @@ public class Memory extends Pointer implements Closeable {
     /** Dumps the contents of this memory object. */
     public String dump() {
         return dump(0, (int)size());
-    }
-
-    /**
-     * Check whether the supplied Pointer object points into the memory region
-     * backed by this memory object. The intention is to prevent premature GC
-     * of the Memory object.
-     *
-     * @param target Pointer to check
-     * @return {@code target} if target does not point into the region covered
-     * by this memory object, a newly {@code SharedMemory} object, if the pointer
-     * points to memory backed by this Memory object.
-     */
-    private Pointer shareReferenceIfInBounds(Pointer target) {
-        if(target == null) {
-            return null;
-        }
-        long offset = target.peer - this.peer;
-        if (offset >= 0 && offset < this.size) {
-            return this.share(offset);
-        } else {
-            return target;
-        }
-    }
-
-    private static final class MemoryDisposer implements Runnable {
-
-        private long peer;
-
-        public MemoryDisposer(long peer) {
-            this.peer = peer;
-        }
-
-        @Override
-        public synchronized void run() {
-            try {
-                free(peer);
-            } finally {
-                allocatedMemory.remove(peer);
-                peer = 0;
-            }
-        }
-
     }
 }

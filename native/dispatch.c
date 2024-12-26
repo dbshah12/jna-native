@@ -30,7 +30,7 @@
 #include "dispatch.h"
 
 #include <string.h>
-#include <stdlib.h>
+#include <alloca.h>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -54,8 +54,8 @@
 #define DEFAULT_LOAD_OPTS LOAD_WITH_ALTERED_SEARCH_PATH
 #endif
 #define LOAD_LIBRARY(NAME,OPTS) (NAME ? LoadLibraryExW(NAME, NULL, OPTS) : GetModuleHandleW(NULL))
-#define LOAD_ERROR() w32_format_error(GetLastError())
-#define STR_ERROR(CODE) w32_format_error(CODE)
+#define LOAD_ERROR(BUF,LEN) w32_format_error(GetLastError(), BUF, LEN)
+#define STR_ERROR(CODE,BUF,LEN) w32_format_error(CODE, BUF, LEN)
 #define FREE_LIBRARY(HANDLE) (((HANDLE)==GetModuleHandleW(NULL) || FreeLibrary(HANDLE))?0:-1)
 #define FIND_ENTRY(HANDLE, NAME) w32_find_entry(env, HANDLE, NAME)
 #else
@@ -70,32 +70,19 @@
 #endif
 #define DEFAULT_LOAD_OPTS (RTLD_LAZY|RTLD_GLOBAL)
 #define LOAD_LIBRARY(NAME,OPTS) dlopen(NAME, OPTS)
-static inline char * LOAD_ERROR() {
-    const char* message = dlerror();
-    char* buf = (char*) malloc(strlen(message) + 1 /* null */);
-    strcpy(buf, message);
+static inline char * LOAD_ERROR(char * buf, size_t len) {
+    const size_t count = snprintf(buf, len, "%s", dlerror());
+    assert(count <= len && "snprintf() output has been truncated");
     return buf;
 }
-static inline char * STR_ERROR(int code) {
-    int i;
-    char* buf = NULL;
-    for(i = 256; i < (10 * 1024); i += 256) {
-        buf = (char*) malloc(i);
-        int res = strerror_r(code, buf, i);
-        if(res == 0) {
-            break;
-        }
-        free(buf);
-        buf = NULL;
-        if(res != ERANGE) {
-            break;
-        }
-    }
-    if(buf == NULL) {
-        int requiredBuffer = 25 /* static part*/ + 10 /* space for int */ + 1 /* null */;
-        buf = (char*) malloc(requiredBuffer);
-        snprintf(buf, requiredBuffer, "Failed to convert error: %d", code);
-    }
+static inline char * STR_ERROR(int code, char * buf, size_t len) {
+    // The conversion will fail if code is not a valid error code.
+    int err = strerror_r(code, buf, len);
+    if (err)
+        // Depending on glib version, "Unknown error" error code
+        // may be returned or passed using errno.
+        err = strerror_r(err > 0 ? err : errno, buf, len);
+    assert(err == 0 && "strerror_r() conversion has failed");
     return buf;
 }
 #define FREE_LIBRARY(HANDLE) dlclose(HANDLE)
@@ -113,6 +100,7 @@ static inline char * STR_ERROR(int code) {
 #include <wchar.h>
 #include <jni.h>
 
+#define NO_JAWT
 #ifndef NO_JAWT
 #include <jawt.h>
 #include <jawt_md.h>
@@ -144,10 +132,9 @@ extern "C" {
   PSTART(); memset(D,C,L); PEND(ENV); \
 } while(0)
 
-#define MASK_CC           com_sun_jna_Function_MASK_CC
-#define THROW_LAST_ERROR  com_sun_jna_Function_THROW_LAST_ERROR
-#define USE_VARARGS       com_sun_jna_Function_USE_VARARGS
-#define USE_VARARGS_SHIFT com_sun_jna_Function_USE_VARARGS_SHIFT
+#define MASK_CC          com_sun_jna_Function_MASK_CC
+#define THROW_LAST_ERROR com_sun_jna_Function_THROW_LAST_ERROR
+#define USE_VARARGS      com_sun_jna_Function_USE_VARARGS
 
 /* Cached class, field and method IDs */
 static jclass classObject;
@@ -186,7 +173,6 @@ static jclass classIntegerType;
 static jclass classPointerType;
 static jclass classJNIEnv;
 static jclass class_ffi_callback;
-static jclass classFromNativeConverter;
 
 static jmethodID MID_Class_getComponentType;
 static jmethodID MID_Object_toString;
@@ -240,7 +226,7 @@ static jmethodID MID_CallbackReference_getNativeString;
 static jmethodID MID_CallbackReference_initializeThread;
 static jmethodID MID_NativeMapped_toNative;
 static jmethodID MID_WString_init;
-static jmethodID MID_FromNativeConverter_nativeType;
+static jmethodID MID_ToNativeConverter_nativeType;
 static jmethodID MID_ffi_callback_invoke;
 
 static jfieldID FID_Boolean_value;
@@ -257,8 +243,6 @@ static jfieldID FID_Structure_memory;
 static jfieldID FID_Structure_typeInfo;
 static jfieldID FID_IntegerType_value;
 static jfieldID FID_PointerType_pointer;
-
-static int IS_BIG_ENDIAN;
 
 jstring fileEncoding;
 
@@ -278,23 +262,26 @@ typedef void (JNICALL* release_t)(JNIEnv*,jarray,void*,jint);
 
 #ifdef _WIN32
 static char*
-w32_format_error(int err) {
+w32_format_error(int err, char* buf, int len) {
   wchar_t* wbuf = NULL;
-  char* buf = NULL;
   int wlen =
     FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM
                    |FORMAT_MESSAGE_IGNORE_INSERTS
                    |FORMAT_MESSAGE_ALLOCATE_BUFFER,
                    NULL, err, 0, (LPWSTR)&wbuf, 0, NULL);
   if (wlen > 0) {
-    int bufSize = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, NULL, 0, NULL, NULL);
-    buf = (char*)malloc(bufSize);
-    int result = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, buf, bufSize, NULL, NULL);
+    int result = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, buf, len, NULL, NULL);
     if (result == 0) {
       fprintf(stderr, "JNA: error converting error message: %d\n", (int)GET_LAST_ERROR());
-      free(buf);
-      buf = NULL;
+      *buf = 0;
     }
+    else {
+      buf[len-1] = 0;
+    }
+  }
+  else {
+    // Error retrieving message
+    *buf = 0;
   }
   if (wbuf) {
     LocalFree(wbuf);
@@ -319,18 +306,16 @@ w32_short_name(JNIEnv* env, jstring str) {
         wstr = wshort;
       }
       else {
-        char* buf = LOAD_ERROR();
-        throwByName(env, EError, buf);
-        free((void *)buf);
+        char buf[MSG_SIZE];
+        throwByName(env, EError, LOAD_ERROR(buf, sizeof(buf)));
         free((void *)wstr);
         free((void *)wshort);
         wstr = NULL;
       }
     }
     else if (GET_LAST_ERROR() != ERROR_FILE_NOT_FOUND) { 
-      char* buf = LOAD_ERROR();
-      throwByName(env, EError, buf);
-      free((void *)buf);
+      char buf[MSG_SIZE];
+      throwByName(env, EError, LOAD_ERROR(buf, sizeof(buf)));
       free((void *)wstr);
       wstr = NULL;
     }
@@ -436,17 +421,12 @@ ffi_error(JNIEnv* env, const char* op, ffi_status status) {
   char msg[MSG_SIZE];
   switch(status) {
   case FFI_BAD_ABI:
-    snprintf(msg, sizeof(msg), "%s: Invalid calling convention (FFI_BAD_ABI)", op);
+    snprintf(msg, sizeof(msg), "%s: Invalid calling convention", op);
     throwByName(env, EIllegalArgument, msg);
     return JNI_TRUE;
   case FFI_BAD_TYPEDEF:
     snprintf(msg, sizeof(msg),
-             "%s: Invalid structure definition (native typedef error, FFI_BAD_TYPEDEF)", op);
-    throwByName(env, EIllegalArgument, msg);
-    return JNI_TRUE;
-  case FFI_BAD_ARGTYPE:
-    snprintf(msg, sizeof(msg),
-             "%s: Invalid argument type (FFI_BAD_ARGTYPE)", op);
+             "%s: Invalid structure definition (native typedef error)", op);
     throwByName(env, EIllegalArgument, msg);
     return JNI_TRUE;
   default:
@@ -481,7 +461,7 @@ dispatch(JNIEnv *env, void* func, jint flags, jobjectArray args,
   callconv_t callconv = flags & MASK_CC;
   const char* volatile throw_type = NULL;
   const char* volatile throw_msg = NULL;
-  int fixed_args = (flags >> USE_VARARGS_SHIFT) & USE_VARARGS;
+  int fixed_args = (flags & USE_VARARGS) >> 7;
 
   nargs = (*env)->GetArrayLength(env, args);
 
@@ -512,39 +492,19 @@ dispatch(JNIEnv *env, void* func, jint flags, jobjectArray args,
     }
     else if ((*env)->IsInstanceOf(env, arg, classByte)) {
       c_args[i].b = (*env)->GetByteField(env, arg, FID_Byte_value);
-      // Promote char to int if we prepare a varargs call
-      if(fixed_args && i >= fixed_args && sizeof(char) < sizeof(int)) {
-        arg_types[i] = &ffi_type_uint32;
-        arg_values[i] = alloca(sizeof(int));
-        *(int*)arg_values[i] = (int) c_args[i].b;
-      } else {
-        arg_types[i] = &ffi_type_sint8;
-        arg_values[i] = &c_args[i].b;
-      }
+      arg_types[i] = &ffi_type_sint8;
+      arg_values[i] = &c_args[i].b;
     }
     else if ((*env)->IsInstanceOf(env, arg, classShort)) {
       c_args[i].s = (*env)->GetShortField(env, arg, FID_Short_value);
-      // Promote short to int if we prepare a varargs call
-      if(fixed_args && i >= fixed_args && sizeof(short) < sizeof(int)) {
-        arg_types[i] = &ffi_type_uint32;
-        arg_values[i] = alloca(sizeof(int));
-        *(int*)arg_values[i] = (int) c_args[i].s;
-      } else {
-        arg_types[i] = &ffi_type_sint16;
-        arg_values[i] = &c_args[i].s;
-      }
+      arg_types[i] = &ffi_type_sint16;
+      arg_values[i] = &c_args[i].s;
     }
     else if ((*env)->IsInstanceOf(env, arg, classCharacter)) {
       if (sizeof(wchar_t) == 2) {
         c_args[i].c = (*env)->GetCharField(env, arg, FID_Character_value);
-        if(fixed_args && i >= fixed_args && sizeof(short) < sizeof(int)) {
-          arg_types[i] = &ffi_type_uint32;
-          arg_values[i] = alloca(sizeof(int));
-          *(int*)arg_values[i] = (int) c_args[i].c;    
-        } else {
-          arg_types[i] = &ffi_type_uint16;
-          arg_values[i] = &c_args[i].c;
-        }
+        arg_types[i] = &ffi_type_uint16;
+        arg_values[i] = &c_args[i].c;
       }
       else if (sizeof(wchar_t) == 4) {
         c_args[i].i = (*env)->GetCharField(env, arg, FID_Character_value);
@@ -694,9 +654,8 @@ dispatch(JNIEnv *env, void* func, jint flags, jobjectArray args,
       int err = GET_LAST_ERROR();
       JNA_set_last_error(env, err);
       if ((flags & THROW_LAST_ERROR) && err) {
-        char* emsg = STR_ERROR(err);
-        snprintf(msg, MSG_SIZE, "[%d] %s", err, emsg);
-        free(emsg);
+        char emsg[MSG_SIZE];
+        snprintf(msg, sizeof(msg), "[%d] %s", err, STR_ERROR(err, emsg, sizeof(emsg)));
         throw_type = ELastError;
         throw_msg = msg;
       }
@@ -1102,11 +1061,7 @@ get_java_type(JNIEnv* env, jclass cls) {
 
 jlong
 getIntegerTypeValue(JNIEnv* env, jobject obj) {
-  if(obj == NULL) {
-    return 0;
-  } else {
-    return (*env)->GetLongField(env, obj, FID_IntegerType_value);
-  }
+  return (*env)->GetLongField(env, obj, FID_IntegerType_value);
 }
 
 void*
@@ -1190,10 +1145,10 @@ getNativeType(JNIEnv* env, jclass cls) {
                                         MID_Native_nativeType, cls);
 }
 
-jclass
-getNativeTypeMapped(JNIEnv* env, jobject converter) {
-  return (*env)->CallObjectMethod(env, converter,
-                                          MID_FromNativeConverter_nativeType);
+void*
+getFFITypeTypeMapped(JNIEnv* env, jobject converter) {
+  return L2A((*env)->CallStaticLongMethod(env, converter,
+                                          MID_ToNativeConverter_nativeType));
 }
 
 void
@@ -1813,9 +1768,6 @@ dispatch_direct(ffi_cif* cif, void* volatile resp, void** argp, void *cdata) {
             *(jlong *)args[i] = value;
           }
           else {
-            if(IS_BIG_ENDIAN) {
-                value = value << ((sizeof(ffi_arg) - data->cif.arg_types[i]->size) * 8);
-            }
             *(ffi_arg *)args[i] = (ffi_arg)value;
           }
         }
@@ -1941,9 +1893,8 @@ dispatch_direct(ffi_cif* cif, void* volatile resp, void** argp, void *cdata) {
       int err = GET_LAST_ERROR();
       JNA_set_last_error(env, err);
       if (data->throw_last_error && err) {
-        char* emsg = STR_ERROR(err);
-        snprintf(msg, sizeof(msg), "[%d] %s", err, emsg);
-        free(emsg);
+        char emsg[MSG_SIZE];
+        snprintf(msg, sizeof(msg), "[%d] %s", err, STR_ERROR(err, emsg, sizeof(emsg)));
         throw_type = ELastError;
         throw_msg = msg;
       }
@@ -1956,20 +1907,10 @@ dispatch_direct(ffi_cif* cif, void* volatile resp, void** argp, void *cdata) {
   case CVT_TYPE_MAPPER_STRING:
   case CVT_TYPE_MAPPER_WSTRING:
     {
-       int jtype;
-       if(data->rflag == CVT_TYPE_MAPPER_STRING) {
-           jtype = 'c';
-       } else if (data->rflag == CVT_TYPE_MAPPER_WSTRING) {
-           jtype = 'w';
-       } else {
-           jclass returnClass = getNativeTypeMapped(env, data->from_native);
-           jtype = get_java_type(env, returnClass);
-           if(jtype == -1) {
-               jtype = get_java_type_from_ffi_type(data->cif.rtype);
-           }
-       }
-       
-       fromNativeTypeMapped(env, data->from_native, resp, jtype, data->cif.rtype->size,
+      int jtype = (data->rflag == CVT_TYPE_MAPPER_STRING
+                   ? 'c' : (data->rflag == CVT_TYPE_MAPPER_WSTRING
+                            ? 'w' : get_java_type_from_ffi_type(data->cif.rtype)));
+      fromNativeTypeMapped(env, data->from_native, resp, jtype, data->cif.rtype->size,
                            data->closure_method, oldresp, data->encoding);
     }
     break;
@@ -2282,9 +2223,8 @@ Java_com_sun_jna_Native_open(JNIEnv *env, jclass UNUSED(cls), jstring lib, jint 
     }
 #endif
     if (!handle) {
-      char* buf = LOAD_ERROR();
-      throwByName(env, EUnsatisfiedLink, buf);
-      free(buf);
+      char buf[MSG_SIZE];
+      throwByName(env, EUnsatisfiedLink, LOAD_ERROR(buf, sizeof(buf)));
     }
     if (libname != NULL) {
       free((void *)libname);
@@ -2301,9 +2241,8 @@ JNIEXPORT void JNICALL
 Java_com_sun_jna_Native_close(JNIEnv *env, jclass UNUSED(cls), jlong handle)
 {
   if (FREE_LIBRARY(L2A(handle))) {
-    char* buf = LOAD_ERROR();
-    throwByName(env, EError, buf);
-    free(buf);
+    char buf[MSG_SIZE];
+    throwByName(env, EError, LOAD_ERROR(buf, sizeof(buf)));
   }
 }
 
@@ -2323,9 +2262,8 @@ Java_com_sun_jna_Native_findSymbol(JNIEnv *env, jclass UNUSED(cls),
     if (funname != NULL) {
       func = (void *)FIND_ENTRY(handle, funname);
       if (!func) {
-        char* buf = LOAD_ERROR();
-        throwByName(env, EUnsatisfiedLink, buf);
-        free(buf);
+        char buf[MSG_SIZE];
+        throwByName(env, EUnsatisfiedLink, LOAD_ERROR(buf, sizeof(buf)));
       }
       free((void *)funname);
     }
@@ -2564,11 +2502,26 @@ JNIEXPORT jchar JNICALL Java_com_sun_jna_Native_getChar
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_jna_Native__1getPointer
-(JNIEnv *UNUSED_ENV(env), jclass UNUSED(cls), jlong addr)
+(JNIEnv *UNUSED_ENV(env), jclass UNUSED(cls), jlong volatile addr)
 {
     void *ptr = NULL;
     MEMCPY(env, &ptr, L2A(addr), sizeof(ptr));
     return A2L(ptr);
+}
+
+/*
+ * Class:     com_sun_jna_Native
+ * Method:    getDirectByteBuffer
+ * Signature: (JJ)Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_com_sun_jna_Native_getDirectByteBuffer__JJ
+    (JNIEnv *env, jclass UNUSED(cls), jlong addr, jlong length)
+{
+#ifdef NO_NIO_BUFFERS
+    return NULL;
+#else
+    return (*env)->NewDirectByteBuffer(env, L2A(addr), length);
+#endif
 }
 
 /*
@@ -2844,7 +2797,6 @@ Java_com_sun_jna_Native_sizeof(JNIEnv *env, jclass UNUSED(cls), jint type)
   case com_sun_jna_Native_TYPE_WCHAR_T: return sizeof(wchar_t);
   case com_sun_jna_Native_TYPE_SIZE_T: return sizeof(size_t);
   case com_sun_jna_Native_TYPE_BOOL: return sizeof(bool);
-  case com_sun_jna_Native_TYPE_LONG_DOUBLE: return sizeof(long double);
   default:
     {
       char msg[MSG_SIZE];
@@ -3033,15 +2985,6 @@ Java_com_sun_jna_Native_initIDs(JNIEnv *env, jclass cls) {
     throwByName(env, EUnsatisfiedLink,
                 "Can't obtain invoke method from class com.sun.jna.Native$ffi_callback");
   }
-  else if (!LOAD_CREF(env, FromNativeConverter, "com/sun/jna/FromNativeConverter")) {
-    throwByName(env, EUnsatisfiedLink,
-                "Can't obtain class com.sun.jna.FromNativeConverter");
-  }
-  else if (!LOAD_MID(env, MID_FromNativeConverter_nativeType, classFromNativeConverter, 
-                "nativeType", "()Ljava/lang/Class;")) {
-    throwByName(env, EUnsatisfiedLink,
-                "Can't obtain method nativeType for class com.sun.jna.FromNativeConverter");
-  }
   // Initialize type fields within Structure.FFIType
   else {
 #define CFFITYPE "com/sun/jna/Structure$FFIType$FFITypes"
@@ -3076,29 +3019,27 @@ Java_com_sun_jna_Native_initIDs(JNIEnv *env, jclass cls) {
       }
       (*env)->SetStaticObjectField(env, cls, fid, newJavaPointer(env, types[i]));
     }
-    short checkValue = 0x0001;
-    IS_BIG_ENDIAN = ((char *) &checkValue)[0] == 1 ? 0 : 1;
   }
 }
 
 #ifndef NO_JAWT
-    #if !defined(__APPLE__)
-        #define JAWT_HEADLESS_HACK
-        #ifdef _WIN32
-            #if defined(_WIN64)
-                #define METHOD_NAME "JAWT_GetAWT"
-            #else
-                #define METHOD_NAME "_JAWT_GetAWT@8"
-            #endif
-        #else
-            #define METHOD_NAME "JAWT_GetAWT"
-        #endif
-
-        static void* jawt_handle = NULL;
-        static jboolean (JNICALL *pJAWT_GetAWT)(JNIEnv*,JAWT*);
-
-        #define JAWT_GetAWT (*pJAWT_GetAWT)
-    #endif
+#if !defined(__APPLE__)
+#define JAWT_HEADLESS_HACK
+#ifdef _WIN32
+#define JAWT_NAME "jawt.dll"
+#if defined(_WIN64)
+#define METHOD_NAME "JAWT_GetAWT"
+#else
+#define METHOD_NAME "_JAWT_GetAWT@8"
+#endif
+#else
+#define JAWT_NAME "libjawt.so"
+#define METHOD_NAME "JAWT_GetAWT"
+#endif
+static void* jawt_handle = NULL;
+static jboolean (JNICALL *pJAWT_GetAWT)(JNIEnv*,JAWT*);
+#define JAWT_GetAWT (*pJAWT_GetAWT)
+#endif
 #endif /* NO_JAWT */
 
 JNIEXPORT jlong JNICALL
@@ -3135,75 +3076,22 @@ Java_com_sun_jna_Native_getWindowHandle0(JNIEnv* UNUSED_JAWT(env), jclass UNUSED
       path = (wchar_t*)alloca(len * sizeof(wchar_t));
 
       swprintf(path, len, L"%s%s", prop, suffix);
-
+      
       free((void *)prop);
     }
-    if ((jawt_handle = LOAD_LIBRARY(path, DEFAULT_LOAD_OPTS)) == NULL) {
-      char* msg = LOAD_ERROR();
-      throwByName(env, EUnsatisfiedLink, msg);
-      free(msg);
+#undef JAWT_NAME
+#define JAWT_NAME path
+#endif
+    if ((jawt_handle = LOAD_LIBRARY(JAWT_NAME, DEFAULT_LOAD_OPTS)) == NULL) {
+      char msg[MSG_SIZE];
+      throwByName(env, EUnsatisfiedLink, LOAD_ERROR(msg, sizeof(msg)));
       return -1;
     }
-#else
-    const char* jawtLibraryName = "libjawt.so";
-
-    // Try to load the libjawt.so library first from the the directories listed
-    // in the sun.boot.library.path system property. At least Ubuntu builds the
-    // JDK with RUNPATH set instead of RPATH. The two differ in their effect on
-    // loading transitive dependencies.
-    //
-    // RPATHs effect also covers libraries loaded as transitive dependencies,
-    // while RUNPATH does not. In the case of JNA libjawt is loaded by
-    // libdispatch (the native JNA part), which makes it a transtive load.
-    //
-    // The solution is to load the library with the full path based on the
-    // sun.boot.library.path system property, which points to the native library
-    // dirs.
-    jstring jprop = get_system_property(env, "sun.boot.library.path");
-    if (jprop != NULL) {
-
-      char* prop = newCString(env, jprop);
-      char* saveptr = NULL;
-      char* propToBeTokeninzed = NULL;
-
-      for(propToBeTokeninzed = prop; ; propToBeTokeninzed = NULL) {
-          char* pathElement = strtok_r(propToBeTokeninzed, ":", &saveptr);
-
-          if(pathElement == NULL) {
-            break;
-          }
-
-          size_t len = strlen(pathElement) + strlen(jawtLibraryName) + 2;
-          char* path = (char*) alloca(len);
-
-          sprintf(path, "%s/%s", pathElement, jawtLibraryName);
-
-          jawt_handle = LOAD_LIBRARY(path, DEFAULT_LOAD_OPTS);
-          if(jawt_handle != NULL) {
-            break;
-          }
-      }
-
-      free((void *)prop);
-    }
-
-    if (jawt_handle == NULL) {
-      if ((jawt_handle = LOAD_LIBRARY(jawtLibraryName, DEFAULT_LOAD_OPTS)) == NULL) {
-        char* msg = LOAD_ERROR();
-        throwByName(env, EUnsatisfiedLink, msg);
-        free(msg);
-        return -1;
-      }
-    }
-#endif
     if ((pJAWT_GetAWT = (void*)FIND_ENTRY(jawt_handle, METHOD_NAME)) == NULL) {
-      char* buf = LOAD_ERROR();
-      size_t requiredBuffer = strlen(METHOD_NAME) + strlen(buf) + 31 /*static part*/ + 1 /*null*/;
-      char* msg = (char*) malloc(requiredBuffer);
-      snprintf(msg, requiredBuffer, "Error looking up JAWT method %s: %s", METHOD_NAME, buf);
+      char msg[MSG_SIZE], buf[MSG_SIZE];
+      snprintf(msg, sizeof(msg), "Error looking up JAWT method %s: %s",
+               METHOD_NAME, LOAD_ERROR(buf, sizeof(buf)));
       throwByName(env, EUnsatisfiedLink, msg);
-      free(buf);
-      free(msg);
       return -1;
     }
   }
@@ -3497,7 +3385,7 @@ Java_com_sun_jna_Native_registerMethod(JNIEnv *env, jclass UNUSED(ncls),
   const char* sig = newCStringUTF8(env, signature);
   void *code;
   void *closure;
-  method_data* data = calloc(1, sizeof(method_data));
+  method_data* data = malloc(sizeof(method_data));
   ffi_cif* closure_cif = &data->closure_cif;
   int status;
   int i;
@@ -3519,12 +3407,12 @@ Java_com_sun_jna_Native_registerMethod(JNIEnv *env, jclass UNUSED(ncls),
   }
 
   data->throw_last_error = throw_last_error;
-  data->arg_types = calloc(argc, sizeof(ffi_type*));
-  data->closure_arg_types = calloc(argc + 2, sizeof(ffi_type*));
+  data->arg_types = malloc(sizeof(ffi_type*) * argc);
+  data->closure_arg_types = malloc(sizeof(ffi_type*) * (argc + 2));
   data->closure_arg_types[0] = &ffi_type_pointer;
   data->closure_arg_types[1] = &ffi_type_pointer;
   data->closure_method = NULL;
-  data->flags = cvts ? calloc(argc, sizeof(jint)) : NULL;
+  data->flags = cvts ? malloc(sizeof(jint)*argc) : NULL;
   data->rflag = rconversion;
   data->to_native = NULL;
   data->from_native = from_native ? (*env)->NewWeakGlobalRef(env, from_native) : NULL;
@@ -3563,11 +3451,6 @@ Java_com_sun_jna_Native_registerMethod(JNIEnv *env, jclass UNUSED(ncls),
   }
 
   closure = ffi_closure_alloc(sizeof(ffi_closure), &code);
-  if (closure == NULL) {
-    throwByName(env, EUnsupportedOperation, "Failed to allocate closure");
-    status = FFI_BAD_ABI;
-    goto cleanup;
-  }
   status = ffi_prep_closure_loc(closure, closure_cif, dispatch_direct, data, code);
   if (status != FFI_OK) {
     throwByName(env, EError, "Native method linkage failed");
@@ -3612,35 +3495,20 @@ Java_com_sun_jna_Native_ffi_1prep_1cif(JNIEnv *env, jclass UNUSED(cls), jint abi
 JNIEXPORT jlong JNICALL
 Java_com_sun_jna_Native_ffi_1prep_1closure(JNIEnv *env, jclass UNUSED(cls), jlong cif, jobject obj)
 {
-  callback* cb = (callback *)calloc(1, sizeof(callback));
+  callback* cb = (callback *)malloc(sizeof(callback));
   ffi_status s;
 
   if ((*env)->GetJavaVM(env, &cb->vm) != JNI_OK) {
-    free(cb);
     throwByName(env, EUnsatisfiedLink, "Can't get Java VM");
     return 0;
   }
 
   cb->object = (*env)->NewWeakGlobalRef(env, obj);
-  if (cb->object == NULL) {
-    // either obj was null or an OutOfMemoryError has been thrown
-    free(cb);
-    return 0;
-  }
   cb->closure = ffi_closure_alloc(sizeof(ffi_closure), L2A(&cb->x_closure));
-  if (cb->closure == NULL) {
-    (*env)->DeleteWeakGlobalRef(env, cb->object);
-    free(cb);
-    throwByName(env, EUnsupportedOperation, "Failed to allocate closure");
-    return 0;
-  }
 
   s = ffi_prep_closure_loc(cb->closure, L2A(cif), &closure_handler,
                            cb, cb->x_closure);
   if (ffi_error(env, "ffi_prep_cif", s)) {
-    ffi_closure_free(cb->closure);
-    (*env)->DeleteWeakGlobalRef(env, cb->object);
-    free(cb);
     return 0;
   }
   return A2L(cb);

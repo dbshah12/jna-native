@@ -1,23 +1,23 @@
 /* Copyright (c) 2007-2008 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class StringArray extends Memory implements Function.PostCallRead {
     private String encoding;
-    private List<NativeString> natives = new ArrayList<>();
+    private List<NativeString> natives = new ArrayList<NativeString>();
     private Object[] original;
     /** Create a native array of strings. */
     public StringArray(String[] strings) {
@@ -53,7 +53,7 @@ public class StringArray extends Memory implements Function.PostCallRead {
         this(strings, NativeString.WIDE_STRING);
     }
     private StringArray(Object[] strings, String encoding) {
-        super((strings.length + 1) * Native.POINTER_SIZE);
+        super((strings.length + 1) * Pointer.SIZE);
         this.original = strings;
         this.encoding = encoding;
         for (int i=0;i < strings.length;i++) {
@@ -63,9 +63,9 @@ public class StringArray extends Memory implements Function.PostCallRead {
                 natives.add(ns);
                 p = ns.getPointer();
             }
-            setPointer(Native.POINTER_SIZE * i, p);
+            setPointer(Pointer.SIZE * i, p);
         }
-        setPointer(Native.POINTER_SIZE * strings.length, null);
+        setPointer(Pointer.SIZE * strings.length, null);
     }
     /** Read back from native memory. */
     @Override
@@ -73,7 +73,7 @@ public class StringArray extends Memory implements Function.PostCallRead {
         boolean returnWide = original instanceof WString[];
         boolean wide = NativeString.WIDE_STRING.equals(encoding);
         for (int si=0;si < original.length;si++) {
-            Pointer p = getPointer(si * Native.POINTER_SIZE);
+            Pointer p = getPointer(si * Pointer.SIZE);
             Object s = null;
             if (p != null) {
                 s = wide ? p.getWideString(0) : p.getString(0, encoding);

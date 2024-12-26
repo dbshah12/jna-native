@@ -255,7 +255,7 @@ public class WevtapiTest extends TestCase {
     public void testEvtOpenChannelEnum() throws Exception {
 
         EVT_HANDLE channelHandle = null;
-        List<String> channelList = new ArrayList<>();
+        List<String> channelList = new ArrayList<String>();
         try {
             channelHandle = Wevtapi.INSTANCE.EvtOpenChannelEnum(null, 0);
             if (channelHandle == null) {
@@ -337,7 +337,7 @@ public class WevtapiTest extends TestCase {
                 Winevt.EVT_RPC_LOGIN_FLAGS.EvtRpcLoginAuthDefault);
         EVT_HANDLE session = null;
         EVT_HANDLE publisherEnumHandle = null;
-        List<String> publisherList = new ArrayList<>();
+        List<String> publisherList = new ArrayList<String>();
         try {
             session = Wevtapi.INSTANCE.EvtOpenSession(Winevt.EVT_LOGIN_CLASS.EvtRpcLogin, login, 0, 0);
             if (session == null) {

@@ -1,23 +1,23 @@
 /* Copyright (c) 2007-2013 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -67,16 +67,13 @@ public class CallbacksTest extends TestCase implements Paths {
 
     protected void waitFor(Thread thread) {
         long start = System.currentTimeMillis();
-        while (thread.isAlive()) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-            }
-            if (System.currentTimeMillis() - start > THREAD_TIMEOUT) {
-                fail("Timed out waiting for native thread " + thread
-                        + " to detach and terminate");
-            }
-        }
+	while (thread.isAlive()) {
+	    try { Thread.sleep(10); } catch(InterruptedException e) { }
+	    if (System.currentTimeMillis() - start > THREAD_TIMEOUT) {
+		fail("Timed out waiting for native thread " + thread
+                     + " to detach and terminate");
+	    }
+	}
     }
 
     public static class SmallTestStructure extends Structure {
@@ -130,7 +127,7 @@ public class CallbacksTest extends TestCase implements Paths {
             void callback();
         }
         void callVoidCallback(VoidCallback c);
-        void callVoidCallbackThreaded(VoidCallback c, int count, int ms, String name, int stacksize);
+        void callVoidCallbackThreaded(VoidCallback c, int count, int ms, String name);
         interface VoidCallbackCustom extends Callback {
             void customMethodName();
         }
@@ -185,7 +182,7 @@ public class CallbacksTest extends TestCase implements Paths {
         }
         WString callWideStringCallback(WideStringCallback c, WString arg, WString arg2);
         interface CopyArgToByReference extends Callback {
-            int callback(int arg, IntByReference result);
+        	int callback(int arg, IntByReference result);
         }
         interface StringArrayCallback extends Callback {
             String[] callback(String[] arg);
@@ -233,7 +230,7 @@ public class CallbacksTest extends TestCase implements Paths {
 
     @Override
     protected void setUp() {
-        lib = Native.load("testlib", TestLibrary.class);
+        lib = Native.loadLibrary("testlib", TestLibrary.class);
     }
 
     @Override
@@ -285,16 +282,15 @@ public class CallbacksTest extends TestCase implements Paths {
         }
     }
 
-    public void testAcceptMultiplyMappedCallbacks() {
-        Pointer p = new Pointer(getName().hashCode());
-
-        Callback cbV1 = CallbackReference.getCallback(TestLibrary.VoidCallback.class, p);
-        Callback cbB1 = CallbackReference.getCallback(TestLibrary.ByteCallback.class, p);
-        Callback cbV2 = CallbackReference.getCallback(TestLibrary.VoidCallback.class, p);
-        Callback cbB2 = CallbackReference.getCallback(TestLibrary.ByteCallback.class, p);
-
-        assertSame(cbV1, cbV2);
-        assertSame(cbB1, cbB2);
+    public void testThrowOnMultiplyMappedCallback() {
+        try {
+            Pointer p = new Pointer(getName().hashCode());
+            CallbackReference.getCallback(TestLibrary.VoidCallback.class, p);
+            CallbackReference.getCallback(TestLibrary.ByteCallback.class, p);
+            fail("Multiply-mapped callback should fail");
+        }
+        catch(IllegalStateException e) {
+        }
     }
 
     public void testNoMethodCallback() {
@@ -354,7 +350,7 @@ public class CallbacksTest extends TestCase implements Paths {
         lib.callVoidCallback(cb);
         assertTrue("Callback not called", called[0]);
 
-        Map<Callback, CallbackReference> refs = new WeakHashMap<>(callbackCache());
+        Map<Callback, CallbackReference> refs = new WeakHashMap<Callback, CallbackReference>(callbackCache());
         assertTrue("Callback not cached", refs.containsKey(cb));
         CallbackReference ref = refs.get(cb);
         refs = callbackCache();
@@ -694,7 +690,7 @@ public class CallbacksTest extends TestCase implements Paths {
         String arg = getName() + "1" + charset.decode(charset.encode(UNICODE));
         String arg2 = getName() + "2" + charset.decode(charset.encode(UNICODE));
         String value = lib.callStringCallback(cb, arg, arg2);
-        WeakReference<Object> ref = new WeakReference<>(value);
+        WeakReference<Object> ref = new WeakReference<Object>(value);
 
         arg = null;
         value = null;
@@ -759,7 +755,7 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testCallCallbackWithByReferenceArgument() {
-        final boolean[] called = {false};
+    	final boolean[] called = {false};
         TestLibrary.CopyArgToByReference cb = new TestLibrary.CopyArgToByReference() {
             @Override
             public int callback(int arg, IntByReference result) {
@@ -799,15 +795,15 @@ public class CallbacksTest extends TestCase implements Paths {
                    + arg[0].getPointer(), arg[0].getPointer() instanceof Memory);
         assertTrue("ByValue result should own its own memory, instead was "
                    + result.getPointer(), result.getPointer() instanceof Memory);
-        if (!s.dataEquals(arg[0], true)) {
-            System.out.println("Mismatch: " + s);
-            System.out.println("  versus: " + arg[0]);
-        }
+	if (!s.dataEquals(arg[0], true)) {
+	    System.out.println("Mismatch: " + s);
+	    System.out.println("  versus: " + arg[0]);
+	}
         assertTrue("Wrong value for callback argument", s.dataEquals(arg[0], true));
-        if (!s.dataEquals(result, true)) {
-            System.out.println("Mismatch: " + s);
-            System.out.println("  versus: " + result);
-        }
+	if (!s.dataEquals(result, true)) {
+	    System.out.println("Mismatch: " + s);
+	    System.out.println("  versus: " + result);
+	}
         assertTrue("Wrong value for callback result", s.dataEquals(result, true));
     }
 
@@ -983,7 +979,7 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testCustomCallbackMethodName() {
-        final boolean[] called = {false};
+    	final boolean[] called = {false};
         TestLibrary.VoidCallbackCustom cb = new TestLibrary.VoidCallbackCustom() {
             @Override
             public void customMethodName() {
@@ -999,7 +995,7 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testDisallowDetachFromJVMThread() {
-        final boolean[] called = {false};
+    	final boolean[] called = {false};
         final boolean[] exceptionThrown = {true};
         TestLibrary.VoidCallback cb = new TestLibrary.VoidCallback() {
             @Override
@@ -1018,7 +1014,7 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testCustomCallbackVariedInheritance() {
-        final boolean[] called = {false};
+    	final boolean[] called = {false};
         TestLibrary.VoidCallbackCustom cb =
             new TestLibrary.VoidCallbackCustomDerived();
         lib.callVoidCallback(cb);
@@ -1112,7 +1108,7 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     protected CallbackTestLibrary loadCallbackTestLibrary() {
-        return Native.load("testlib", CallbackTestLibrary.class, CallbackTestLibrary._OPTIONS);
+        return Native.loadLibrary("testlib", CallbackTestLibrary.class, CallbackTestLibrary._OPTIONS);
     }
 
     /** This test is here instead of NativeTest in order to facilitate running
@@ -1209,7 +1205,7 @@ public class CallbacksTest extends TestCase implements Paths {
                                         CallbackThreadInitializer cti,
                                         int repeat, int sleepms,
                                         int[] called) throws Exception {
-        callThreadedCallback(cb, cti, repeat, sleepms, called, repeat);
+	callThreadedCallback(cb, cti, repeat, sleepms, called, repeat);
     }
 
     protected void callThreadedCallback(TestLibrary.VoidCallback cb,
@@ -1219,7 +1215,7 @@ public class CallbacksTest extends TestCase implements Paths {
         if (cti != null) {
             Native.setCallbackThreadInitializer(cb, cti);
         }
-        lib.callVoidCallbackThreaded(cb, repeat, sleepms, getName(), 0);
+        lib.callVoidCallbackThreaded(cb, repeat, sleepms, getName());
 
         long start = System.currentTimeMillis();
         while (called[0] < returnAfter) {
@@ -1231,8 +1227,8 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testCallbackThreadDefaults() throws Exception {
-        final int[] called = {0};
-        final boolean[] daemon = {false};
+    	final int[] called = {0};
+    	final boolean[] daemon = {false};
         final String[] name = { null };
         final ThreadGroup[] group = { null };
         final Thread[] t = { null };
@@ -1256,8 +1252,8 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testCustomizeCallbackThread() throws Exception {
-        final int[] called = {0};
-        final boolean[] daemon = {false};
+    	final int[] called = {0};
+    	final boolean[] daemon = {false};
         final String[] name = { null };
         final ThreadGroup[] group = { null };
         final Thread[] t = { null };
@@ -1298,40 +1294,21 @@ public class CallbacksTest extends TestCase implements Paths {
         assertTrue("Thread should still be alive", t[0].isAlive());
 
         long start = System.currentTimeMillis();
-        while (called[0] < 2) {
-            Thread.sleep(10);
-            if (System.currentTimeMillis() - start > THREAD_TIMEOUT) {
-                fail("Timed out waiting for second callback invocation, which indicates detach");
-            }
-        }
+	while (called[0] < 2) {
+	    Thread.sleep(10);
+	    if (System.currentTimeMillis() - start > THREAD_TIMEOUT) {
+		fail("Timed out waiting for second callback invocation, which indicates detach");
+	    }
+	}
 
         waitFor(t[0]);
-    }
-
-    public void testSmallStackCallback() throws Exception {
-        // This test runs the callback in a thread, that is allocated a very
-        // small size. It was observed on linux amd64, that a library allocated
-        // a stack size of 64kB, this prevented the JVM to attach to that
-        // thread. The JNIEnv pointer was not checked and this lead to a
-        // hard crash of the JVM.
-        TestLibrary.VoidCallback cb = new TestLibrary.VoidCallback() {
-            @Override
-            public void callback() {
-                System.out.println("Callback called");
-            }
-        };
-
-        lib.callVoidCallbackThreaded(cb, 1, 0, "Test Callback", 64 * 1024);
-
-        // Give the JVM enough time to run the call back
-        Thread.sleep(1 * 1000);
     }
 
     // Detach preference is indicated by the initializer.  Thread is attached
     // as daemon to avoid VM having to wait for it.
     public void testCallbackThreadPersistence() throws Exception {
-        final int[] called = {0};
-        final Set<Thread> threads = new HashSet<>();
+    	final int[] called = {0};
+        final Set<Thread> threads = new HashSet<Thread>();
 
         final int COUNT = 5;
         CallbackThreadInitializer init = new CallbackThreadInitializer(true, false) {
@@ -1360,12 +1337,12 @@ public class CallbacksTest extends TestCase implements Paths {
 
     // Thread object is never GC'd on linux-amd64 and darwin-amd64 (w/openjdk7)
     public void testCleanupUndetachedThreadOnThreadExit() throws Exception {
-        final Set<Reference<Thread>> threads = new HashSet<>();
+        final Set<Reference<Thread>> threads = new HashSet<Reference<Thread>>();
         final int[] called = { 0 };
         TestLibrary.VoidCallback cb = new TestLibrary.VoidCallback() {
             @Override
             public void callback() {
-                threads.add(new WeakReference<>(Thread.currentThread()));
+                threads.add(new WeakReference<Thread>(Thread.currentThread()));
                 if (++called[0] == 1) {
                     Thread.currentThread().setName(getName() + " (Thread to be cleaned up)");
                 }
@@ -1374,10 +1351,10 @@ public class CallbacksTest extends TestCase implements Paths {
         };
         // Always attach as daemon to ensure tests will exit
         CallbackThreadInitializer asDaemon = new CallbackThreadInitializer(true) {
-            @Override
+    	    @Override
             public String getName(Callback cb) {
-                return "Test thread (native) for " + CallbacksTest.this.getName();
-            }
+    	        return "Test thread (native) for " + CallbacksTest.this.getName();
+    	    }
         };
         callThreadedCallback(cb, asDaemon, 2, 100, called);
         // Wait for it to start up
@@ -1393,8 +1370,8 @@ public class CallbacksTest extends TestCase implements Paths {
         while (ref.get() != null) {
             System.gc();
             Thread.sleep(100);
-            Thread[] remaining = new Thread[Thread.activeCount()];
-            Thread.enumerate(remaining);
+    	    Thread[] remaining = new Thread[Thread.activeCount()];
+    	    Thread.enumerate(remaining);
             if (System.currentTimeMillis() - start > THREAD_TIMEOUT) {
                 Thread t = ref.get();
                 Pointer terminationFlag = Native.getTerminationFlag(t);
@@ -1413,8 +1390,8 @@ public class CallbacksTest extends TestCase implements Paths {
     // CallbackThreadInitializer); thread is non-daemon (default),
     // but callback explicitly detaches it on final invocation.
     public void testCallbackIndicatedThreadDetach() throws Exception {
-        final int[] called = {0};
-        final Set<Thread> threads = new HashSet<>();
+    	final int[] called = {0};
+        final Set<Thread> threads = new HashSet<Thread>();
         final int COUNT = 5;
         TestLibrary.VoidCallback cb = new TestLibrary.VoidCallback() {
             @Override
@@ -1477,7 +1454,7 @@ public class CallbacksTest extends TestCase implements Paths {
         assertEquals("Wrong module HANDLE for DLL function pointer", handle, pref.getValue());
 
         // Check slot re-use
-        Map<Callback, CallbackReference> refs = new WeakHashMap<>(callbackCache());
+        Map<Callback, CallbackReference> refs = new WeakHashMap<Callback, CallbackReference>(callbackCache());
         assertTrue("Callback not cached", refs.containsKey(cb));
         CallbackReference ref = refs.get(cb);
         refs = callbackCache();
@@ -1547,7 +1524,7 @@ public class CallbacksTest extends TestCase implements Paths {
     }
 
     public void testCallingConventionFromInterface() {
-        TaggedCallingConventionTestLibrary lib = Native.load("testlib", TaggedCallingConventionTestLibrary.class);
+        TaggedCallingConventionTestLibrary lib = Native.loadLibrary("testlib", TaggedCallingConventionTestLibrary.class);
         TaggedCallingConventionTestLibrary.TestCallbackTagged cb = new TaggedCallingConventionTestLibrary.TestCallbackTagged() {
             @Override
             public void invoke() { }
@@ -1571,7 +1548,7 @@ public class CallbacksTest extends TestCase implements Paths {
 
     public void testCallingConventionFromOptions() {
         OptionCallingConventionTestLibrary lib =
-                Native.load("testlib", OptionCallingConventionTestLibrary.class, Collections.singletonMap(Library.OPTION_CALLING_CONVENTION, Function.ALT_CONVENTION));
+                Native.loadLibrary("testlib", OptionCallingConventionTestLibrary.class, Collections.singletonMap(Library.OPTION_CALLING_CONVENTION, Function.ALT_CONVENTION));
         assertNotNull("Library not loaded", lib);
         OptionCallingConventionTestLibrary.TestCallback cb = new OptionCallingConventionTestLibrary.TestCallback() {
             @Override

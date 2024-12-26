@@ -1,36 +1,36 @@
 /* Copyright (c) 2010 Daniel Doubrovkine, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
 package com.sun.jna.platform.win32;
 
 import java.awt.Rectangle;
+import java.util.List;
 
 import com.sun.jna.IntegerType;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.platform.win32.BaseTSD.LONG_PTR;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinNT.HANDLEByReference;
@@ -631,49 +631,6 @@ public interface WinDef {
     }
 
     /**
-     * Handle to a input locale identifier (formerly called keyboard layout
-     * handle).
-     */
-    public static class HKL extends HANDLE {
-
-        /**
-         * Instantiates a new hkl.
-         */
-        public HKL() {
-
-        }
-
-        /**
-         * Instantiates a new hkl.
-         *
-         * @param p the p
-         */
-        public HKL(Pointer p) {
-            super(p);
-        }
-
-        public HKL(int i) {
-            super(Pointer.createConstant(i));
-        }
-
-        /**
-         * Get the low word (unsigned short).
-         */
-        public int getLanguageIdentifier() {
-            return (int) (Pointer.nativeValue(getPointer()) & 0xFFFF);
-        }
-
-        public int getDeviceHandle() {
-            return (int) (Pointer.nativeValue(getPointer()) >> 16 & 0xFFFF);
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%08x", Pointer.nativeValue(getPointer()));
-        }
-    }
-
-    /**
      * Message parameter.
      */
     public static class LPARAM extends LONG_PTR {
@@ -726,7 +683,7 @@ public interface WinDef {
          * Instantiates a new int ptr.
          */
         public INT_PTR() {
-            super(Native.POINTER_SIZE);
+            super(Pointer.SIZE);
         }
 
         /**
@@ -736,7 +693,7 @@ public interface WinDef {
          *            the value
          */
         public INT_PTR(long value) {
-            super(Native.POINTER_SIZE, value);
+            super(Pointer.SIZE, value);
         }
 
         /**
@@ -758,7 +715,7 @@ public interface WinDef {
          * Instantiates a new uint ptr.
          */
         public UINT_PTR() {
-            super(Native.POINTER_SIZE);
+            super(Pointer.SIZE);
         }
 
         /**
@@ -768,7 +725,7 @@ public interface WinDef {
          *            the value
          */
         public UINT_PTR(long value) {
-            super(Native.POINTER_SIZE, value, true);
+            super(Pointer.SIZE, value, true);
         }
 
         /**
@@ -807,8 +764,8 @@ public interface WinDef {
     /**
      * The Class RECT.
      */
-    @FieldOrder({"left", "top", "right", "bottom"})
     public class RECT extends Structure {
+        public static final List<String> FIELDS = createFieldsOrder("left", "top", "right", "bottom");
         /** The left. */
         public int left;
 
@@ -820,6 +777,11 @@ public interface WinDef {
 
         /** The bottom. */
         public int bottom;
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
+        }
 
         /**
          * To rectangle.
@@ -914,7 +876,7 @@ public interface WinDef {
     public static class ULONGLONG extends IntegerType implements Comparable<ULONGLONG> {
 
         /** The Constant SIZE. */
-        public static final int SIZE = 8;
+        public static final int SIZE = Native.LONG_SIZE *2;
 
         /**
          * Instantiates a new ULONGLONG.
@@ -1099,7 +1061,6 @@ public interface WinDef {
     /**
      * The Class POINT.
      */
-    @FieldOrder({"x", "y"})
     public class POINT extends Structure {
 
         /**
@@ -1119,7 +1080,7 @@ public interface WinDef {
             }
 
         }
-
+        
         /**
          * The Class ByValue.
          */
@@ -1137,6 +1098,8 @@ public interface WinDef {
             }
 
         }
+
+        public static final List<String> FIELDS = createFieldsOrder("x", "y");
 
         /** The x. */
         public int x;
@@ -1171,6 +1134,11 @@ public interface WinDef {
         public POINT(int x, int y) {
             this.x = x;
             this.y = y;
+        }
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return FIELDS;
         }
     }
 
@@ -1726,31 +1694,32 @@ public interface WinDef {
          * @return the value
          */
         public CHAR getValue() {
-            return new CHAR(getPointer().getByte(0));
+            return new CHAR(getPointer().getChar(0));
         }
     }
 
-    /**
-     * handle to an OpenGL rendering context
-     */
-    public static class HGLRC extends HANDLE {
+	/**
+	 * handle to an OpenGL rendering context
+	 */
+	public static class HGLRC extends HANDLE {
 
-        /**
-         * Instantiates a new HGLRC .
-         */
-        public HGLRC() {
+	    /**
+	     * Instantiates a new HGLRC .
+	     */
+	    public HGLRC() {
 
-        }
+	    }
 
-        /**
-         * Instantiates a new HGLRC .
-         *
-         * @param p the p
-         */
-        public HGLRC(Pointer p) {
-            super(p);
-        }
-    }
+	    /**
+	     * Instantiates a new HGLRC .
+	     *
+	     * @param p
+	     *            the p
+	     */
+	    public HGLRC(Pointer p) {
+	        super(p);
+	    }
+	}
 
     /**
      * handle to an OpenGL rendering context

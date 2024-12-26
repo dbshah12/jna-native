@@ -1,25 +1,14 @@
 /* Copyright (c) 2007 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * <p/>
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.  
  */
 package com.sun.jna.platform.win32;
 
@@ -41,13 +30,13 @@ public class W32FileMonitorTest extends TestCase {
     public static void main(String[] args) {
         junit.textui.TestRunner.run(W32FileMonitorTest.class);
     }
-
+	
     private Map<Integer, FileEvent> events;
     private FileMonitor monitor;
     private File tmpdir;
-
+    
     protected void setUp() throws Exception {
-        events = new HashMap<>();
+        events = new HashMap<Integer, FileEvent>();
         final FileListener listener = new FileListener() {
             public void fileChanged(FileEvent e) {
                 events.put(Integer.valueOf(e.getType()), e);
@@ -57,20 +46,20 @@ public class W32FileMonitorTest extends TestCase {
         monitor.addFileListener(listener);
         tmpdir = new File(Kernel32Util.getTempPath());
     }
-
+    
     protected void tearDown() {
         if (monitor != null) {
             monitor.dispose();
         }
     }
-
+    
     public void testNotifyOnFileCreation() throws Exception {
         monitor.addWatch(tmpdir);
         File file = File.createTempFile(getName(), ".tmp", tmpdir);
         file.deleteOnExit();
         assertFileEventCreated(file);
     }
-
+    
     public void testNotifyOnFileDelete() throws Exception {
         monitor.addWatch(tmpdir);
         File file = File.createTempFile(getName(), ".tmp", tmpdir);
@@ -80,7 +69,7 @@ public class W32FileMonitorTest extends TestCase {
         assertNotNull("No delete event: " + events, event);
         assertEquals("Wrong target file for event", file, event.getFile());
     }
-
+    
     public void testNotifyOnFileDeleteViaAddWatchMask() throws Exception {
         if (!Platform.isWindows()) return;
 
@@ -115,14 +104,17 @@ public class W32FileMonitorTest extends TestCase {
         monitor.addWatch(tmpdir);
         File file = File.createTempFile(getName(), ".tmp", tmpdir);
         file.deleteOnExit();
-        try (FileOutputStream os = new FileOutputStream(file)) {
+        final FileOutputStream os = new FileOutputStream(file);
+        try {
             os.write(getName().getBytes());
+        } finally {
+            os.close();
         }
         final FileEvent event = waitForFileEvent(FileMonitor.FILE_MODIFIED);
         assertNotNull("No file modified event: " + events, event);
         assertEquals("Wrong target file for event (old)", file, event.getFile());
     }
-
+    
     private void delete(File file) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();

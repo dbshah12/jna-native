@@ -31,8 +31,6 @@ extern "C" {
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <string.h>
-
 #if !defined(_WIN32_WCE)
 #include <errno.h>
 #endif
@@ -56,7 +54,7 @@ typedef __int64 int64_t;
 #define EXPORT __declspec(dllexport)
 #define SLEEP(MS) Sleep(MS)
 #define THREAD_T DWORD
-#define THREAD_CREATE(TP, FN, DATA, STACKSIZE) CreateThread(NULL, STACKSIZE, FN, DATA, 0, TP)
+#define THREAD_CREATE(TP, FN, DATA) CreateThread(NULL, 0, FN, DATA, 0, TP)
 #define THREAD_EXIT() ExitThread(0)
 #define THREAD_FUNC(FN,ARG) DWORD WINAPI FN(LPVOID ARG)
 #define THREAD_CURRENT() GetCurrentThreadId()
@@ -71,15 +69,7 @@ typedef __int64 int64_t;
 #include <pthread.h>
 #define SLEEP(MS) usleep(MS*1000)
 #define THREAD_T pthread_t
-#define THREAD_CREATE(TP, FN, DATA, STACKSIZE) {\
-  pthread_attr_t attr;\
-  pthread_attr_init(&attr);\
-  if (STACKSIZE > 0) {\
-    pthread_attr_setstacksize(&attr, STACKSIZE);\
-  }\
-  pthread_create(TP, &attr, FN, DATA);\
-  pthread_attr_destroy(&attr);\
-}
+#define THREAD_CREATE(TP, FN, DATA) pthread_create(TP, NULL, FN, DATA)
 #define THREAD_EXIT() pthread_exit(NULL)
 #define THREAD_FUNC(FN,ARG) void* FN(void *ARG)
 #define THREAD_RETURN return NULL
@@ -686,7 +676,7 @@ static THREAD_FUNC(thread_function, arg) {
 }
 
 EXPORT void
-callVoidCallbackThreaded(void (*func)(void), int n, int ms, const char* name, int stacksize) {
+callVoidCallbackThreaded(void (*func)(void), int n, int ms, const char* name) {
   THREAD_T thread;
   thread_data* data = (thread_data*)malloc(sizeof(thread_data));
 
@@ -694,7 +684,7 @@ callVoidCallbackThreaded(void (*func)(void), int n, int ms, const char* name, in
   data->sleep_time = ms;
   data->func = func;
   snprintf(data->name, sizeof(data->name), "%s", name);
-  THREAD_CREATE(&thread, &thread_function, data, stacksize);
+  THREAD_CREATE(&thread, &thread_function, data);
 }
 
 EXPORT int 
@@ -807,7 +797,7 @@ callCallbackWithStructByValue(TestStructureByValue (*func)(TestStructureByValue)
 
 EXPORT callback_t
 callCallbackWithCallback(cb_callback_t cb) {
-  return (*cb)((callback_t)(void*)cb);
+  return (*cb)((callback_t)cb);
 }
 
 static int32_t 
@@ -892,8 +882,7 @@ addVarArgs(const char *fmt, ...) {
     case 'l':
       sum += (int) va_arg(ap, int64_t);
       break;
-    case 's': // short (promoted to 'int' when passed through '...') 
-    case 'c': // byte/char (promoted to 'int' when passed through '...')
+    case 'c':
       sum += (int) va_arg(ap, int);
       break;
     case 'f': // float (promoted to ‘double’ when passed through ‘...’)
@@ -903,20 +892,6 @@ addVarArgs(const char *fmt, ...) {
     default:
       break;
     }
-  }
-  va_end(ap);
-  return sum;
-}
-
-EXPORT int32_t
-addSeveralFixedArgsAndVarArgs(int a, int b, int c, int d, int n_varargs, ...) {
-  va_list ap;
-  int i;
-  int32_t sum = a + b + c + d;
-  va_start(ap, n_varargs);
-
-  for (i = 0; i < n_varargs; i++) {
-    sum += va_arg(ap, int32_t);
   }
   va_end(ap);
   return sum;
@@ -961,24 +936,6 @@ returnStringVarArgs2(const char *fmt, ...) {
   cp = va_arg(ap, char *);
   va_end(ap);
   return cp;
-}
-
-typedef union _MixedUnion1 {
-  int intValue;
-  double doubleValue;
-} MixedUnion1;
-
-EXPORT
-int stringifyMixedUnion1(
-        char* buffer, int bufferLength,
-        int dummyInt1, double dummyDouble1,
-        MixedUnion1 union1, MixedUnion1 union2,
-        int dummyInt2, double dummyDouble2) {
-    return snprintf(
-            buffer, bufferLength - 1,
-            "dummyInt1: %d, dummyDouble1: %.0f, dummyInt2: %d, dummyDouble2: %.0f, union1.intValue: %d, union2.doubleValue: %.0f",
-            dummyInt1, dummyDouble1, dummyInt2, dummyDouble2,
-            union1.intValue, union2.doubleValue);
 }
 
 #if defined(_WIN32) && !defined(_WIN64) && !defined(_WIN32_WCE)
@@ -1072,56 +1029,6 @@ Java_com_sun_jna_PerformanceTest_00024JNILibrary_getpid(JNIEnv *UNUSED(env), jcl
 EXPORT jclass
 returnClass(JNIEnv *env, jobject arg) {
   return (*env)->GetObjectClass(env, arg);
-}
-
-typedef struct{
-  double t1[3];
-  double t2[4];
-  double t3[5];
-} DemoStructureDifferentArrayLengths;
-
-EXPORT DemoStructureDifferentArrayLengths
-returnLastElementOfComponentsDSDAL(DemoStructureDifferentArrayLengths ts, int debug) {
-  DemoStructureDifferentArrayLengths result;
-  result.t1[2] = ts.t1[2];
-  result.t2[3] = ts.t2[3];
-  result.t3[4] = ts.t3[4];
-  if(debug) {
-    printf("DemoStructureDifferentArrayLengths.t1[2]: %1.3f\n", result.t1[2]);
-    printf("DemoStructureDifferentArrayLengths.t2[3]: %1.3f\n", result.t2[3]);
-    printf("DemoStructureDifferentArrayLengths.t3[4]: %1.3f\n", result.t3[4]);
-  }
-  return result;
-}
-
-/**
- * Copy the input char array to the output char array. The caller is responsible
- * to allocate a correctly sized buffer.
- */
-EXPORT size_t copyString(char* input, char* output) {
-    size_t len = strlen(input) + 1;
-    memcpy(output, input, len);
-    return len;
-}
-
-/**
- * Copy the input array of char arrays to the output char array. The caller is
- * responsible to allocate a correctly sized buffer.
- */
-EXPORT size_t copyStringArray(char** input, char* output) {
-    int i;
-    size_t len = 0;
-    for(i = 0;; i++) {
-        char* currInput = input[i];
-        if(currInput == NULL) {
-            break;
-        }
-        size_t localLen = strlen(currInput) + 1;
-        memcpy(output, currInput, localLen);
-        output += localLen;
-        len += localLen;
-    }
-    return len;
 }
 
 #ifdef __cplusplus

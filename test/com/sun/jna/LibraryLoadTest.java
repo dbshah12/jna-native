@@ -1,23 +1,23 @@
 /* Copyright (c) 2007-20013 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -47,7 +47,7 @@ public class LibraryLoadTest extends TestCase implements Paths {
     }
 
     public void testLoadJNALibrary() {
-        assertTrue("Pointer size should never be zero", Native.POINTER_SIZE > 0);
+        assertTrue("Pointer size should never be zero", Pointer.SIZE > 0);
     }
 
     public void testLoadJAWT() {
@@ -65,7 +65,7 @@ public class LibraryLoadTest extends TestCase implements Paths {
 
         if (GraphicsEnvironment.isHeadless()) return;
 
-        if (Native.POINTER_SIZE > 0) {
+        if (Pointer.SIZE > 0) {
             Toolkit.getDefaultToolkit();
         }
     }
@@ -100,8 +100,7 @@ public class LibraryLoadTest extends TestCase implements Paths {
     }
 
     public void testLoadFromJar() throws MalformedURLException {
-        NativeLibrary.getInstance("testlib-jar", new TestLoader(new File(TESTJAR2)));
-        NativeLibrary.getInstance("testlib-jar", new TestLoader(new File(TESTJAR3)));
+        NativeLibrary.getInstance("testlib-jar", new TestLoader(new File(TESTJAR)));
     }
 
     public void testLoadFromJarAbsolute() throws MalformedURLException {
@@ -125,15 +124,15 @@ public class LibraryLoadTest extends TestCase implements Paths {
     }
 
     private Object load() {
-        return Native.load(Platform.C_LIBRARY_NAME, CLibrary.class);
+        return Native.loadLibrary(Platform.C_LIBRARY_NAME, CLibrary.class);
     }
 
     public void testLoadProcess() {
-        Native.load(CLibrary.class);
+        Native.loadLibrary(CLibrary.class);
     }
 
     public void testLoadProcessWithOptions() {
-        Native.load(CLibrary.class, Collections.EMPTY_MAP);
+        Native.loadLibrary(CLibrary.class, Collections.EMPTY_MAP);
     }
 
     public void testLoadCLibrary() {
@@ -204,12 +203,13 @@ public class LibraryLoadTest extends TestCase implements Paths {
     public void testLoadFrameworkLibrary() {
         if (Platform.isMac()) {
             final String PATH = "/System/Library/Frameworks/CoreServices.framework";
+            assertTrue("CoreServices not present on this setup, expected at " + PATH, new File(PATH).exists());
             try {
                 NativeLibrary lib = NativeLibrary.getInstance("CoreServices");
                 assertNotNull("CoreServices not found", lib);
             }
             catch(UnsatisfiedLinkError e) {
-                failCoreServices("Should search /System/Library/Frameworks: ", e, PATH);
+                fail("Should search /System/Library/Frameworks");
             }
         }
     }
@@ -218,12 +218,13 @@ public class LibraryLoadTest extends TestCase implements Paths {
         if (Platform.isMac()) {
             final String PATH = "/System/Library/Frameworks/CoreServices";
             final String FRAMEWORK = PATH + ".framework";
+            assertTrue("CoreServices not present on this setup, expected at " + FRAMEWORK, new File(FRAMEWORK).exists());
             try {
                 NativeLibrary lib = NativeLibrary.getInstance(PATH);
                 assertNotNull("CoreServices not found", lib);
             }
             catch(UnsatisfiedLinkError e) {
-                failCoreServices("Should try FRAMEWORK.framework/FRAMEWORK if the absolute framework (truncated) path given exists: ", e, FRAMEWORK);
+                fail("Should try FRAMEWORK.framework/FRAMEWORK if the absolute framework (truncated) path given exists: " + e);
             }
         }
     }
@@ -231,21 +232,15 @@ public class LibraryLoadTest extends TestCase implements Paths {
     public void testLoadFrameworkLibraryAbsoluteFull() {
         if (Platform.isMac()) {
             final String PATH = "/System/Library/Frameworks/CoreServices.framework/CoreServices";
+            assertTrue("CoreServices not present on this setup, expected at " + PATH, new File(PATH).exists());
             try {
                 NativeLibrary lib = NativeLibrary.getInstance(PATH);
                 assertNotNull("CoreServices not found", lib);
             }
             catch(UnsatisfiedLinkError e) {
-                failCoreServices("Should try FRAMEWORK verbatim if the absolute path given exists: ", e, PATH);
+                fail("Should try FRAMEWORK verbatim if the absolute path given exists: " + e);
             }
         }
-    }
-
-    private void failCoreServices(String message, UnsatisfiedLinkError e, String expectedPath) {
-        if (!new File(expectedPath).exists()) {
-            message = "CoreServices not present on this setup, expected at " + expectedPath + "\n" + message;
-        }
-        fail(message + e);
     }
 
     public void testHandleObjectMethods() {
@@ -271,7 +266,7 @@ public class LibraryLoadTest extends TestCase implements Paths {
     // dependent libraries in the same directory as the original
     public void testLoadDependentLibraryWithAlteredSearchPath() {
         try {
-            TestLib2 lib = Native.load("testlib2", TestLib2.class);
+            TestLib2 lib = Native.loadLibrary("testlib2", TestLib2.class);
             lib.dependentReturnFalse();
         }
         catch(UnsatisfiedLinkError e) {
@@ -287,7 +282,7 @@ public class LibraryLoadTest extends TestCase implements Paths {
     public void testLoadProperCLibraryVersion() {
         if (Platform.isWindows()) return;
 
-        CLibrary lib = Native.load("c", CLibrary.class);
+        CLibrary lib = Native.loadLibrary("c", CLibrary.class);
         assertNotNull("Couldn't get current user",
                       lib.getpwuid(lib.geteuid()));
     }

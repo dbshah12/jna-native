@@ -1,25 +1,14 @@
 /* Copyright (c) 2014 Dr David H. Akehurst (itemis), All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
 package com.sun.jna.platform.win32.COM;
 
@@ -55,13 +44,15 @@ import com.sun.jna.platform.win32.WinError;
 import com.sun.jna.platform.win32.WinNT.HRESULT;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Assert;
 
 public class ComEventCallbacks_Test {
     static {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
     }
-
+    
     private final CLSID CLSID_InternetExplorer = new CLSID("{0002DF01-0000-0000-C000-000000000046}");
     private final IID IID_IConnectionPointContainer = new IID("{B196B284-BAB4-101A-B69C-00AA00341D07}");
     private final IID IID_DWebBrowserEvents2 = new IID("{34A715A0-6587-11D0-924A-0020AFC7AC4D}");
@@ -69,23 +60,23 @@ public class ComEventCallbacks_Test {
     private final LCID lcid = new LCID(0x0409); // LCID for english locale
     private final WinDef.WORD methodFlags = new WinDef.WORD(OleAuto.DISPATCH_METHOD);
     private final WinDef.WORD propertyPutFlags = new WinDef.WORD(OleAuto.DISPATCH_PROPERTYPUT);
-
+    
     private final DISPIDByReference dispIdVisible = new DISPIDByReference();
     private final DISPIDByReference dispIdQuit = new DISPIDByReference();
     private final DISPIDByReference dispIdNavigate = new DISPIDByReference();
-
+    
     private PointerByReference ieApp;
     private Dispatch ieDispatch;
 
-
-
+    
+    
     @Before
     public void before() {
         AbstractWin32TestSupport.killProcessByName("iexplore.exe");
         try {
             Thread.sleep(5 * 1000);
         } catch (InterruptedException ex) {}
-
+        
         HRESULT hr = Ole32.INSTANCE.CoInitializeEx(null, Ole32.COINIT_MULTITHREADED);
         COMUtils.checkRC(hr);
 
@@ -111,8 +102,8 @@ public class ComEventCallbacks_Test {
         DISPPARAMS.ByReference pDispParams = new DISPPARAMS.ByReference();
         VARIANT.ByReference pVarResult = new VARIANT.ByReference();
         IntByReference puArgErr = new IntByReference();
-        EXCEPINFO.ByReference pExcepInfo = new EXCEPINFO.ByReference();
-
+        EXCEPINFO.ByReference pExcepInfo = new EXCEPINFO.ByReference();        
+        
         HRESULT hr = ieDispatch.Invoke(dispIdQuit.getValue(), niid, lcid, methodFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
         COMUtils.checkRC(hr, pExcepInfo, puArgErr);
 
@@ -271,12 +262,10 @@ public class ComEventCallbacks_Test {
             return new HRESULT(WinError.E_NOINTERFACE);
         }
 
-        @Override
         public int AddRef() {
             return 0;
         }
 
-        @Override
         public int Release() {
             return 0;
         }
@@ -341,7 +330,6 @@ public class ComEventCallbacks_Test {
             }
             Thread.sleep(1000);
         }
-        OleAuto.INSTANCE.VariantClear(arguments[0]);
 
         // At this point the call to Navigate before should be complete
         Assert.assertTrue(listener.navigateComplete2Called);
@@ -365,7 +353,6 @@ public class ComEventCallbacks_Test {
             }
             Thread.sleep(1000);
         }
-        OleAuto.INSTANCE.VariantClear(arguments[0]);
 
         // Naviation will be blocked - so NavigateComplete can't be called
         Assert.assertFalse("NavigateComplete Handler was called although it should be blocked", listener.navigateComplete2Called);

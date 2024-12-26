@@ -1,37 +1,13 @@
-/*
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
- *
- * You may obtain a copy of the Apache License at:
- *
- * http://www.apache.org/licenses/
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "AL2.0".
- */
 package com.sun.jna.platform.win32.COM.util;
 
 import com.sun.jna.Pointer;
-import static com.sun.jna.platform.win32.AbstractWin32TestSupport.checkCOMRegistered;
-import com.sun.jna.platform.win32.COM.COMUtils;
 import com.sun.jna.platform.win32.COM.util.annotation.ComInterface;
 import com.sun.jna.platform.win32.COM.util.annotation.ComMethod;
 import com.sun.jna.platform.win32.COM.util.annotation.ComObject;
+import com.sun.jna.platform.win32.COM.util.annotation.ComProperty;
 import com.sun.jna.platform.win32.OaIdl.DATE;
 import com.sun.jna.platform.win32.OaIdl.VARIANT_BOOL;
 import com.sun.jna.platform.win32.Ole32;
-import com.sun.jna.platform.win32.OleAuto;
 import com.sun.jna.platform.win32.Variant;
 import com.sun.jna.platform.win32.Variant.VARIANT;
 import com.sun.jna.platform.win32.WTypes.BSTR;
@@ -40,42 +16,29 @@ import com.sun.jna.platform.win32.WinDef.BYTE;
 import com.sun.jna.platform.win32.WinDef.CHAR;
 import com.sun.jna.platform.win32.WinDef.LONG;
 import com.sun.jna.platform.win32.WinDef.SHORT;
-
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
-
 import org.junit.AfterClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 
 // Untested: IDispatch
 // Untested: Proxy
 public class ConvertTest {
 
-    private static boolean initialized = false;
     private static ObjectFactory fact;
 
     @BeforeClass
     public static void init() {
-        // Check that FileSystemObject is registered in the registry
-        Assume.assumeTrue("Could not find registration", checkCOMRegistered("{0D43FE01-F093-11CF-8940-00A0C9054228}"));
-        COMUtils.checkRC(Ole32.INSTANCE.CoInitializeEx(Pointer.NULL, Ole32.COINIT_MULTITHREADED));
-        initialized = true;
+        Ole32.INSTANCE.CoInitializeEx(Pointer.NULL, Ole32.COINIT_MULTITHREADED);
         fact = new ObjectFactory();
     }
 
     @AfterClass
     public static void destruct() {
-        if(fact != null) {
-            fact.disposeAll();
-        }
+        fact.disposeAll();
         fact = null;
-        if(initialized) {
-            Ole32.INSTANCE.CoUninitialize();
-        }
+        Ole32.INSTANCE.CoUninitialize();
     }
 
     @Test
@@ -89,17 +52,18 @@ public class ConvertTest {
 
     @Test
     public void testConvertString() {
+        // This test leaks the allocated BSTR -- this is tollerated here, as memory usage is minimal
         String testString = "Hallo";
-        BSTR testValue = OleAuto.INSTANCE.SysAllocString(testString);
+        BSTR testValue = new BSTR(testString);
         VARIANT resultVariant = Convert.toVariant(testValue);
         assertEquals(testString, resultVariant.stringValue());
         assertEquals(testString, Convert.toJavaObject(resultVariant, Object.class, fact, false, false));
-        assertEquals(testString, Convert.toJavaObject(resultVariant, String.class, fact, false, true));
+        assertEquals(testString, Convert.toJavaObject(resultVariant, String.class, fact, false, false));
 
         resultVariant = Convert.toVariant(testString);
         assertEquals(testString, resultVariant.stringValue());
         assertEquals(testString, Convert.toJavaObject(resultVariant, Object.class, fact, false, false));
-        assertEquals(testString, Convert.toJavaObject(resultVariant, String.class, fact, false, true));
+        assertEquals(testString, Convert.toJavaObject(resultVariant, String.class, fact, false, false));
     }
 
     @Test
@@ -270,54 +234,8 @@ public class ConvertTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     public void testConvertDate() {
-        testConvertDate(new Date(2015 - 1900, 1, 1, 9, 0, 0));
-    }
-
-    @Test
-    @SuppressWarnings("deprecation")
-    public void testConvertDstOffsetTime() {
-        TimeZone timeZone = TimeZone.getDefault();
-        try {
-            // Use a timezone with a DST offset
-            TimeZone.setDefault(TimeZone.getTimeZone("PST"));
-            // Use a date in the DST period, and a time in the DST offset window
-            testConvertDate(new Date(2015 - 1900, 8 - 1, 1, 0, 30, 0));
-        } finally {
-            TimeZone.setDefault(timeZone);
-        }
-    }
-
-    @Test
-    @SuppressWarnings("deprecation")
-    public void testConvertMillisecondTime() {
-        testConvertDate(new Date(2015 - 1900, 1, 1, 0, 0, 0), 1);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 0, 0, 0), 499);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 0, 0, 0), 500);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 0, 0, 0), 999);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 0, 0, 0), 1);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 0, 0, 0), 499);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 0, 0, 0), 500);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 0, 0, 0), 999);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 23, 59, 59), 1);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 23, 59, 59), 499);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 23, 59, 59), 500);
-        testConvertDate(new Date(2015 - 1900, 1, 1, 23, 59, 59), 999);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 23, 59, 59), 1);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 23, 59, 59), 499);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 23, 59, 59), 500);
-        testConvertDate(new Date(1815 - 1900, 1, 1, 23, 59, 59), 999);
-    }
-
-    private static void testConvertDate(Date date, int milliseconds) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        calendar.set(Calendar.MILLISECOND, milliseconds);
-        testConvertDate(calendar.getTime());
-    }
-
-    private static void testConvertDate(Date testDate) {
+        Date testDate = new Date(2015 - 1900, 1, 1, 9, 0, 0);
         VARIANT resultDate = Convert.toVariant(testDate);
         DATE testDATE = new DATE(testDate);
         VARIANT resultDATE = Convert.toVariant(testDATE);
@@ -378,7 +296,6 @@ enum TestEnum implements IComEnum {
         this.value = val;
     }
 
-    @Override
     public long getValue() {
         return this.value;
     }

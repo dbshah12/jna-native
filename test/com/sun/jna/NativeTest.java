@@ -1,23 +1,23 @@
 /* Copyright (c) 2007-2013 Timothy Wall, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -58,14 +58,23 @@ public class NativeTest extends TestCase {
             signature.append(')');
 
             try {
-                Method m = Native.class.getMethod("load", paramTypes);
+                Method m = Native.class.getMethod("loadLibrary", paramTypes);
                 Class<?> returnType = m.getReturnType();
                 signature.append(Native.getSignature(returnType));
-                assertSame("Mismatched return type for signature=" + signature, Library.class, returnType);
+                assertSame("Mismatched return type for signature=" + signature, Object.class, returnType);
 //                System.out.println("===>" + m.getName() + ": " + signature);
             } catch(NoSuchMethodError err) {
                 fail("No method for signature=" + signature);
             }
+        }
+    }
+    
+    @SuppressWarnings("deprecation")
+    public void testVersion() {
+        String[] INPUTS = { "1.0", "1.0.1", "2.1.3" };
+        float[] EXPECTED = { 1.0f, 1.0f, 2.1f };
+        for (int i=0;i < INPUTS.length;i++) {
+            assertEquals("Incorrectly parsed version", EXPECTED[i], Native.parseVersion(INPUTS[i]));
         }
     }
 
@@ -85,7 +94,7 @@ public class NativeTest extends TestCase {
     }
 
     public void testCustomStringEncoding() throws Exception {
-        final String ENCODING = Charset.defaultCharset().name();
+        final String ENCODING = System.getProperty("file.encoding");
         // Keep stuff within the extended ASCII range so we work with more
         // limited native encodings
         String UNICODE = "Un \u00e9l\u00e9ment gr\u00e2ce \u00e0 l'index";
@@ -189,7 +198,7 @@ public class NativeTest extends TestCase {
     public void testSynchronizedAccess() throws Exception {
         final boolean[] lockHeld = { false };
         final NativeLibrary nlib = NativeLibrary.getInstance("testlib", TestLib.class.getClassLoader());
-        final TestLib lib = Native.load("testlib", TestLib.class);
+        final TestLib lib = Native.loadLibrary("testlib", TestLib.class);
         final TestLib synchlib = (TestLib)Native.synchronizedLibrary(lib);
         final TestLib.VoidCallback cb = new TestLib.VoidCallback() {
             @Override
@@ -258,7 +267,7 @@ public class NativeTest extends TestCase {
                 put(OPTION_STRING_ENCODING, TEST_ENCODING);
             }
         };
-        TestInterfaceWithInstance ARBITRARY = Native.load("testlib", TestInterfaceWithInstance.class, TEST_OPTS);
+        TestInterfaceWithInstance ARBITRARY = Native.loadLibrary("testlib", TestInterfaceWithInstance.class, TEST_OPTS);
         abstract class TestStructure extends Structure {}
     }
     public void testOptionsInferenceFromInstanceField() {
@@ -355,7 +364,7 @@ public class NativeTest extends TestCase {
     public interface OptionsSubclass extends OptionsBase, Library {
         TypeMapper _MAPPER = new DefaultTypeMapper();
         Map<String, ?> _OPTIONS = Collections.singletonMap(Library.OPTION_TYPE_MAPPER, _MAPPER);
-        OptionsSubclass INSTANCE = Native.load("testlib", OptionsSubclass.class, _OPTIONS);
+        OptionsSubclass INSTANCE = Native.loadLibrary("testlib", OptionsSubclass.class, _OPTIONS);
     }
     public void testStructureOptionsInference() {
         Structure s = new OptionsBase.TypeMappedStructure();
@@ -389,15 +398,6 @@ public class NativeTest extends TestCase {
         assertEquals("Wrong byte array length", VALUE.getBytes(ENCODING).length+1, buf.length);
         assertEquals("Missing NUL terminator", (byte)0, buf[buf.length-1]);
         assertEquals("Wrong byte array contents", VALUE, new String(buf, 0, buf.length-1, ENCODING));
-    }
-
-    public void testToByteArrayWithCharset() throws Exception {
-        final Charset CHARSET = Charset.forName("UTF-8");
-        final String VALUE = getName() + UNICODE;
-        byte[] buf = Native.toByteArray(VALUE, CHARSET);
-        assertEquals("Wrong byte array length", VALUE.getBytes(CHARSET).length+1, buf.length);
-        assertEquals("Missing NUL terminator", (byte)0, buf[buf.length-1]);
-        assertEquals("Wrong byte array contents", VALUE, new String(buf, 0, buf.length-1, CHARSET));
     }
 
     public void testToCharArray() {
@@ -452,12 +452,6 @@ public class NativeTest extends TestCase {
         assertEquals("Encoded C string improperly converted", getName() + UNICODE, Native.toString(buf, "utf8"));
     }
 
-    public void testStringConversionWithCharset() throws Exception {
-        final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
-        byte[] buf = (getName() + UNICODE + NUL).getBytes(CHARSET_UTF8);
-        assertEquals("Encoded C string improperly converted", getName() + UNICODE, Native.toString(buf, CHARSET_UTF8));
-    }
-
     public void testWideStringConversion() {
         char[] buf = (getName() + NUL).toCharArray();
         assertEquals("Wide C string improperly converted", getName(), Native.toString(buf));
@@ -468,16 +462,10 @@ public class NativeTest extends TestCase {
         assertEquals("Incorrect native bytes from Java String", getName() + UNICODE, new String(buf, "utf8"));
     }
 
-    public void testGetBytesWithCharset() throws Exception {
-        final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
-        byte[] buf = Native.getBytes(getName() + UNICODE, CHARSET_UTF8);
-        assertEquals("Incorrect native bytes from Java String", getName() + UNICODE, new String(buf, CHARSET_UTF8));
-    }
-
     public void testGetBytesBadEncoding() throws Exception {
         byte[] buf = Native.getBytes(getName(), "unsupported");
         assertEquals("Incorrect fallback bytes with bad encoding",
-            getName(), new String(buf, Charset.defaultCharset().name()));
+                     getName(), new String(buf, System.getProperty("file.encoding")));
     }
 
     public void testFindDirectMappedClassFailure() {
@@ -537,7 +525,7 @@ public class NativeTest extends TestCase {
             try { Thread.sleep(300000); } catch(Exception e) { }
         }
     }
-
+    
     public void testVersionComparison() {
         assertTrue("Equal version", Native.isCompatibleVersion("5.1.0", "5.1.0"));
         assertTrue("New revision", Native.isCompatibleVersion("5.2.0", "5.2.1"));

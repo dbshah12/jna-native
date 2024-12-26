@@ -1,23 +1,23 @@
 /* Copyright (c) 2007, 2013 Timothy Wall, Markus Karg, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
+ * The contents of this file is dual-licensed under 2 
+ * alternative Open Source/Free licenses: LGPL 2.1 or later and 
  * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
+ * 
+ * You can freely decide which license you want to apply to 
  * the project.
- *
+ * 
  * You may obtain a copy of the LGPL License at:
- *
+ * 
  * http://www.gnu.org/licenses/licenses.html
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "LGPL2.1".
- *
+ * 
  * You may obtain a copy of the Apache License at:
- *
+ * 
  * http://www.apache.org/licenses/
- *
+ * 
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
@@ -26,8 +26,6 @@ package com.sun.jna.platform.win32;
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.BaseTSD.ULONG_PTR;
-import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 import com.sun.jna.win32.StdCallLibrary;
@@ -41,7 +39,7 @@ import com.sun.jna.win32.W32APIOptions;
 public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
 
     /** The instance. */
-    Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
+    Kernel32 INSTANCE = Native.loadLibrary("kernel32", Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
 
     /**
      * <strong>LOAD_LIBRARY_AS_DATAFILE</strong> <br>
@@ -67,92 +65,6 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * see Remarks.
      */
     int LOAD_LIBRARY_AS_DATAFILE = 0x2;
-
-    /**
-     * Process priority classes
-     */
-    DWORD NORMAL_PRIORITY_CLASS         = new DWORD(0x00000020L);
-    DWORD IDLE_PRIORITY_CLASS           = new DWORD(0x00000040L);
-    DWORD HIGH_PRIORITY_CLASS           = new DWORD(0x00000080L);
-    DWORD REALTIME_PRIORITY_CLASS       = new DWORD(0x00000100L);
-    DWORD BELOW_NORMAL_PRIORITY_CLASS   = new DWORD(0x00004000L);
-    DWORD ABOVE_NORMAL_PRIORITY_CLASS   = new DWORD(0x00008000L);
-
-    /**
-     * Process mode flags
-     */
-    DWORD PROCESS_MODE_BACKGROUND_BEGIN = new DWORD(0x00100000L);
-    DWORD PROCESS_MODE_BACKGROUND_END   = new DWORD(0x00200000L);
-
-    /**
-     * Thread priorities
-     */
-    int THREAD_PRIORITY_IDLE          = -15;
-    int THREAD_PRIORITY_LOWEST        =  -2;
-    int THREAD_PRIORITY_BELOW_NORMAL  =  -1;
-    int THREAD_PRIORITY_NORMAL        =   0;
-    int THREAD_PRIORITY_ABOVE_NORMAL  =   1;
-    int THREAD_PRIORITY_HIGHEST       =   2;
-    int THREAD_PRIORITY_TIME_CRITICAL =  15;
-
-    /**
-     * Thread mode flags
-     */
-    int THREAD_MODE_BACKGROUND_BEGIN = 0x10000;
-    int THREAD_MODE_BACKGROUND_END   = 0x20000;
-
-    /**
-     * Thread priority error code
-     */
-    int THREAD_PRIORITY_ERROR_RETURN = 0x7FFFFFFF;
-
-    /**
-     * Processor Feature flags
-     */
-    int PF_FLOATING_POINT_PRECISION_ERRATA = 0;
-    int PF_FLOATING_POINT_EMULATED = 1;
-    int PF_COMPARE_EXCHANGE_DOUBLE = 2;
-    int PF_MMX_INSTRUCTIONS_AVAILABLE = 3;
-    int PF_PPC_MOVEMEM_64BIT_OK = 4;
-    int PF_ALPHA_BYTE_INSTRUCTIONS = 5;
-    int PF_XMMI_INSTRUCTIONS_AVAILABLE = 6;
-    int PF_3DNOW_INSTRUCTIONS_AVAILABLE = 7;
-    int PF_RDTSC_INSTRUCTION_AVAILABLE = 8;
-    int PF_PAE_ENABLED = 9;
-    int PF_XMMI64_INSTRUCTIONS_AVAILABLE = 10;
-    int PF_SSE_DAZ_MODE_AVAILABLE = 11;
-    int PF_NX_ENABLED = 12;
-    int PF_SSE3_INSTRUCTIONS_AVAILABLE = 13;
-    int PF_COMPARE_EXCHANGE128 = 14;
-    int PF_COMPARE64_EXCHANGE128 = 15;
-    int PF_CHANNELS_ENABLED = 16;
-    int PF_XSAVE_ENABLED = 17;
-    int PF_ARM_VFP_32_REGISTERS_AVAILABLE = 18;
-    int PF_ARM_NEON_INSTRUCTIONS_AVAILABLE = 19;
-    int PF_SECOND_LEVEL_ADDRESS_TRANSLATION = 20;
-    int PF_VIRT_FIRMWARE_ENABLED = 21;
-    int PF_RDWRFSGSBASE_AVAILABLE = 22;
-    int PF_FASTFAIL_AVAILABLE = 23;
-    int PF_ARM_DIVIDE_INSTRUCTION_AVAILABLE = 24;
-    int PF_ARM_64BIT_LOADSTORE_ATOMIC = 25;
-    int PF_ARM_EXTERNAL_CACHE_AVAILABLE = 26;
-    int PF_ARM_FMAC_INSTRUCTIONS_AVAILABLE = 27;
-    int PF_RDRAND_INSTRUCTION_AVAILABLE = 28;
-    int PF_ARM_V8_INSTRUCTIONS_AVAILABLE = 29;
-    int PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE = 30;
-    int PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE = 31;
-    int PF_RDTSCP_INSTRUCTION_AVAILABLE = 32;
-    int PF_RDPID_INSTRUCTION_AVAILABLE = 33;
-    int PF_ARM_V81_ATOMIC_INSTRUCTIONS_AVAILABLE = 34;
-    int PF_SSSE3_INSTRUCTIONS_AVAILABLE = 36;
-    int PF_SSE4_1_INSTRUCTIONS_AVAILABLE = 37;
-    int PF_SSE4_2_INSTRUCTIONS_AVAILABLE = 38;
-    int PF_AVX_INSTRUCTIONS_AVAILABLE = 39;
-    int PF_AVX2_INSTRUCTIONS_AVAILABLE = 40;
-    int PF_AVX512F_INSTRUCTIONS_AVAILABLE = 41;
-    int PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE = 43;
-    int PF_ARM_V83_JSCVT_INSTRUCTIONS_AVAILABLE = 44;
-    int PF_ARM_V83_LRCPC_INSTRUCTIONS_AVAILABLE = 45;
 
     /**
      * Reads data from the specified file or input/output (I/O) device. Reads
@@ -318,14 +230,14 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
     int GetTickCount();
 
     /**
-     * The GetTickCount64 function retrieves the number of milliseconds that
+     * The GetTickCount64 function retrieves the number of milliseconds that 
      * have elapsed since the system was started.
      *
      * @return Number of milliseconds that have elapsed since the system was
      *         started.
      */
     long GetTickCount64();
-
+  
     /**
      * The GetCurrentThreadId function retrieves the thread identifier of the
      * calling thread.
@@ -389,74 +301,13 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
     int GetProcessVersion(int processId);
 
     /**
-     * Retrieves the process affinity mask for the specified process and the system
-     * affinity mask for the system.
-     *
-     * @param hProcess
-     *            A handle to the process whose affinity mask is desired.
-     *            <p>
-     *            This handle must have the {@link WinNT#PROCESS_QUERY_INFORMATION}
-     *            or {@link WinNT#PROCESS_QUERY_LIMITED_INFORMATION} access right.
-     * @param lpProcessAffinityMask
-     *            A pointer to a variable that receives the affinity mask for the
-     *            specified process.
-     * @param lpSystemAffinityMask
-     *            A pointer to a variable that receives the affinity mask for the
-     *            system.
-     * @return If the function succeeds, returns {@code true} and the function sets
-     *         the variables pointed to by {@code lpProcessAffinityMask} and
-     *         {@code lpSystemAffinityMask} to the appropriate affinity masks.
-     *         <p>
-     *         On a system with more than 64 processors, if the threads of the
-     *         calling process are in a single processor group, the function sets
-     *         the variables pointed to by {@code lpProcessAffinityMask} and
-     *         {@code lpSystemAffinityMask} to the process affinity mask and the
-     *         processor mask of active logical processors for that group. If the
-     *         calling process contains threads in multiple groups, the function
-     *         returns zero for both affinity masks.
-     *         <p>
-     *         If the function fails, the return value is {@code false}, and the
-     *         values of the variables pointed to by {@code lpProcessAffinityMask}
-     *         and {@code lpSystemAffinityMask} are undefined. To get extended error
-     *         information, call {@link #GetLastError()}.
-     */
-    boolean GetProcessAffinityMask(HANDLE hProcess, ULONG_PTRByReference lpProcessAffinityMask,
-            ULONG_PTRByReference lpSystemAffinityMask);
-
-    /**
-     * Sets a processor affinity mask for the threads of the specified process.
-     *
-     * @param hProcess
-     *            A handle to the process whose affinity mask is to be set. This
-     *            handle must have the {@link WinNT#PROCESS_SET_INFORMATION} access
-     *            right.
-     * @param dwProcessAffinityMask
-     *            The affinity mask for the threads of the process.
-     *            <p>
-     *            On a system with more than 64 processors, the affinity mask must
-     *            specify processors in a single processor group.
-     * @return If the function succeeds, the return value is {@code true}.
-     *         <p>
-     *         If the function fails, the return value is {@code false}. To get
-     *         extended error information, call {@link #GetLastError()}.
-     *         <p>
-     *         If the process affinity mask requests a processor that is not
-     *         configured in the system, the last error code is
-     *         {@link WinError#ERROR_INVALID_PARAMETER}.
-     *         <p>
-     *         On a system with more than 64 processors, if the calling process
-     *         contains threads in more than one processor group, the last error
-     *         code is {@link WinError#ERROR_INVALID_PARAMETER}.
-     */
-    boolean SetProcessAffinityMask(HANDLE hProcess, ULONG_PTR dwProcessAffinityMask);
-
-    /**
      * Retrieves the termination status of the specified process.
      *
      * @param hProcess
      *            A handle to the process.
      * @param lpExitCode
-     *            A pointer to a variable to receive the process termination status.
+     *            A pointer to a variable to receive the process termination
+     *            status.
      * @return If the function succeeds, the return value is nonzero.
      *
      *         If the function fails, the return value is zero. To get extended
@@ -1082,43 +933,6 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
             boolean bManualReset, boolean bInitialState, String lpName);
 
     /**
-     * Opens an existing named event object.
-     *
-     * @param dwDesiredAccess The access to the event object. The function fails
-     *                        if the security descriptor of the specified object
-     *                        does not permit the requested access for the
-     *                        calling process. For a list of access rights, see
-     *                        Synchronization Object Security and Access Rights.
-     * @param bInheritHandle  If this value is TRUE, processes created by this
-     *                        process will inherit the handle. Otherwise, the
-     *                        processes do not inherit this handle.
-     * @param lpName          The name of the event to be opened. Name
-     *                        comparisons are case sensitive.
-     * <p>
-     * This function can open objects in a private namespace. For more
-     * information, see Object Namespaces.
-     * <p>
-     * <strong>Terminal Services:</strong> The name can have a "Global" or
-     * "Local" prefix to explicitly open an object in the global or session
-     * namespace. The remainder of the name can contain any character except the
-     * backslash character (). For more information, see Kernel Object
-     * Namespaces.
-     * <p>
-     * <strong>Note</strong> Fast user switching is implemented using Terminal Services
-     * sessions. The first user to log on uses session 0, the next user to log
-     * on uses session 1, and so on. Kernel object names must follow the
-     * guidelines outlined for Terminal Services so that applications can
-     * support multiple users.
-     *
-     * @return If the function succeeds, the return value is a handle to the
-     *         event object.
-     * <p>
-     * If the function fails, the return value is {@code NULL}. To get extended
-     * error information, call {@link #GetLastError()}.
-     */
-    HANDLE OpenEvent(int dwDesiredAccess, boolean bInheritHandle, String lpName);
-
-    /**
      * Sets the specified event object to the signaled state.
      *
      * @param hEvent
@@ -1192,25 +1006,6 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
     HANDLE CreateFileMapping(HANDLE hFile,
             WinBase.SECURITY_ATTRIBUTES lpAttributes, int flProtect,
             int dwMaximumSizeHigh, int dwMaximumSizeLow, String lpName);
-
-    /**
-     * Opens a named file mapping object.
-     *
-     * @param dwDesiredAccess
-     *            The access to the file mapping object. This access is checked
-     *            against any security descriptor on the target file mapping object.
-     *            For a list of values, see File Mapping Security and Access Rights.
-     * @param bInheritHandle
-     *            If this parameter is true, a process created by the CreateProcess
-     *            function can inherit the handle; otherwise,
-     *            the handle cannot be inherited.
-     * @param lpName
-     *            The name of the file mapping object to be opened.
-     * @return If the function succeeds, the return value is an open handle to
-     *         the specified file mapping object. If the function fails, the
-     *         return value is NULL. To get extended error information, call GetLastError.
-     */
-    HANDLE OpenFileMapping(int dwDesiredAccess, boolean bInheritHandle, String lpName);
 
     /**
      * Maps a view of a file mapping into the address space of a calling
@@ -1488,9 +1283,9 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * If the caller has enabled the SeDebugPrivilege privilege, the requested
      * access is granted regardless of the contents of the security
      * descriptor.</p>
-     *
+     * 
      * @param fInherit If this value is TRUE, processes created by this process will inherit the handle. Otherwise, the processes do not inherit this handle.
-     *
+     * 
      * @param IDProcess
      *            Specifies the process identifier of the process to open.
      * @return An open handle to the specified process indicates success. NULL
@@ -1582,73 +1377,6 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
     boolean GetVersionEx(OSVERSIONINFOEX lpVersionInfo);
 
     /**
-     * Compares a set of operating system version requirements to the
-     * corresponding values for the currently running version of the system.
-     * This function is subject to manifest-based behavior.
-     *
-     * @param lpVersionInformation
-     *            A pointer to an {@link com.sun.jna.platform.win32.WinNT.OSVERSIONINFOEX} structure
-     *            containing the operating system version requirements to
-     *            compare. The {@code dwTypeMask} parameter indicates the
-     *            members of this structure that contain information to compare.
-     *            <p>
-     *            You must set the {@code dwOSVersionInfoSize} member of this
-     *            structure to {@code sizeof(OSVERSIONINFOEX)}. You must also
-     *            specify valid data for the members indicated by
-     *            {@code dwTypeMask}. The function ignores structure members for
-     *            which the corresponding {@code dwTypeMask} bit is not set.
-     * @param dwTypeMask
-     *            A mask that indicates the members of the
-     *            {@link com.sun.jna.platform.win32.WinNT.OSVERSIONINFOEX} structure to be tested.
-     * @param dwlConditionMask
-     *            The type of comparison to be used for each
-     *            {@code lpVersionInfo} member being compared. To build this
-     *            value, call the {@link #VerSetConditionMask} function once for
-     *            each {@link com.sun.jna.platform.win32.WinNT.OSVERSIONINFOEX} member being compared.
-     * @return If the currently running operating system satisfies the specified
-     *         requirements, the return value is a nonzero value.
-     *         <p>
-     *         If the current system does not satisfy the requirements, the
-     *         return value is zero and {@link #GetLastError()} returns
-     *         {@link WinError#ERROR_OLD_WIN_VERSION}.
-     *         <p>
-     *         If the function fails, the return value is zero and
-     *         {@link #GetLastError()} returns an error code other than
-     *         {@link WinError#ERROR_OLD_WIN_VERSION}.
-     */
-    boolean VerifyVersionInfoW(OSVERSIONINFOEX lpVersionInformation, int dwTypeMask, long dwlConditionMask);
-
-    /**
-     * Sets the bits of a 64-bit value to indicate the comparison operator to
-     * use for a specified operating system version attribute. This function is
-     * used to build the {@code dwlConditionMask} parameter of the
-     * {@link #VerifyVersionInfoW} function.
-     *
-     * @param conditionMask
-     *            A value to be passed as the {@code dwlConditionMask} parameter
-     *            of the {@link #VerifyVersionInfoW} function. The function
-     *            stores the comparison information in the bits of this
-     *            variable.
-     *            <p>
-     *            Before the first call to {@link #VerSetConditionMask},
-     *            initialize this variable to zero. For subsequent calls, pass
-     *            in the variable used in the previous call.
-     * @param typeMask
-     *            A mask that indicates the member of the
-     *            {@link com.sun.jna.platform.win32.WinNT.OSVERSIONINFOEX} structure whose comparison
-     *            operator is being set. This value corresponds to one of the
-     *            bits specified in the {@code dwTypeMask} parameter for the
-     *            {@link #VerifyVersionInfoW} function.
-     * @param condition
-     *            The operator to be used for the comparison. The
-     *            {@link #VerifyVersionInfoW} function uses this operator to
-     *            compare a specified attribute value to the corresponding value
-     *            for the currently running system.
-     * @return The function returns the condition mask value.
-     */
-    long VerSetConditionMask(long conditionMask, int typeMask, byte condition);
-
-    /**
      * The GetSystemInfo function returns information about the current system.
      *
      * @param lpSystemInfo
@@ -1703,45 +1431,6 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
             DWORDByReference returnLength);
 
     /**
-     * Retrieves information about the relationships of logical processors and
-     * related hardware.
-     *
-     * @param relationshipType
-     *            The type of relationship to retrieve. This parameter can be
-     *            one of the following values:
-     *            {@link com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP#RelationCache},
-     *            {@link com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP#RelationGroup},
-     *            {@link com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP#RelationNumaNode},
-     *            {@link com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP#RelationProcessorCore},
-     *            {@link com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP#RelationProcessorPackage},
-     *            or {@link com.sun.jna.platform.win32.WinNT.LOGICAL_PROCESSOR_RELATIONSHIP#RelationAll}
-     * @param buffer
-     *            A pointer to a buffer that receives an array of
-     *            {@link WinNT.SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX}
-     *            structures. If the function fails, the contents of this buffer
-     *            are undefined.
-     * @param returnedLength
-     *            On input, specifies the length of the buffer pointed to by
-     *            Buffer, in bytes. If the buffer is large enough to contain all
-     *            of the data, this function succeeds and ReturnedLength is set
-     *            to the number of bytes returned. If the buffer is not large
-     *            enough to contain all of the data, the function fails,
-     *            GetLastError returns
-     *            {@link WinError#ERROR_INSUFFICIENT_BUFFER}, and ReturnedLength
-     *            is set to the buffer length required to contain all of the
-     *            data. If the function fails with an error other than
-     *            {@link WinError#ERROR_INSUFFICIENT_BUFFER}, the value of
-     *            ReturnedLength is undefined.
-     * @return If the function succeeds, the return value is {@code TRUE} and at
-     *         least one {@link WinNT.SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX}
-     *         structure is written to the output buffer.
-     *         <p>
-     *         If the function fails, the return value is {@code FALSE}. To get
-     *         extended error information, call {@link #GetLastError()}.
-     */
-    boolean GetLogicalProcessorInformationEx(int relationshipType, Pointer buffer, DWORDByReference returnedLength);
-
-    /**
      * Retrieves information about the system's current usage of both physical
      * and virtual memory.
      *
@@ -1758,18 +1447,18 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * Retrieves file information for the specified file.
      * To set file information using a file handle, see SetFileInformationByHandle.
      * @param hFile
-     *                 A handle to the file that contains the information to be retrieved.
+     * 				A handle to the file that contains the information to be retrieved.
      * @param FileInformationClass
-     *                 A FILE_INFO_BY_HANDLE_CLASS enumeration value that specifies the type of
-     *                 information to be retrieved.
+     * 				A FILE_INFO_BY_HANDLE_CLASS enumeration value that specifies the type of
+     * 				information to be retrieved.
      * @param lpFileInformation
-     *                 A pointer to the buffer that receives the requested file information.
-     *                 The structure that is returned corresponds to the class that is specified
-     *                 by FileInformationClass.
+     * 				A pointer to the buffer that receives the requested file information.
+     * 				The structure that is returned corresponds to the class that is specified
+     * 				by FileInformationClass.
      * @param dwBufferSize
-     *                 The size of the lpFileInformation buffer, in bytes.
+     * 				The size of the lpFileInformation buffer, in bytes.
      * @return If the function succeeds, the return value is nonzero and file information
-     *            data is contained in the buffer pointed to by the lpFileInformation parameter.
+     * 		   data is contained in the buffer pointed to by the lpFileInformation parameter.
      *         If the function fails, the return value is zero. To get extended error
      *         information, call GetLastError.
      */
@@ -1779,19 +1468,19 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * Sets the file information for the specified file. To retrieve file information using a
      * file handle, see GetFileInformationByHandleEx.
      * @param hFile
-     *                 A handle to the file for which to change information.
-     *                 This handle must be opened with the appropriate permissions for the
-     *                 requested change. This handle should not be a pipe handle.
+     * 				A handle to the file for which to change information.
+     * 				This handle must be opened with the appropriate permissions for the
+     * 				requested change. This handle should not be a pipe handle.
      * @param FileInformationClass
-     *                 A FILE_INFO_BY_HANDLE_CLASS enumeration value that specifies the type of information to be changed.
-     *                 Valid values are FILE_BASIC_INFO, FILE_RENAME_INFO, FILE_DISPOSITION_INFO, FILE_ALLOCATION_INFO,
-     *                 FILE_END_OF_FILE_INFO, and FILE_IO_PRIORITY_HINT_INFO
+     * 				A FILE_INFO_BY_HANDLE_CLASS enumeration value that specifies the type of information to be changed.
+     * 				Valid values are FILE_BASIC_INFO, FILE_RENAME_INFO, FILE_DISPOSITION_INFO, FILE_ALLOCATION_INFO,
+     * 				FILE_END_OF_FILE_INFO, and FILE_IO_PRIORITY_HINT_INFO
      * @param lpFileInformation
-     *                 A pointer to the buffer that contains the information to change for the specified file
-     *                 information class. The structure that this parameter points to corresponds to the class
-     *                 that is specified by FileInformationClass.
+     * 				A pointer to the buffer that contains the information to change for the specified file
+     * 				information class. The structure that this parameter points to corresponds to the class
+     * 				that is specified by FileInformationClass.
      * @param dwBufferSize
-     *                 The size of the lpFileInformation buffer, in bytes.
+     * 				The size of the lpFileInformation buffer, in bytes.
      * @return Returns nonzero if successful or zero otherwise. To get extended error information, call GetLastError.
      */
     boolean SetFileInformationByHandle(HANDLE hFile, int FileInformationClass, Pointer lpFileInformation, DWORD dwBufferSize);
@@ -2491,37 +2180,6 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
     boolean Process32Next(HANDLE hSnapshot, Tlhelp32.PROCESSENTRY32 lppe);
 
     /**
-     * Retrieves information about the first thread of any process encountered in a
-     * system snapshot.
-     *
-     * @param hSnapshot
-     *            A handle to the snapshot returned from a previous call to the
-     *            CreateToolhelp32Snapshot function.
-     * @param lpte
-     *            A pointer to a THREADENTRY32 structure.
-     * @return Returns TRUE if the first entry of the thread list has been copied to
-     *         the buffer or FALSE otherwise. The ERROR_NO_MORE_FILES error value is
-     *         returned by the GetLastError function if no threads exist or the
-     *         snapshot does not contain thread information.
-     */
-    boolean Thread32First(HANDLE hSnapshot, Tlhelp32.THREADENTRY32 lpte);
-
-    /**
-     * Retrieves information about the next process recorded in a system snapshot.
-     *
-     * @param hSnapshot
-     *            A handle to the snapshot returned from a previous call to the
-     *            CreateToolhelp32Snapshot function.
-     * @param lpte
-     *            A pointer to a THREADENTRY32 structure.
-     * @return Returns TRUE if the next entry of the thread list has been copied to
-     *         the buffer or FALSE otherwise. The ERROR_NO_MORE_FILES error value is
-     *         returned by the GetLastError function if no threads exist or the
-     *         snapshot does not contain thread information.
-     */
-    boolean Thread32Next(HANDLE hSnapshot, Tlhelp32.THREADENTRY32 lpte);
-
-    /**
      * The SetEnvironmentVariable function sets the contents of the specified
      * environment variable for the current process.
      *
@@ -2881,21 +2539,14 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
     /**
      * Converts a file time to system time format. System time is based on Coordinated Universal Time (UTC).
      * @param lpFileTime
-     *                 [in] A pointer to a FILETIME structure containing the file time to be converted to system (UTC) date and time format.
-                    This value must be less than 0x8000000000000000. Otherwise, the function fails.
+     * 				[in] A pointer to a FILETIME structure containing the file time to be converted to system (UTC) date and time format.
+					This value must be less than 0x8000000000000000. Otherwise, the function fails.
      * @param lpSystemTime
-     *                 A pointer to a SYSTEMTIME structure to receive the converted file time.
+     * 				A pointer to a SYSTEMTIME structure to receive the converted file time.
      * @return If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
-     *                 To get extended error information, call GetLastError.
+     * 				To get extended error information, call GetLastError.
      */
     boolean FileTimeToSystemTime(FILETIME lpFileTime, SYSTEMTIME lpSystemTime);
-
-    /**
-     * @deprecated Use
-     *             {@link #CreateRemoteThread(com.sun.jna.platform.win32.WinNT.HANDLE, com.sun.jna.platform.win32.WinBase.SECURITY_ATTRIBUTES, int, com.sun.jna.Pointer, com.sun.jna.Pointer, int, com.sun.jna.platform.win32.WinDef.DWORDByReference)}
-     */
-    @Deprecated
-    HANDLE CreateRemoteThread(HANDLE hProcess, WinBase.SECURITY_ATTRIBUTES lpThreadAttributes, int dwStackSize, FOREIGN_THREAD_START_ROUTINE lpStartAddress, Pointer lpParameter, DWORD dwCreationFlags, Pointer lpThreadId);
 
     /**
      * Creates a thread that runs in the virtual address space of another process.
@@ -2919,7 +2570,7 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * error information, call {@link #GetLastError()}.
      * @see <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms682437(v=vs.85).aspx">CreateRemoteThread documentation</a>
      */
-    HANDLE CreateRemoteThread(HANDLE hProcess, SECURITY_ATTRIBUTES lpThreadAttributes, int dwStackSize, Pointer lpStartAddress, Pointer lpParameter, int dwCreationFlags, DWORDByReference lpThreadId);
+    HANDLE CreateRemoteThread(HANDLE hProcess, WinBase.SECURITY_ATTRIBUTES lpThreadAttributes, int dwStackSize, FOREIGN_THREAD_START_ROUTINE lpStartAddress, Pointer lpParameter, DWORD dwCreationFlags, Pointer lpThreadId);
 
     /**
      * Writes data to an area of memory in a specified process. The entire area
@@ -3034,27 +2685,27 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * Searches a directory for a file or subdirectory with a name that matches a specific name (or partial name if wildcards are used).
      * To specify additional attributes to use in a search, use the FindFirstFileEx function.
      * @param lpFileName
-     *                 The directory or path, and the file name. The file name can include wildcard characters,
-     *                 for example, an asterisk (*) or a question mark (?).
-     *                 This parameter should not be NULL, an invalid string (for example, an empty string or a string that is
-     *                 missing the terminating null character), or end in a trailing backslash (\).
-     *                 If the string ends with a wildcard, period, or directory name, the user must have access to the root
-     *                 and all subdirectories on the path.
-     *                 In the ANSI version of this function, the name is limited to MAX_PATH characters. To extend this
-     *                 limit to approximately 32,000 wide characters, call the Unicode version of the function (FindFirstFileExW),
-     *                 and prepend "\\?\" to the path. For more information, see Naming a File.
-     *                 <b>Tip</b> Starting in Windows 10, version 1607, for the unicode version of this function (FindFirstFileExW),
-     *                 you can opt-in to remove the MAX_PATH character limitation without prepending "\\?\".
-     *                 See the "Maximum Path Limitation" section of Naming Files, Paths, and Namespaces for details.
+     * 				The directory or path, and the file name. The file name can include wildcard characters,
+     * 				for example, an asterisk (*) or a question mark (?).
+     * 				This parameter should not be NULL, an invalid string (for example, an empty string or a string that is
+     * 				missing the terminating null character), or end in a trailing backslash (\).
+     * 				If the string ends with a wildcard, period, or directory name, the user must have access to the root
+     * 				and all subdirectories on the path.
+     * 				In the ANSI version of this function, the name is limited to MAX_PATH characters. To extend this
+     * 				limit to approximately 32,000 wide characters, call the Unicode version of the function (FindFirstFileExW),
+     * 				and prepend "\\?\" to the path. For more information, see Naming a File.
+     * 				<b>Tip</b> Starting in Windows 10, version 1607, for the unicode version of this function (FindFirstFileExW),
+     * 				you can opt-in to remove the MAX_PATH character limitation without prepending "\\?\".
+     * 				See the "Maximum Path Limitation" section of Naming Files, Paths, and Namespaces for details.
      * @param lpFindFileData
-     *                 A pointer to the buffer that receives the file data. The pointer type is determined by the level of
-     *                 information that is specified in the fInfoLevelId parameter.
+     * 				A pointer to the buffer that receives the file data. The pointer type is determined by the level of
+     * 				information that is specified in the fInfoLevelId parameter.
      * @return If the function succeeds, the return value is a search handle used in a subsequent call to FindNextFile or FindClose,
-     *                 and the lpFindFileData parameter contains information about the first file or directory found.
-     *                 If the function fails or fails to locate files from the search string in the lpFileName parameter, the return
-     *                 value is INVALID_HANDLE_VALUE and the contents of lpFindFileData are indeterminate.
-     *                 To get extended error information, call the GetLastError function.
-     *                 If the function fails because no matching files can be found, the GetLastError function returns ERROR_FILE_NOT_FOUND.
+     * 				and the lpFindFileData parameter contains information about the first file or directory found.
+     * 				If the function fails or fails to locate files from the search string in the lpFileName parameter, the return
+     * 				value is INVALID_HANDLE_VALUE and the contents of lpFindFileData are indeterminate.
+     * 				To get extended error information, call the GetLastError function.
+     * 				If the function fails because no matching files can be found, the GetLastError function returns ERROR_FILE_NOT_FOUND.
      */
     HANDLE FindFirstFile(String lpFileName, Pointer lpFindFileData);
 
@@ -3062,55 +2713,55 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * Searches a directory for a file or subdirectory with a name and attributes that match those specified. For the most basic
      * version of this function, see FindFirstFile.
      * @param lpFileName
-     *                 The directory or path, and the file name. The file name can include wildcard characters,
-     *                 for example, an asterisk (*) or a question mark (?).
-     *                 This parameter should not be NULL, an invalid string (for example, an empty string or a string that is
-     *                 missing the terminating null character), or end in a trailing backslash (\).
-     *                 If the string ends with a wildcard, period, or directory name, the user must have access to the root
-     *                 and all subdirectories on the path.
-     *                 In the ANSI version of this function, the name is limited to MAX_PATH characters. To extend this
-     *                 limit to approximately 32,000 wide characters, call the Unicode version of the function (FindFirstFileExW),
-     *                 and prepend "\\?\" to the path. For more information, see Naming a File.
-     *                 <b>Tip</b> Starting in Windows 10, version 1607, for the unicode version of this function (FindFirstFileExW),
-     *                 you can opt-in to remove the MAX_PATH character limitation without prepending "\\?\".
-     *                 See the "Maximum Path Limitation" section of Naming Files, Paths, and Namespaces for details.
+     * 				The directory or path, and the file name. The file name can include wildcard characters,
+     * 				for example, an asterisk (*) or a question mark (?).
+     * 				This parameter should not be NULL, an invalid string (for example, an empty string or a string that is
+     * 				missing the terminating null character), or end in a trailing backslash (\).
+     * 				If the string ends with a wildcard, period, or directory name, the user must have access to the root
+     * 				and all subdirectories on the path.
+     * 				In the ANSI version of this function, the name is limited to MAX_PATH characters. To extend this
+     * 				limit to approximately 32,000 wide characters, call the Unicode version of the function (FindFirstFileExW),
+     * 				and prepend "\\?\" to the path. For more information, see Naming a File.
+     * 				<b>Tip</b> Starting in Windows 10, version 1607, for the unicode version of this function (FindFirstFileExW),
+     * 				you can opt-in to remove the MAX_PATH character limitation without prepending "\\?\".
+     * 				See the "Maximum Path Limitation" section of Naming Files, Paths, and Namespaces for details.
      * @param fInfoLevelId
-     *                 The information level of the returned data. This parameter is one of the FINDEX_INFO_LEVELS enumeration values.
+     * 				The information level of the returned data. This parameter is one of the FINDEX_INFO_LEVELS enumeration values.
      * @param lpFindFileData
-     *                 A pointer to the buffer that receives the file data. The pointer type is determined by the level of
-     *                 information that is specified in the fInfoLevelId parameter.
+     * 				A pointer to the buffer that receives the file data. The pointer type is determined by the level of
+     * 				information that is specified in the fInfoLevelId parameter.
      * @param fSearchOp
-     *                 The type of filtering to perform that is different from wildcard matching. This parameter is one of
-     *                 the FINDEX_SEARCH_OPS enumeration values.
+     * 				The type of filtering to perform that is different from wildcard matching. This parameter is one of
+     * 				the FINDEX_SEARCH_OPS enumeration values.
      * @param lpSearchFilter
-     *                 A pointer to the search criteria if the specified fSearchOp needs structured search information.
-     *                 At this time, none of the supported fSearchOp values require extended search information. Therefore,
-     *                 this pointer must be NULL.
+     * 				A pointer to the search criteria if the specified fSearchOp needs structured search information.
+     * 				At this time, none of the supported fSearchOp values require extended search information. Therefore,
+     * 				this pointer must be NULL.
      * @param dwAdditionalFlags
-     *                 Specifies additional flags that control the search.
-     *                 FIND_FIRST_EX_CASE_SENSITIVE (0x01) - Searches are case-sensitive.
-     *                 FIND_FIRST_EX_LARGE_FETCH (0x02) - Uses a larger buffer for directory queries, which can increase performance
-     *                 of the find operation. <b>Windows Server 2008, Windows Vista, Windows Server 2003 and Windows XP:  This value
-     *                 is not supported until Windows Server 2008 R2 and Windows 7.</b>
+     * 				Specifies additional flags that control the search.
+     * 				FIND_FIRST_EX_CASE_SENSITIVE (0x01) - Searches are case-sensitive.
+     * 				FIND_FIRST_EX_LARGE_FETCH (0x02) - Uses a larger buffer for directory queries, which can increase performance
+     * 				of the find operation. <b>Windows Server 2008, Windows Vista, Windows Server 2003 and Windows XP:  This value
+     * 				is not supported until Windows Server 2008 R2 and Windows 7.</b>
      * @return If the function succeeds, the return value is a search handle used in a subsequent call to FindNextFile or FindClose,
-     *                 and the lpFindFileData parameter contains information about the first file or directory found.
-     *                 If the function fails or fails to locate files from the search string in the lpFileName parameter, the return
-     *                 value is INVALID_HANDLE_VALUE and the contents of lpFindFileData are indeterminate.
-     *                 To get extended error information, call the GetLastError function.
-     *                 If the function fails because no matching files can be found, the GetLastError function returns ERROR_FILE_NOT_FOUND.
+     * 				and the lpFindFileData parameter contains information about the first file or directory found.
+     * 				If the function fails or fails to locate files from the search string in the lpFileName parameter, the return
+     * 				value is INVALID_HANDLE_VALUE and the contents of lpFindFileData are indeterminate.
+     * 				To get extended error information, call the GetLastError function.
+     * 				If the function fails because no matching files can be found, the GetLastError function returns ERROR_FILE_NOT_FOUND.
      */
     HANDLE FindFirstFileEx(String lpFileName, int fInfoLevelId, Pointer lpFindFileData, int fSearchOp, Pointer lpSearchFilter, DWORD dwAdditionalFlags);
 
     /**
      * Continues a file search from a previous call to the FindFirstFile, FindFirstFileEx, or FindFirstFileTransacted functions.
      * @param hFindFile
-     *                 The search handle returned by a previous call to the FindFirstFile or FindFirstFileEx function.
+     * 				The search handle returned by a previous call to the FindFirstFile or FindFirstFileEx function.
      * @param lpFindFileData
-     *                 A pointer to the WIN32_FIND_DATA structure that receives information about the found file or subdirectory.
+     * 				A pointer to the WIN32_FIND_DATA structure that receives information about the found file or subdirectory.
      * @return If the function succeeds, the return value is nonzero and the lpFindFileData parameter contains
-     *                 information about the next file or directory found. If the function fails, the return value is zero and the
-     *                 contents of lpFindFileData are indeterminate. To get extended error information, call the GetLastError function.
-     *                 If the function fails because no more matching files can be found, the GetLastError function returns ERROR_NO_MORE_FILES.
+     * 				information about the next file or directory found. If the function fails, the return value is zero and the
+     * 				contents of lpFindFileData are indeterminate. To get extended error information, call the GetLastError function.
+     * 				If the function fails because no more matching files can be found, the GetLastError function returns ERROR_NO_MORE_FILES.
      */
     boolean FindNextFile(HANDLE hFindFile, Pointer lpFindFileData);
 
@@ -3118,9 +2769,9 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * Closes a file search handle opened by the FindFirstFile, FindFirstFileEx, FindFirstFileNameW, FindFirstFileNameTransactedW,
      * FindFirstFileTransacted, FindFirstStreamTransactedW, or FindFirstStreamW functions.
      * @param hFindFile
-     *             The file search handle.
+     * 			The file search handle.
      * @return If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
-     *             To get extended error information, call GetLastError.
+     * 			To get extended error information, call GetLastError.
      */
     boolean FindClose(HANDLE hFindFile);
 
@@ -3850,19 +3501,19 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      *         not contain module information.
      */
     boolean Module32NextW(HANDLE hSnapshot, Tlhelp32.MODULEENTRY32W lpme);
-
+    
     /**
      * Controls whether the system will handle the specified types of serious
      * errors or whether the process will handle them.
      * @see <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx">MSDN</a>
-     *
+     * 
      * @param umode
      *            The process error mode.
      * @return The return value is the previous state of the error-mode bit
      *         flags.
      */
     int SetErrorMode(int umode);
-
+    
     /**
      * Retrieves the address of an exported function or variable from the
      * specified dynamic-link library (DLL).
@@ -3883,7 +3534,7 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * @return address of the exported function
      */
     Pointer GetProcAddress(HMODULE hmodule, int ordinal) throws LastErrorException;
-
+    
     /**
      * Enables an application to inform the system that it is in use, thereby
      * preventing the system from entering sleep or turning off the display
@@ -3891,7 +3542,7 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      *
      * @param esFlags The thread's execution requirements. This parameter can be
      *                one or more of the following values (ORed together)
-     *
+     * 
      * <ul>
      * <li>{@link com.sun.jna.platform.win32.WinBase#ES_AWAYMODE_REQUIRED}</li>
      * <li>{@link com.sun.jna.platform.win32.WinBase#ES_CONTINUOUS}</li>
@@ -3906,620 +3557,4 @@ public interface Kernel32 extends StdCallLibrary, WinNT, Wincon {
      * If the function fails, the return value is 0</p>
      */
     int SetThreadExecutionState(int esFlags);
-
-    /**
-     * Expands environment-variable strings and replaces them with the values
-     * defined for the current user.
-     *
-     * @param lpSrc A buffer that contains one or more environment-variable
-     *              strings in the form: %variableName%. For each such
-     *              reference, the %variableName% portion is replaced with the
-     *              current value of that environment variable.
-     *
-     *              <p>Case is ignored when looking up the environment-variable
-     *              name. If the name is not found, the %variableName% portion
-     *              is left unexpanded.</p>
-     *
-     *              <p>Note that this function does not support all the features
-     *              that Cmd.exe supports. For example, it does not support
-     *              %variableName:str1=str2% or %variableName:~offset,length%.</p>
-     *
-     * @param lpDst A pointer to a buffer that receives the result of expanding
-     *              the environment variable strings in the lpSrc buffer. Note
-     *              that this buffer cannot be the same as the lpSrc buffer.
-     *
-     * @param nSize The maximum number of characters that can be stored in the
-     *              buffer pointed to by the lpDst parameter. When using ANSI
-     *              strings, the buffer size should be the string length, plus
-     *              terminating null character, plus one. When using Unicode
-     *              strings, the buffer size should be the string length plus
-     *              the terminating null character.
-     *
-     * @return If the function succeeds, the return value is the number of
-     *         TCHARs stored in the destination buffer, including the
-     *         terminating null character. If the destination buffer is too
-     *         small to hold the expanded string, the return value is the
-     *         required buffer size, in characters.
-     *
-     * <p>If the function fails, the return value is zero. To get extended error
-     * information, call GetLastError.</p>
-     */
-    int ExpandEnvironmentStrings(String lpSrc, Pointer lpDst, int nSize);
-
-    /**
-     * Retrieves timing information for the specified process.
-     *
-     * @param hProcess
-     *            A handle to the process whose timing information is sought.
-     *            The handle must have the PROCESS_QUERY_INFORMATION or
-     *            PROCESS_QUERY_LIMITED_INFORMATION access right.
-     * @param lpCreationTime
-     *            A pointer to a FILETIME structure that receives the creation
-     *            time of the process.
-     * @param lpExitTime
-     *            A pointer to a FILETIME structure that receives the exit time
-     *            of the process. If the process has not exited, the content of
-     *            this structure is undefined.
-     * @param lpKernelTime
-     *            A pointer to a FILETIME structure that receives the amount of
-     *            time that the process has executed in kernel mode. The time
-     *            that each of the threads of the process has executed in kernel
-     *            mode is determined, and then all of those times are summed
-     *            together to obtain this value.
-     * @param lpUserTime
-     *            A pointer to a FILETIME structure that receives the amount of
-     *            time that the process has executed in user mode. The time that
-     *            each of the threads of the process has executed in user mode
-     *            is determined, and then all of those times are summed together
-     *            to obtain this value. Note that this value can exceed the
-     *            amount of real time elapsed (between lpCreationTime and
-     *            lpExitTime) if the process executes across multiple CPU cores.
-     * @return If the function succeeds, the return value is nonzero. If the
-     *         function fails, the return value is zero. To get extended error
-     *         information, call GetLastError.
-     */
-    boolean GetProcessTimes(HANDLE hProcess, FILETIME lpCreationTime, FILETIME lpExitTime, FILETIME lpKernelTime,
-            FILETIME lpUserTime);
-
-    /**
-     * Retrieves accounting information for all I/O operations performed by the
-     * specified process.
-     *
-     * @param hProcess
-     *            A handle to the process. The handle must have the
-     *            PROCESS_QUERY_INFORMATION or PROCESS_QUERY_LIMITED_INFORMATION
-     *            access right.
-     * @param lpIoCounters
-     *            A pointer to an IO_COUNTERS structure that receives the I/O
-     *            accounting information for the process.
-     * @return If the function succeeds, the return value is nonzero. If the
-     *         function fails, the return value is zero. To get extended error
-     *         information, call GetLastError.
-     */
-    boolean GetProcessIoCounters(HANDLE hProcess, WinNT.IO_COUNTERS lpIoCounters);
-
-    /**
-     * Creates or opens a named or unnamed mutex object.
-     *
-     * @param lpMutexAttributes
-     *
-     * A pointer to a {@link WinBase.SECURITY_ATTRIBUTES} structure. If this
-     * parameter is NULL, the mutex handle cannot be inherited by child
-     * processes.
-     *
-     * <p>
-     * The lpSecurityDescriptor member of the structure specifies a security
-     * descriptor for the new mutex. If lpMutexAttributes is NULL, the mutex
-     * gets a default security descriptor. The ACLs in the default security
-     * descriptor for a mutex come from the primary or impersonation token of
-     * the creator.</p>
-     *
-     * @param bInitialOwner
-     *
-     * If this value is TRUE and the caller created the mutex, the calling
-     * thread obtains initial ownership of the mutex object. Otherwise, the
-     * calling thread does not obtain ownership of the mutex. To determine if
-     * the caller created the mutex, see the Return Values section.
-     *
-     * @param lpName
-     *
-     * The name of the mutex object. The name is limited to
-     * {@link WinDef#MAX_PATH} characters. Name comparison is case sensitive.
-     *
-     * <p>
-     * If lpName matches the name of an existing named mutex object, this
-     * function requests the {@link WinBase#MUTEX_ALL_ACCESS} access right. In
-     * this case, the bInitialOwner parameter is ignored because it has already
-     * been set by the creating process. If the lpMutexAttributes parameter is
-     * not NULL, it determines whether the handle can be inherited, but its
-     * security-descriptor member is ignored.</p>
-     *
-     * <p>
-     * If lpName is NULL, the mutex object is created without a name.</p>
-     *
-     * <p>
-     * If lpName matches the name of an existing event, semaphore, waitable
-     * timer, job, or file-mapping object, the function fails and the
-     * {@link com.sun.jna.Native#getLastError()} function returns
-     * {@link WinError#ERROR_INVALID_HANDLE}. This occurs because these objects
-     * share the same namespace.</p>
-     *
-     * <p>
-     * The name can have a "Global\" or "Local\" prefix to explicitly create the
-     * object in the global or session namespace. The remainder of the name can
-     * contain any character except the backslash character (\).</p>
-     *
-     * @return
-     *
-     * If the function succeeds, the return value is a handle to the newly
-     * created mutex object.
-     *
-     * <p>
-     * If the function fails, the return value is NULL. To get extended error
-     * information, call {@link com.sun.jna.Native#getLastError()}.</p>
-     *
-     * <p>If the mutex is a named mutex and the object existed before this function
-     * call, the return value is a handle to the existing object,
-     * {@link com.sun.jna.Native#getLastError()} returns
-     * {@link WinError#ERROR_ALREADY_EXISTS}, bInitialOwner is ignored, and the
-     * calling thread is not granted ownership. However, if the caller has
-     * limited access rights, the function will fail with
-     * {@link WinError#ERROR_ACCESS_DENIED} and the caller should use the
-     * {@link #OpenMutex} function.</p>
-     */
-    HANDLE CreateMutex(SECURITY_ATTRIBUTES lpMutexAttributes,
-            boolean bInitialOwner,
-            String lpName);
-
-    /**
-     * Opens an existing named mutex object.
-     *
-     * @param dwDesiredAccess
-     *
-     * The access to the mutex object. Only the {@link WinNT#SYNCHRONIZE} access
-     * right is required to use a mutex; to change the mutex's security, specify
-     * {@link WinBase#MUTEX_ALL_ACCESS}.
-     *
-     * @param bInheritHandle
-     *
-     * If this value is TRUE, processes created by this process will inherit the
-     * handle. Otherwise, the processes do not inherit this handle.
-     *
-     * @param lpName
-     *
-     * The name of the mutex to be opened. Name comparisons are case sensitive.
-     *
-     * <p>
-     * This function can open objects in a private namespace.</p>
-     *
-     * <p>
-     * Terminal Services: The name can have a "Global\" or "Local\" prefix to
-     * explicitly open an object in the global or session namespace. The
-     * remainder of the name can contain any character except the backslash
-     * character (\).</p>
-     *
-     * @return
-     *
-     * If the function succeeds, the return value is a handle to the mutex object.
-     *
-     * <p>If the function fails, the return value is NULL. To get extended error
-     * information, call {@link com.sun.jna.Native#getLastError()}.</p>
-     *
-     * <p>If a named mutex does not exist, the function fails and
-     * {@link com.sun.jna.Native#getLastError()} returns
-     * ERROR_FILE_NOT_FOUND.</p>
-     */
-    HANDLE OpenMutex(int dwDesiredAccess,
-            boolean bInheritHandle,
-            String lpName);
-
-    /**
-     * Releases ownership of the specified mutex object.
-     *
-     * @param handle
-     *
-     * A handle to the mutex object. The CreateMutex or OpenMutex function
-     * returns this handle.
-     *
-     * @return
-     *
-     * If the function succeeds, the return value is nonzero.
-     *
-     * <p>If the function fails, the return value is zero. To get extended error
-     * information, call {@link com.sun.jna.Native#getLastError()}.</p>
-     */
-    boolean ReleaseMutex(HANDLE handle);
-
-    /**
-     * Ends the calling process (this process) and all its threads.
-     *
-     * From Java, this will will cause the process to terminate without
-     * execution of any shutdown hooks
-     */
-    void ExitProcess(int exitCode);
-
-    /**
-     * Reserves, commits, or changes the state of a region of memory within the
-     * virtual address space of a specified process. The function initializes
-     * the memory it allocates to zero.
-     *
-     * @param hProcess         The handle to a process. The function allocates
-     *                         memory within the virtual address space of this
-     *                         process.
-     *
-     * <p>The handle must have the PROCESS_VM_OPERATION access right.</p>
-     * @param lpAddress        The pointer that specifies a desired starting
-     *                         address for the region of pages that you want to
-     *                         allocate.
-     *
-     * <p>
-     * If you are reserving memory, the function rounds this address down to the
-     * nearest multiple of the allocation granularity.</p>
-     *
-     * <p>
-     * If you are committing memory that is already reserved, the function
-     * rounds this address down to the nearest page boundary. To determine the
-     * size of a page and the allocation granularity on the host computer, use
-     * the {@link #GetSystemInfo} function.</p>
-     *
-     * <p>
-     * If lpAddress is {@code NULL}, the function determines where to allocate
-     * the region.</p>
-     *
-     * <p>
-     * If this address is within an enclave that you have not initialized by
-     * calling InitializeEnclave, VirtualAllocEx allocates a page of zeros for
-     * the enclave at that address. The page must be previously uncommitted, and
-     * will not be measured with the EEXTEND instruction of the Intel Software
-     * Guard Extensions programming model.</p>
-     *
-     * <p>
-     * If the address in within an enclave that you initialized, then the
-     * allocation operation fails with the ERROR_INVALID_ADDRESS error.</p>
-     * @param dwSize           The size of the region of memory to allocate, in
-     *                         bytes.
-     *
-     * <p>
-     * If lpAddress is NULL, the function rounds dwSize up to the next page
-     * boundary.</p>
-     *
-     * <p>
-     * If lpAddress is not {@code NULL}, the function allocates all pages that
-     * contain one or more bytes in the range from lpAddress to
-     * lpAddress+dwSize. This means, for example, that a 2-byte range that
-     * straddles a page boundary causes the function to allocate both pages.</p>
-     * @param flAllocationType The type of memory allocation. This parameter
-     *                         must contain one of the following values.
-     *
-     * <ul>
-     * <li>{@link WinNT#MEM_COMMIT}</li>
-     * <li>{@link WinNT#MEM_RESERVE}</li>
-     * <li>{@link WinNT#MEM_RESET}</li>
-     * <li>{@link WinNT#MEM_RESET_UNDO}</li>
-     * </ul>
-     *
-     * <p>
-     * This parameter can also specify the following values as indicated.</p>
-     *
-     * <ul>
-     * <li>{@link WinNT#MEM_LARGE_PAGES}</li>
-     * <li>{@link WinNT#MEM_PHYSICAL}</li>
-     * <li>{@link WinNT#MEM_TOP_DOWN}</li>
-     * </ul>
-     *
-     * @param flProtect        The memory protection for the region of pages to
-     *                         be allocated. If the pages are being committed,
-     *                         you can specify any one of the memory protection
-     *                         constants.
-     * @return If the function succeeds, the return value is the base address of
-     *         the allocated region of pages.
-     * <p>
-     * If the function fails, the return value is NULL. To get extended error
-     * information, call GetLastError.</p>
-     */
-    Pointer VirtualAllocEx(HANDLE hProcess, Pointer lpAddress, SIZE_T dwSize,
-            int flAllocationType, int flProtect);
-
-    /**
-     * Retrieves the termination status of the specified thread.
-     *
-     * @param hThread  A handle to the thread.
-     * <p>
-     * The handle must have the THREAD_QUERY_INFORMATION or
-     * THREAD_QUERY_LIMITED_INFORMATION access right.</p>
-     * <p>
-     * <strong>Windows Server 2003 and Windows XP:</strong> The handle must have the
-     * THREAD_QUERY_INFORMATION access right.</p>
-     * @param exitCode A pointer to a variable to receive the thread termination
-     *                 status. For more information, see Remarks.
-     * @return If the function succeeds, the return value is nonzero.
-     *
-     * <p>If the function fails, the return value is zero.</p>
-     */
-    boolean GetExitCodeThread(HANDLE hThread, IntByReference exitCode);
-
-    /**
-     * Gets the priority class of the specified process.
-     *
-     * @param hProcess A handle to the process.
-     * @return If the function succeeds, the return value is the priority class of
-     *                  the specified process.
-     * <p>If the function fails, the return value is zero.</p>
-     */
-    DWORD GetPriorityClass(HANDLE hProcess);
-
-    /**
-     * Sets the priority class for the specified process.
-     *
-     * @param hProcess A handle to the process.
-     * @param dwPriorityClass The priority class for the process.
-     * @return If the function succeeds, the return value is nonzero.
-     */
-    boolean SetPriorityClass(HANDLE hProcess, DWORD dwPriorityClass);
-
-    /**
-     * Gets the priority value of the specified thread.
-     *
-     * @param hProcess A handle to the process.
-     * @return If the function succeeds, the return value is the priority class of
-     *                  the specified thread.
-     * <p>If the function fails, the return value is
-     *                  THREAD_PRIORITY_ERROR_RETURN.</p>
-     */
-    int GetThreadPriority(HANDLE hProcess);
-
-    /**
-     * Sets the priority value for the specified thread.
-     *
-     * @param hThread A handle to the thread whose priority value is to be set.
-     * @param nPriority The priority value for the thread.
-     * @return If the function succeeds, the return value is nonzero.
-     */
-    boolean SetThreadPriority(HANDLE hThread, int nPriority);
-
-    /**
-     * Releases, decommits, or releases and decommits a region of memory within
-     * the virtual address space of a specified process.
-     *
-     * @param hProcess   A handle to a process. The function frees memory within
-     *                   the virtual address space of the process.
-     * <p>
-     * The handle must have the PROCESS_VM_OPERATION access right.</p>
-     * @param lpAddress  A pointer to the starting address of the region of
-     *                   memory to be freed.
-     * <p>
-     * If the dwFreeType parameter is MEM_RELEASE, lpAddress must be the base
-     * address returned by the VirtualAllocEx function when the region is
-     * reserved.</p>
-     * @param dwSize     The size of the region of memory to free, in bytes.
-     *
-     * <p>
-     * If the dwFreeType parameter is MEM_RELEASE, dwSize must be 0 (zero). The
-     * function frees the entire region that is reserved in the initial
-     * allocation call to VirtualAllocEx.</p>
-     *
-     * <p>
-     * If dwFreeType is MEM_DECOMMIT, the function decommits all memory pages
-     * that contain one or more bytes in the range from the lpAddress parameter
-     * to (lpAddress+dwSize). This means, for example, that a 2-byte region of
-     * memory that straddles a page boundary causes both pages to be
-     * decommitted. If lpAddress is the base address returned by VirtualAllocEx
-     * and dwSize is 0 (zero), the function decommits the entire region that is
-     * allocated by VirtualAllocEx. After that, the entire region is in the
-     * reserved state.</p>
-     * @param dwFreeType One of the following values:
-     * <ul>
-     * <li>{@link WinNT#MEM_COALESCE_PLACEHOLDERS}</li>
-     * <li>{@link WinNT#MEM_PRESERVE_PLACEHOLDER}</li>
-     * <li>{@link WinNT#MEM_DECOMMIT}</li>
-     * <li>{@link WinNT#MEM_RELEASE}</li>
-     * </ul>
-     *
-     * @return If the function succeeds, the return value is a nonzero value.
-     *
-     * <p>
-     * If the function fails, the return value is 0 (zero). To get extended
-     * error information, call GetLastError.</p>
-     */
-    boolean VirtualFreeEx( HANDLE hProcess, Pointer lpAddress, SIZE_T dwSize, int dwFreeType);
-
-    /**
-     * Registers the active instance of an application for restart.
-     *
-     * <p><strong>Usage Note</strong></p>
-     *
-     * <p>The registered callback is only invoked if the default error handling
-     * of the JVM does not intercept first. It was tested with OpenJDK and
-     * it was found, that the error handling of the JVM had to be disabled by
-     * running the process with "-XX:+UseOSErrorReporting".</p>
-     *
-     * @param pwzCommandline A pointer to a Unicode string that specifies the
-     *                       command-line arguments for the application when it
-     *                       is restarted. The maximum size of the command line
-     *                       that you can specify is RESTART_MAX_CMD_LINE
-     *                       characters. Do not include the name of the
-     *                       executable in the command line; this function adds
-     *                       it for you.
-     *
-     * <p>If this parameter is NULL or an empty string, the previously registered
-     * command line is removed. If the argument contains spaces, use quotes
-     * around the argument.</p>
-     *
-     * @param dwFlags        This parameter can be 0 or one or more of the
-     *                       following values.
-     *
-     * <table>
-     * <tr>
-     * <th>Value</th><th>Meaning</th>
-     * </tr>
-     * <tr><td>RESTART_NO_CRASH (1)</td><td>Do not restart the process if it terminates due to an unhandled exception.</td></tr>
-     * <tr><td>RESTART_NO_HANG (2)</td><td>Do not restart the process if it terminates due to the application not responding.</td></tr>
-     * <tr><td>RESTART_NO_PATCH (4)</td><td>Do not restart the process if it terminates due to the installation of an update.</td></tr>
-     * <tr><td>RESTART_NO_REBOOT (8)</td><td>Do not restart the process if the computer is restarted as the result of an update. </td></tr>
-     * </table>
-     *
-     * @return This function returns S_OK on success or one of the following
-     *         error codes.
-     * <table>
-     * <tr><th>Return code</th><th>Description</th></tr>
-     * <tr><td>E_FAIL</td><td>Internal error.</td></tr>
-     * <tr><td>E_INVALIDARG</td><td>The specified command line is too
-     * long.</td></tr>
-     * </table>
-     *
-     * @see <A HREF="https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-registerapplicationrestart">MSDN Entry</A>
-     */
-    HRESULT RegisterApplicationRestart(char[] pwzCommandline, int dwFlags);
-
-    /**
-     * Removes the active instance of an application from the restart list.
-     *
-     * @return This function returns S_OK on success or one of the following
-     *         error codes.
-     * <table>
-     * <tr><th>Return code</th><th>Description</th></tr>
-     * <tr><td>E_FAIL</td><td>Internal error.</td></tr>
-     * </table>
-     *
-     * @see <A HREF="https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-unregisterapplicationrestart">MSDN Entry</A>
-     */
-    HRESULT UnregisterApplicationRestart();
-
-    /**
-     * Retrieves the restart information registered for the specified process.
-     *
-     * @param hProcess       A handle to the process. This handle must have the
-     *                       PROCESS_VM_READ access right.
-     * @param pwzCommandline A pointer to a buffer that receives the restart
-     *                       command line specified by the application when it
-     *                       called the RegisterApplicationRestart function. The
-     *                       maximum size of the command line, in characters, is
-     *                       RESTART_MAX_CMD_LINE. Can be NULL if pcchSize is
-     *                       zero.
-     * @param pcchSize       On input, specifies the size of the pwzCommandLine
-     *                       buffer, in characters.
-     *
-     * <p>
-     * If the buffer is not large enough to receive the command line, the
-     * function fails with HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER) and
-     * sets this parameter to the required buffer size, in characters.</p>
-     * <p>
-     * On output, specifies the size of the buffer that was used.</p>
-     * <p>
-     * To determine the required buffer size, set pwzCommandLine to NULL and
-     * this parameter to zero. The size includes one for the null-terminator
-     * character. Note that the function returns S_OK, not
-     * HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER) in this case.</p>
-     *
-     * @param pdwFlags       A pointer to a variable that receives the flags
-     *                       specified by the application when it called the
-     *                       RegisterApplicationRestart function.
-     *
-     * @return This function returns S_OK on success or one of the following
-     *         error codes.
-     * <table>
-     * <tr><th>Return code</th><th>Description</th></tr>
-     * <tr><td>E_INVALIDARG</th><th>One or more parameters are not
-     * valid.</td></tr>
-     * <tr><td>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</th><th>The application did
-     * not register for restart.</td></tr>
-     * <tr><td>HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER)</th><th>The
-     * pwzCommandLine buffer is too small. The function returns the required
-     * buffer size in pcchSize. Use the required size to reallocate the
-     * buffer.</td></tr>
-     * </table>
-     *
-     * @see <A HREF="https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getapplicationrestartsettings">MSDN Entry</A>
-     */
-    HRESULT GetApplicationRestartSettings(HANDLE hProcess, char[] pwzCommandline, IntByReference pcchSize, IntByReference pdwFlags);
-
-    /**
-     * Locks the specified region of the process's virtual address space into
-     * physical memory, ensuring that subsequent access to the region will not
-     * incur a page fault.
-     *
-     * @param lpAddress A pointer to the base address of the region of pages to
-     *                  be locked.
-     * @param dwSize    The size of the region to be locked, in bytes. The
-     *                  region of affected pages includes all pages that contain
-     *                  one or more bytes in the range from the lpAddress
-     *                  parameter to (lpAddress+dwSize). This means that a
-     *                  2-byte range straddling a page boundary causes both
-     *                  pages to be locked.
-     *
-     * @return {@code true} if locking succeeded.
-     *
-     * <p>
-     * All pages in the specified region must be committed. Memory protected
-     * with {@code PAGE_NOACCESS} cannot be locked.
-     * </p>
-     * <p>
-     * Locking pages into memory may degrade the performance of the system by
-     * reducing the available RAM and forcing the system to swap out other
-     * critical pages to the paging file. Each version of Windows has a limit on
-     * the maximum number of pages a process can lock. This limit is
-     * intentionally small to avoid severe performance degradation. Applications
-     * that need to lock larger numbers of pages must first call the
-     * SetProcessWorkingSetSize function to increase their minimum and maximum
-     * working set sizes. The maximum number of pages that a process can lock is
-     * equal to the number of pages in its minimum working set minus a small
-     * overhead.
-     * </p>
-     * <p>
-     * Pages that a process has locked remain in physical memory until the
-     * process unlocks them or terminates. These pages are guaranteed not to be
-     * written to the pagefile while they are locked.
-     * </p>
-     * <p>
-     * To unlock a region of locked pages, use the VirtualUnlock function.
-     * Locked pages are automatically unlocked when the process terminates.
-     * </p>
-     * <p>
-     * This function is not like the GlobalLock or LocalLock function in that it
-     * does not increment a lock count and translate a handle into a pointer.
-     * There is no lock count for virtual pages, so multiple calls to the
-     * VirtualUnlock function are never required to unlock a region of pages.
-     * </p>
-     */
-    boolean VirtualLock(Pointer lpAddress, SIZE_T dwSize);
-
-    /**
-     * Unlocks a specified range of pages in the virtual address space of a
-     * process, enabling the system to swap the pages out to the paging file if
-     * necessary.
-     *
-     * @param lpAddress A pointer to the base address of the region of pages to
-     *                  be unlocked.
-     * @param dwSize    The size of the region being unlocked, in bytes. The
-     *                  region of affected pages includes all pages containing
-     *                  one or more bytes in the range from the lpAddress
-     *                  parameter to (lpAddress+dwSize). This means that a
-     *                  2-byte range straddling a page boundary causes both
-     *                  pages to be unlocked.
-     *
-     * @return {@code true} if unlocking succeeded.
-     *
-     * <p>
-     * For the function to succeed, the range specified need not match a range
-     * passed to a previous call to the VirtualLock function, but all pages in
-     * the range must be locked. If any of the pages in the specified range are
-     * not locked, VirtualUnlock removes such pages from the working set, sets
-     * last error to ERROR_NOT_LOCKED, and returns FALSE.
-     * </p>
-     * <p>
-     * Calling VirtualUnlock on a range of memory that is not locked releases
-     * the pages from the process's working set.
-     * </p>
-     */
-    boolean VirtualUnlock(Pointer lpAddress, SIZE_T dwSize);
-
-    /**
-     * Determines whether the specified processor feature is supported by the current computer.
-     *
-     * @param ProcessorFeature The processor feature to be tested.
-     * @return If the feature is supported, the return value is true. If the feature is not supported, the return value
-     *         is false. If the HAL does not support detection of the feature, whether or not the hardware supports the
-     *         feature, the return value is also false.
-     */
-    boolean IsProcessorFeaturePresent(int ProcessorFeature);
 }

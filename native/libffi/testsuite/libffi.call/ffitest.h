@@ -5,9 +5,6 @@
 #include <ffi.h>
 #include "fficonfig.h"
 
-#include <float.h>
-#include <math.h>
-
 #if defined HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -18,29 +15,7 @@
 
 #define MAX_ARGS 256
 
-#define CHECK(x) \
-   do { \
-      if(!(x)){ \
-         printf("Check failed:\n%s\n", #x); \
-         abort(); \
-      } \
-   } while(0)
-
-#define CHECK_FLOAT_EQ(x, y) \
-   do { \
-      if(fabs((x) - (y)) > FLT_EPSILON){ \
-         printf("Check failed CHECK_FLOAT_EQ(%s, %s)\n", #x, #y); \
-         abort(); \
-      } \
-   } while(0)
-
-#define CHECK_DOUBLE_EQ(x, y) \
-   do { \
-      if(fabs((x) - (y)) > DBL_EPSILON){ \
-         printf("Check failed CHECK_FLOAT_EQ(%s, %s)\n", #x, #y); \
-         abort(); \
-      } \
-   } while(0)
+#define CHECK(x) (void)(!(x) ? (abort(), 1) : 0)
 
 /* Define macros so that compilers other than gcc can run the tests.  */
 #undef __UNUSED__
@@ -49,7 +24,6 @@
 #define __STDCALL__ __attribute__((stdcall))
 #define __THISCALL__ __attribute__((thiscall))
 #define __FASTCALL__ __attribute__((fastcall))
-#define __MSABI__ __attribute__((ms_abi))
 #else
 #define __UNUSED__
 #define __STDCALL__ __stdcall
@@ -88,8 +62,8 @@
 
 #endif
 
-/* msvc kludge.  */
-#if defined(_MSC_VER)
+/* MinGW kludge.  */
+#ifdef _WIN64
 #define PRIdLL "I64d"
 #define PRIuLL "I64u"
 #else
@@ -149,13 +123,11 @@
 
 /* MSVC kludge.  */
 #if defined _MSC_VER
-#if !defined(__cplusplus) || defined(__STDC_FORMAT_MACROS)
 #define PRIuPTR "lu"
 #define PRIu8 "u"
 #define PRId8 "d"
 #define PRIu64 "I64u"
 #define PRId64 "I64d"
-#endif
 #endif
 
 #ifndef PRIuPTR
